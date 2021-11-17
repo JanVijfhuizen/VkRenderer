@@ -18,7 +18,6 @@ namespace vi
 		};
 
 		[[nodiscard]] static VkInstance Construct(const Info& info);
-		static void Cleanup(VkInstance instance);
 
 	private:
 		[[nodiscard]] static VkApplicationInfo CreateApplicationInfo(const Info& info);

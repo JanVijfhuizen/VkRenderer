@@ -24,11 +24,6 @@ namespace vi
 		return instance;
 	}
 
-	void InstanceFactory::Cleanup(const VkInstance instance)
-	{
-		vkDestroyInstance(instance, nullptr);
-	}
-
 	VkApplicationInfo InstanceFactory::CreateApplicationInfo(const Info& info)
 	{
 		const auto& windowInfo = info.windowHandler->GetVkInfo();

@@ -18,7 +18,7 @@ namespace vi
 
 		bool _resized = false;
 
-		void CreateSurface(VkInstance instance, VkSurfaceKHR& surface) override;
+		[[nodiscard]] VkSurfaceKHR CreateSurface(VkInstance instance) override;
 		const VkInfo& GetVkInfo() const override;
 		void GetRequiredExtensions(std::vector<const char*>& extensions) override;
 

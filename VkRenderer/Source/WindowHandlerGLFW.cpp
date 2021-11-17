@@ -38,10 +38,12 @@ namespace vi
 		}
 	}
 
-	void WindowHandlerGLFW::CreateSurface(const VkInstance instance, VkSurfaceKHR& surface)
+	VkSurfaceKHR WindowHandlerGLFW::CreateSurface(const VkInstance instance)
 	{
+		VkSurfaceKHR surface;
 		const auto result = glfwCreateWindowSurface(instance, _window, nullptr, &surface);
 		assert(!result);
+		return surface;
 	}
 
 	const WindowHandler::VkInfo& WindowHandlerGLFW::GetVkInfo() const
