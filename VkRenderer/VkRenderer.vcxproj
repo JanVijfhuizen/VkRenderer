@@ -20,8 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\VkRenderer\pch.h" />
+    <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
+    <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
+    <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\WindowHandlerGLFW.cpp" />
+    <ClCompile Include="Source\WindowHandler.cpp" />
+    <ClCompile Include="Source\VkRenderer.cpp" />
     <ClCompile Include="Source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
