@@ -33,7 +33,7 @@ namespace vi
 
 		void SetRenderPass(VkRenderPass renderPass);
 		void BeginFrame();
-		void EndFrame();
+		void EndFrame(bool& shouldRecreateAssets);
 
 		[[nodiscard]] VkFormat GetFormat() const;
 		[[nodiscard]] VkExtent2D GetExtent() const;
