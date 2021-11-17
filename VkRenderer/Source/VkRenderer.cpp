@@ -6,15 +6,15 @@
 
 namespace vi
 {
-	VkRenderer::VkRenderer(const Settings& settings) : _windowHandler(settings.windowHandler), _settings(settings)
+	VkRenderer::VkRenderer(const Settings& settings) : _windowHandler(settings.windowHandler)
 	{
 		Debugger::Info info;
-		info.settings = _settings.debugger;
+		info.settings = settings.debugger;
 		info.instance = &_instance;
 		_debugger = new Debugger(info);
 
 		InstanceFactory::Info instanceInfo;
-		instanceInfo.settings = _settings.instance;
+		instanceInfo.settings = settings.instance;
 		instanceInfo.debugger = _debugger;
 		instanceInfo.windowHandler = _windowHandler;
 		_instance = InstanceFactory::Construct(instanceInfo);
@@ -24,6 +24,9 @@ namespace vi
 		_surface = _windowHandler->CreateSurface(_instance);
 
 		PhysicalDeviceFactory::Info physicalDeviceInfo;
+		physicalDeviceInfo.instance = _instance;
+		physicalDeviceInfo.surface = _surface;
+		physicalDeviceInfo.deviceExtensions = settings.deviceExtensions;
 		_physicalDevice = PhysicalDeviceFactory::Construct(physicalDeviceInfo);
 	}
 

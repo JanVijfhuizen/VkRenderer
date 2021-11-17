@@ -29,8 +29,6 @@ namespace vi
 		class WindowHandler* _windowHandler;
 		class Debugger* _debugger = nullptr;
 
-		Settings _settings;
-
 		VkInstance _instance;
 		VkSurfaceKHR _surface;
 		VkPhysicalDevice _physicalDevice;
