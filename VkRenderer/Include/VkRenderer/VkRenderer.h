@@ -44,6 +44,11 @@ namespace vi
 			uint32_t imageViewCount, VkRenderPass renderPass, VkExtent2D extent) const;
 		void DestroyFrameBuffer(VkFramebuffer frameBuffer) const;
 
+		void BeginRenderPass(VkFramebuffer frameBuffer, VkRenderPass renderPass, 
+			glm::ivec2 offset, glm::ivec2 extent,
+			VkClearValue* clearColors, uint32_t clearColorsCount) const;
+		void EndRenderPass() const;
+
 		[[nodiscard]] VkCommandBuffer CreateCommandBuffer() const;
 		void BeginCommandBufferRecording(VkCommandBuffer commandBuffer);
 		void EndCommandBufferRecording() const;
