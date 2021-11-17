@@ -16,7 +16,8 @@ namespace vi
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 		createInfo.ppEnabledExtensionNames = extensions.data();
 
-		info.debugger->EnableValidationLayers(createInfo);
+		auto validationCreateInfo = info.debugger->CreateInfo();
+		info.debugger->EnableValidationLayers(validationCreateInfo, createInfo);
 
 		VkInstance instance;
 		const auto result = vkCreateInstance(&createInfo, nullptr, &instance);

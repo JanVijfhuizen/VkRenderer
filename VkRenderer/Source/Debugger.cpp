@@ -1,21 +1,32 @@
 ﻿#include "pch.h"
 #include "Debugger.h"
-#include <utility>
 
 namespace vi
 {
-	Debugger::Debugger(Info info) : _info(std::move(info))
+	Debugger::Debugger(const Info& info) : _info(info)
 	{
+		#ifdef NDEBUG
+		return;
+		#endif
+
 		CheckValidationSupport();
 	}
 
 	Debugger::~Debugger()
 	{
+		#ifdef NDEBUG
+		return;
+		#endif
+
 		DestroyDebugUtilsMessengerEXT(*_info.instance, _debugMessenger, nullptr);
 	}
 
 	void Debugger::CreateDebugMessenger()
 	{
+		#ifdef NDEBUG
+		return;
+		#endif
+
 		auto createInfo = CreateInfo();
 		const auto result = CreateDebugUtilsMessengerEXT(*_info.instance, &createInfo, nullptr, &_debugMessenger);
 		assert(!result);
@@ -36,6 +47,10 @@ namespace vi
 
 	void Debugger::CheckValidationSupport() const
 	{
+		#ifdef NDEBUG
+		return;
+		#endif
+
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -57,9 +72,13 @@ namespace vi
 		}
 	}
 
-	void Debugger::EnableValidationLayers(VkInstanceCreateInfo& instanceInfo) const
+	void Debugger::EnableValidationLayers(VkDebugUtilsMessengerCreateInfoEXT& debugInfo, VkInstanceCreateInfo& instanceInfo) const
 	{
-		auto debugInfo = CreateInfo();
+		#ifdef NDEBUG
+		instanceInfo.enabledLayerCount = 0;
+		return;
+		#endif
+
 		auto& validationLayers = _info.settings.validationLayers;
 		instanceInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 		instanceInfo.ppEnabledLayerNames = validationLayers.data();

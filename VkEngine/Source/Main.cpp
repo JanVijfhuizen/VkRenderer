@@ -1,9 +1,15 @@
 #include "pch.h"
 #include "VkRenderer/WindowHandlerGLFW.h"
+#include "VkRenderer/VkRenderer.h"
 
 int main()
 {
-	const vi::WindowHandlerGLFW windowHandler;
+	vi::WindowHandlerGLFW windowHandler;
+
+	vi::VkRenderer::Settings settings;
+	settings.windowHandler = &windowHandler;
+	settings.debugger.validationLayers.push_back("VK_LAYER_RENDERDOC_Capture");
+	vi::VkRenderer renderer{settings};
 
 	while (true)
 	{

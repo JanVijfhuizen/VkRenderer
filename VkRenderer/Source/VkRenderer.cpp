@@ -6,23 +6,20 @@
 
 namespace vi
 {
-	VkRenderer::VkRenderer(const Settings& settings) : _windowHandler(settings.windowHandler)
+	VkRenderer::VkRenderer(const Settings& settings) : _windowHandler(settings.windowHandler), _settings(settings)
 	{
-		#ifdef _DEBUG
 		Debugger::Info info;
-		info.settings = settings.debugger;
+		info.settings = _settings.debugger;
 		info.instance = &_instance;
 		_debugger = new Debugger(info);
-		#endif
 
 		InstanceFactory::Info instanceInfo;
-		instanceInfo.settings = settings.instance;
+		instanceInfo.settings = _settings.instance;
 		instanceInfo.debugger = _debugger;
+		instanceInfo.windowHandler = _windowHandler;
 		_instance = InstanceFactory::Construct(instanceInfo);
 
-		#ifdef _DEBUG
 		_debugger->CreateDebugMessenger();
-		#endif
 
 		_surface = _windowHandler->CreateSurface(_instance);
 

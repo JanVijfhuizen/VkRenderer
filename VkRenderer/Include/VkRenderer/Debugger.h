@@ -19,17 +19,16 @@ namespace vi
 			VkInstance* instance;
 		};
 
-		explicit Debugger(Info info);
+		explicit Debugger(const Info& info);
 		~Debugger();
 
-		void EnableValidationLayers(VkInstanceCreateInfo& instanceInfo) const;
+		[[nodiscard]] static VkDebugUtilsMessengerCreateInfoEXT CreateInfo();
+		void EnableValidationLayers(VkDebugUtilsMessengerCreateInfoEXT& debugInfo, VkInstanceCreateInfo& instanceInfo) const;
 		void CreateDebugMessenger();
 
 	private:
 		VkDebugUtilsMessengerEXT _debugMessenger;
 		Info _info;
-
-		[[nodiscard]] static VkDebugUtilsMessengerCreateInfoEXT CreateInfo();
 
 		void CheckValidationSupport() const;
 

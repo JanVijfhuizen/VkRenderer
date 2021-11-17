@@ -20,7 +20,7 @@ namespace vi
 			};
 		};
 
-		explicit VkRenderer(const Settings& settings = {});
+		explicit VkRenderer(const Settings& settings);
 		~VkRenderer();
 
 		void DeviceWaitIdle() const;
@@ -28,6 +28,8 @@ namespace vi
 	private:
 		class WindowHandler* _windowHandler;
 		class Debugger* _debugger = nullptr;
+
+		Settings _settings;
 
 		VkInstance _instance;
 		VkSurfaceKHR _surface;
