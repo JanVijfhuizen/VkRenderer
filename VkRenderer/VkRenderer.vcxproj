@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\VkRenderer\LogicalDeviceFactory.h" />
+    <ClInclude Include="Include\VkRenderer\Queues.h" />
     <ClInclude Include="Include\VkRenderer\SwapChain.h" />
     <ClInclude Include="Include\VkRenderer\PhysicalDeviceFactory.h" />
     <ClInclude Include="Include\VkRenderer\InstanceFactory.h" />
@@ -29,6 +31,7 @@
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\LogicalDeviceFactory.cpp" />
     <ClCompile Include="Source\SwapChain.cpp" />
     <ClCompile Include="Source\PhysicalDeviceFactory.cpp" />
     <ClCompile Include="Source\InstanceFactory.cpp" />

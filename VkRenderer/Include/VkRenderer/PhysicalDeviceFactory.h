@@ -40,10 +40,9 @@ namespace vi
 		};
 
 		[[nodiscard]] static VkPhysicalDevice Construct(const Info& info);
-
-	private:
 		[[nodiscard]] static QueueFamilies GetQueueFamilies(const VkSurfaceKHR& surface, VkPhysicalDevice physicalDevice);
 
+	private:
 		[[nodiscard]] static bool IsDeviceSuitable(const Info& info, const DeviceInfo& deviceInfo);
 		[[nodiscard]] static uint32_t RateDevice(const DeviceInfo& deviceInfo);
 		[[nodiscard]] static bool CheckDeviceExtensionSupport(VkPhysicalDevice device,
