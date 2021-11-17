@@ -35,5 +35,6 @@ namespace vi
 		VkPhysicalDevice _physicalDevice;
 		VkDevice _device;
 		Queues _queues;
+		VkCommandPool _commandPool;
 	};
 }

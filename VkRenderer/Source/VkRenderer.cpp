@@ -39,15 +39,26 @@ namespace vi
 		const auto outLogicalDeviceFactory = LogicalDeviceFactory::Construct(logicalDeviceInfo);
 		_device = outLogicalDeviceFactory.device;
 		_queues = outLogicalDeviceFactory.queues;
+
+		const auto families = PhysicalDeviceFactory::GetQueueFamilies(_surface, _physicalDevice);
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.queueFamilyIndex = families.graphics;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+		const auto result = vkCreateCommandPool(_device, &poolInfo, nullptr, &_commandPool);
+		assert(!result);
 	}
 
 	VkRenderer::~VkRenderer()
 	{
 		DeviceWaitIdle();
 
-		delete _debugger;
+		vkDestroyCommandPool(_device, _commandPool, nullptr);
 		vkDestroyDevice(_device, nullptr);
 		vkDestroySurfaceKHR(_instance, _surface, nullptr);
+		delete _debugger;
 		vkDestroyInstance(_instance, nullptr);
 	}
 
