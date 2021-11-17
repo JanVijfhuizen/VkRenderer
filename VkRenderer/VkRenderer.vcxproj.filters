@@ -27,6 +27,12 @@
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\VkRenderer\Debugger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\VkRenderer\InstanceFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\pch.cpp">
@@ -39,6 +45,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\WindowHandlerGLFW.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Debugger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\InstanceFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

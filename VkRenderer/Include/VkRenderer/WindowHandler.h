@@ -5,6 +5,7 @@ namespace vi
 	class WindowHandler
 	{
 		friend class VkRenderer;
+		friend class InstanceFactory;
 
 	public:
 		struct VkInfo final
@@ -13,10 +14,11 @@ namespace vi
 			std::string name{ "My Window" };
 		};
 
+		[[nodiscard]] virtual bool QueryHasResized() = 0;
+
 	protected:
 		virtual void CreateSurface(VkInstance instance, VkSurfaceKHR& surface) = 0;
 		[[nodiscard]] virtual const VkInfo& GetVkInfo() const = 0;
-		[[nodiscard]] virtual bool QueryHasResized() = 0;
 		virtual void GetRequiredExtensions(std::vector<const char*>& extensions) = 0;
 	};
 }
