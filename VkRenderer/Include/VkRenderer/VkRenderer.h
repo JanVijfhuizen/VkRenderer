@@ -57,7 +57,7 @@ namespace vi
 			uint32_t imageViewCount, VkRenderPass renderPass, VkExtent2D extent) const;
 		void DestroyFrameBuffer(VkFramebuffer frameBuffer) const;
 
-		[[nodiscard]] SwapChain& RecreateSwapChain();
+		[[nodiscard]] SwapChain& GetSwapChain();
 
 		void BeginRenderPass(VkFramebuffer frameBuffer, VkRenderPass renderPass, 
 			glm::ivec2 offset, glm::ivec2 extent,

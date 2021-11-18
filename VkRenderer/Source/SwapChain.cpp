@@ -117,7 +117,6 @@ namespace vi
 		WaitForImage();
 
 		auto& renderer = _info.renderer;
-		auto& frame = _frames[_frameIndex];
 		auto& image = _images[_imageIndex];
 
 		renderer->BeginCommandBufferRecording(image.commandBuffer);

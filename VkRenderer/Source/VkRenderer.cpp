@@ -285,19 +285,21 @@ namespace vi
 		vkDestroyFramebuffer(_device, frameBuffer, nullptr);
 	}
 
-	SwapChain& VkRenderer::RecreateSwapChain()
+	SwapChain& VkRenderer::GetSwapChain()
 	{
-		delete _swapChain;
-
-		SwapChain::Info info{};
-		info.surface = _surface;
-		info.physicalDevice = _physicalDevice;
-		info.device = _device;
-		info.queues = _queues;
-		info.commandPool = _commandPool;
-		info.windowHandler = _windowHandler;
-		info.renderer = this;
-		_swapChain = new SwapChain(info);
+		if (!_swapChain)
+		{
+			SwapChain::Info info{};
+			info.surface = _surface;
+			info.physicalDevice = _physicalDevice;
+			info.device = _device;
+			info.queues = _queues;
+			info.commandPool = _commandPool;
+			info.windowHandler = _windowHandler;
+			info.renderer = this;
+			_swapChain = new SwapChain(info);
+		}
+		
 		return *_swapChain;
 	}
 

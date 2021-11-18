@@ -11,7 +11,7 @@ int main()
 		settings.windowHandler = &windowHandler;
 		settings.debugger.validationLayers.push_back("VK_LAYER_RENDERDOC_Capture");
 		vi::VkRenderer renderer{ settings };
-		auto& swapChain = renderer.RecreateSwapChain();
+		auto& swapChain = renderer.GetSwapChain();
 
 		while (true)
 		{
