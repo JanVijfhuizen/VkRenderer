@@ -48,13 +48,13 @@ namespace vi
 		createInfo.ppEnabledLayerNames = validationLayers.data();
 		#endif
 
-		Out out;
+		Out out{};
 
-		VkDevice& device = out.device;
+		auto& device = out.device;
 		const auto result = vkCreateDevice(info.physicalDevice, &createInfo, nullptr, &device);
 		assert(!result);
 
-		Queues queues = out.queues;
+		auto& queues = out.queues;
 		uint32_t i = 0;
 		for (const auto& family : queueFamilies.values)
 		{
