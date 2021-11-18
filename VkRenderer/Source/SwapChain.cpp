@@ -81,7 +81,8 @@ namespace vi
 		const auto renderer = _info.renderer;
 
 		for (auto& fence : _imagesInFlight)
-			renderer->WaitForFence(fence);
+			if(fence)
+				renderer->WaitForFence(fence);
 		renderer->DeviceWaitIdle();
 
 		auto& device = _info.device;
@@ -209,7 +210,7 @@ namespace vi
 
 	void SwapChain::CreateImages()
 	{
-		auto renderer = _info.renderer;
+		const auto renderer = _info.renderer;
 		uint32_t count = _images.size();
 
 		std::vector<VkImage> vkImages{};
@@ -227,7 +228,7 @@ namespace vi
 
 	void SwapChain::CreateSyncObjects()
 	{
-		auto renderer = _info.renderer;
+		const auto renderer = _info.renderer;
 
 		for (auto& frame : _frames)
 		{
