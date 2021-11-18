@@ -3,20 +3,12 @@
 
 namespace vi
 {
+	class VkRenderer;
+
 	class SwapChain final
 	{
 	public:
-		struct Info final
-		{
-			VkSurfaceKHR surface;
-			VkPhysicalDevice physicalDevice;
-			VkDevice device;
-			Queues queues;
-			VkCommandPool commandPool;
-
-			class WindowHandler* windowHandler;
-			class VkRenderer* renderer;
-		};
+		friend VkRenderer;
 
 		struct SupportDetails final
 		{
@@ -27,9 +19,6 @@ namespace vi
 			[[nodiscard]] explicit operator bool() const;
 			[[nodiscard]] uint32_t GetRecommendedImageCount() const;
 		};
-
-		explicit SwapChain(const Info& info);
-		~SwapChain();
 
 		void SetRenderPass(VkRenderPass renderPass);
 		void BeginFrame();
@@ -44,6 +33,18 @@ namespace vi
 
 	private:
 		#define _MAX_FRAMES_IN_FLIGHT 2
+
+		struct Info final
+		{
+			VkSurfaceKHR surface;
+			VkPhysicalDevice physicalDevice;
+			VkDevice device;
+			Queues queues;
+			VkCommandPool commandPool;
+
+			class WindowHandler* windowHandler;
+			VkRenderer* renderer;
+		};
 
 		struct Image final
 		{
@@ -85,6 +86,9 @@ namespace vi
 		VkRenderPass _renderPass;
 		uint32_t _frameIndex = 0;
 		uint32_t _imageIndex;
+
+		explicit SwapChain(const Info& info);
+		~SwapChain();
 
 		void CreateImages();
 		void CreateSyncObjects();

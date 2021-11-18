@@ -78,7 +78,7 @@ namespace vi
 
 	SwapChain::~SwapChain()
 	{
-		auto renderer = _info.renderer;
+		const auto renderer = _info.renderer;
 
 		for (auto& fence : _imagesInFlight)
 			renderer->WaitForFence(fence);
@@ -301,7 +301,7 @@ namespace vi
 
 	void SwapChain::WaitForImage()
 	{
-		auto renderer = _info.renderer;
+		const auto renderer = _info.renderer;
 		auto& frame = _frames[_frameIndex];
 
 		renderer->WaitForFence(frame.inFlightFence);

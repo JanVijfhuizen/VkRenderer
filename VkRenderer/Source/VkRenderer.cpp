@@ -4,6 +4,7 @@
 #include "WindowHandler.h"
 #include "PhysicalDeviceFactory.h"
 #include "LogicalDeviceFactory.h"
+#include "SwapChain.h"
 
 namespace vi
 {
@@ -54,12 +55,17 @@ namespace vi
 	VkRenderer::~VkRenderer()
 	{
 		DeviceWaitIdle();
-
+		delete _swapChain;
 		vkDestroyCommandPool(_device, _commandPool, nullptr);
 		vkDestroyDevice(_device, nullptr);
 		vkDestroySurfaceKHR(_instance, _surface, nullptr);
 		delete _debugger;
 		vkDestroyInstance(_instance, nullptr);
+	}
+
+	void VkRenderer::Draw(const uint32_t indexCount) const
+	{
+		vkCmdDrawIndexed(_currentCommandBuffer, indexCount, 1, 0, 0, 0);
 	}
 
 	void VkRenderer::Submit(VkCommandBuffer* buffers, 
@@ -89,6 +95,35 @@ namespace vi
 		assert(!result);
 	}
 
+	void VkRenderer::BindVertexBuffer(const VkBuffer buffer) const
+	{
+		VkDeviceSize offset = 0;
+		vkCmdBindVertexBuffers(_currentCommandBuffer, 0, 1, &buffer, &offset);
+	}
+
+	void VkRenderer::BindIndicesBuffer(const VkBuffer buffer) const
+	{
+		vkCmdBindIndexBuffer(_currentCommandBuffer, buffer, 0, VK_INDEX_TYPE_UINT16);
+	}
+
+	VkShaderModule VkRenderer::CreateShaderModule(const std::vector<char>& data) const
+	{
+		VkShaderModuleCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize = data.size();
+		createInfo.pCode = reinterpret_cast<const uint32_t*>(data.data());
+
+		VkShaderModule vkModule;
+		const auto result = vkCreateShaderModule(_device, &createInfo, nullptr, &vkModule);
+		assert(!result);
+		return vkModule;
+	}
+
+	void VkRenderer::DestroyShaderModule(const VkShaderModule module) const
+	{
+		vkDestroyShaderModule(_device, module, nullptr);
+	}
+
 	VkImage VkRenderer::CreateImage(
 		const glm::ivec2 resolution, 
 		const VkFormat format, 
@@ -114,6 +149,46 @@ namespace vi
 		const auto result = vkCreateImage(_device, &imageInfo, nullptr, &image);
 		assert(!result);
 		return image;
+	}
+
+	void VkRenderer::TransitionImageLayout(const VkImage image, 
+		const VkImageLayout oldLayout, const VkImageLayout newLayout) const
+	{
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		VkPipelineStageFlags srcStage = 0;
+		VkPipelineStageFlags dstStage = 0;
+
+		if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		{
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+			const auto format = GetDepthBufferFormat();
+			if (format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT)
+				barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+
+		GetLayoutMasks(oldLayout, barrier.srcAccessMask, srcStage);
+		GetLayoutMasks(newLayout, barrier.dstAccessMask, dstStage);
+
+		vkCmdPipelineBarrier(_currentCommandBuffer,
+			srcStage, dstStage,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
 	}
 
 	void VkRenderer::DestroyImage(const VkImage image) const
@@ -153,6 +228,40 @@ namespace vi
 		vkDestroyImageView(_device, imageView, nullptr);
 	}
 
+	VkSampler VkRenderer::CreateSampler(const VkFilter magFilter, const VkFilter minFilter) const
+	{
+		VkPhysicalDeviceProperties properties{};
+		vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
+
+		VkSamplerCreateInfo samplerInfo{};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = magFilter;
+		samplerInfo.minFilter = minFilter;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.minLod = 0.0f;
+		samplerInfo.maxLod = 0.0f;
+
+		VkSampler sampler;
+		const auto result = vkCreateSampler(_device, &samplerInfo, nullptr, &sampler);
+		assert(!result);
+		return sampler;
+	}
+
+	void VkRenderer::DestroySampler(const VkSampler sampler) const
+	{
+		vkDestroySampler(_device, sampler, nullptr);
+	}
+
 	VkFramebuffer VkRenderer::CreateFrameBuffer(const VkImageView* imageViews, const uint32_t imageViewCount,
 		const VkRenderPass renderPass, const VkExtent2D extent) const
 	{
@@ -174,6 +283,22 @@ namespace vi
 	void VkRenderer::DestroyFrameBuffer(const VkFramebuffer frameBuffer) const
 	{
 		vkDestroyFramebuffer(_device, frameBuffer, nullptr);
+	}
+
+	SwapChain& VkRenderer::RecreateSwapChain()
+	{
+		delete _swapChain;
+
+		SwapChain::Info info{};
+		info.surface = _surface;
+		info.physicalDevice = _physicalDevice;
+		info.device = _device;
+		info.queues = _queues;
+		info.commandPool = _commandPool;
+		info.windowHandler = _windowHandler;
+		info.renderer = this;
+		_swapChain = new SwapChain(info);
+		return *_swapChain;
 	}
 
 	void VkRenderer::BeginRenderPass(const VkFramebuffer frameBuffer, 
@@ -278,5 +403,170 @@ namespace vi
 	void VkRenderer::DestroyFence(const VkFence fence) const
 	{
 		vkDestroyFence(_device, fence, nullptr);
+	}
+
+	VkBuffer VkRenderer::CreateBuffer(const VkDeviceSize size, const VkBufferUsageFlags flags) const
+	{
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = size;
+		bufferInfo.usage = flags;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		VkBuffer vertexBuffer;
+		const auto result = vkCreateBuffer(_device, &bufferInfo, nullptr, &vertexBuffer);
+		assert(!result);
+		return vertexBuffer;
+	}
+
+	void VkRenderer::CopyBuffer(const VkBuffer srcBuffer, const VkBuffer dstBuffer, 
+		const VkDeviceSize size, const VkDeviceSize srcOffset, const VkDeviceSize dstOffset) const
+	{
+		VkBufferCopy region{};
+		region.srcOffset = srcOffset;
+		region.dstOffset = dstOffset;
+		region.size = size;
+		vkCmdCopyBuffer(_currentCommandBuffer, srcBuffer, dstBuffer, 1, &region);
+	}
+
+	void VkRenderer::CopyBuffer(const VkBuffer srcBuffer, const VkImage dstImage, 
+		const uint32_t width, const uint32_t height) const
+	{
+		VkBufferImageCopy region{};
+		region.bufferOffset = 0;
+		region.bufferRowLength = 0;
+		region.bufferImageHeight = 0;
+		region.imageOffset = { 0, 0, 0 };
+		region.imageExtent =
+		{
+			width,
+			height,
+			1
+		};
+
+		auto& subResource = region.imageSubresource;
+		subResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subResource.mipLevel = 0;
+		subResource.baseArrayLayer = 0;
+		subResource.layerCount = 1;
+
+		vkCmdCopyBufferToImage(_currentCommandBuffer, srcBuffer, dstImage,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	}
+
+	void VkRenderer::DestroyBuffer(const VkBuffer buffer) const
+	{
+		vkDestroyBuffer(_device, buffer, nullptr);
+	}
+
+	VkDeviceMemory VkRenderer::AllocateMemory(const VkImage image, const VkMemoryPropertyFlags flags) const
+	{
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(_device, image, &memRequirements);
+		return AllocateMemory(memRequirements, flags);
+	}
+
+	VkDeviceMemory VkRenderer::AllocateMemory(const VkBuffer buffer, const VkMemoryPropertyFlags flags) const
+	{
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(_device, buffer, &memRequirements);
+		return AllocateMemory(memRequirements, flags);
+	}
+
+	VkDeviceMemory VkRenderer::AllocateMemory(const VkMemoryRequirements memRequirements, const VkMemoryPropertyFlags flags) const
+	{
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, flags);
+
+		VkDeviceMemory memory;
+		const auto result = vkAllocateMemory(_device, &allocInfo, nullptr, &memory);
+		assert(!result);
+		return memory;
+	}
+
+	void VkRenderer::BindMemory(const VkImage image, const VkDeviceMemory memory, const VkDeviceSize offset) const
+	{
+		vkBindImageMemory(_device, image, memory, offset);
+	}
+
+	void VkRenderer::BindMemory(const VkBuffer buffer, const VkDeviceMemory memory, const VkDeviceSize offset) const
+	{
+		vkBindBufferMemory(_device, buffer, memory, offset);
+	}
+
+	void VkRenderer::FreeMemory(VkDeviceMemory memory) const
+	{
+		vkFreeMemory(_device, memory, nullptr);
+	}
+
+	VkFormat VkRenderer::FindSupportedFormat(const std::vector<VkFormat>& candidates, 
+		const VkImageTiling tiling, const VkFormatFeatureFlags features) const
+	{
+		for (VkFormat format : candidates)
+		{
+			VkFormatProperties props;
+			vkGetPhysicalDeviceFormatProperties(_physicalDevice, format, &props);
+
+			if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+				return format;
+			if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+				return format;
+		}
+
+		throw std::exception("Format not available!");
+	}
+
+	uint32_t VkRenderer::FindMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags properties) const
+	{
+		VkPhysicalDeviceMemoryProperties memProperties;
+		vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &memProperties);
+
+		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+			if (typeFilter & 1 << i)
+			{
+				const bool requiredPropertiesPresent = (memProperties.memoryTypes[i].propertyFlags & properties) == properties;
+				if (!requiredPropertiesPresent)
+					continue;
+
+				return i;
+			}
+
+		throw std::exception("Memory type not available!");
+	}
+
+	void VkRenderer::GetLayoutMasks(const VkImageLayout layout, 
+		VkAccessFlags& outAccessFlags, VkPipelineStageFlags& outPipelineStageFlags)
+	{
+		switch (layout)
+		{
+		case VK_IMAGE_LAYOUT_UNDEFINED:
+			outAccessFlags = 0;
+			outPipelineStageFlags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			break;
+		case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+			outAccessFlags = VK_ACCESS_TRANSFER_WRITE_BIT;
+			outPipelineStageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			break;
+		case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+			outAccessFlags = VK_ACCESS_SHADER_READ_BIT;
+			outPipelineStageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			break;
+		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+			outAccessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			outPipelineStageFlags = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			break;
+		default:
+			throw std::exception("Layout transition not supported!");
+		}
+	}
+
+	VkFormat VkRenderer::GetDepthBufferFormat() const
+	{
+		return FindSupportedFormat(
+			{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+			VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+		);
 	}
 }

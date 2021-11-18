@@ -5,6 +5,7 @@ namespace vi
 	class WindowHandler
 	{
 		friend class VkRenderer;
+		friend class InstanceFactory;
 
 	public:
 		struct VkInfo final
