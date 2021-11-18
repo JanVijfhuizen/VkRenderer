@@ -23,6 +23,17 @@ namespace vi
 			};
 		};
 
+		struct RenderPassInfo final
+		{
+			bool useColorAttachment = true;
+			VkAttachmentLoadOp colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			VkImageLayout colorInitialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			VkImageLayout colorFinalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+			bool useDepthAttachment = true;
+			VkAttachmentStoreOp depthStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		};
+
 		explicit VkRenderer(const Settings& settings);
 		~VkRenderer();
 
@@ -59,10 +70,12 @@ namespace vi
 
 		[[nodiscard]] SwapChain& GetSwapChain();
 
+		[[nodiscard]] VkRenderPass CreateRenderPass(const RenderPassInfo& info = {}) const;
 		void BeginRenderPass(VkFramebuffer frameBuffer, VkRenderPass renderPass, 
 			glm::ivec2 offset, glm::ivec2 extent,
 			VkClearValue* clearColors, uint32_t clearColorsCount) const;
 		void EndRenderPass() const;
+		void DestroyRenderPass(VkRenderPass renderPass) const;
 
 		[[nodiscard]] VkCommandBuffer CreateCommandBuffer() const;
 		void BeginCommandBufferRecording(VkCommandBuffer commandBuffer);
@@ -103,6 +116,7 @@ namespace vi
 		class WindowHandler* _windowHandler;
 		Debugger* _debugger = nullptr;
 		SwapChain* _swapChain = nullptr;
+		VkRenderPass _defaultSwapChainRenderPass;
 
 		VkInstance _instance;
 		VkSurfaceKHR _surface;

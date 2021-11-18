@@ -84,6 +84,7 @@ namespace vi
 		std::vector<VkFence> _imagesInFlight{};
 
 		VkRenderPass _renderPass;
+		
 		uint32_t _frameIndex = 0;
 		uint32_t _imageIndex;
 

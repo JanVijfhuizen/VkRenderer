@@ -83,7 +83,6 @@ namespace vi
 		for (auto& fence : _imagesInFlight)
 			if(fence)
 				renderer->WaitForFence(fence);
-		renderer->DeviceWaitIdle();
 
 		auto& device = _info.device;
 
