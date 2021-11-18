@@ -15,10 +15,10 @@ namespace vi
 		};
 
 		[[nodiscard]] virtual bool QueryHasResized() = 0;
+		[[nodiscard]] virtual const VkInfo& GetVkInfo() const = 0;
 
 	protected:
 		virtual VkSurfaceKHR CreateSurface(VkInstance instance) = 0;
-		[[nodiscard]] virtual const VkInfo& GetVkInfo() const = 0;
 		virtual void GetRequiredExtensions(std::vector<const char*>& extensions) = 0;
 	};
 }
