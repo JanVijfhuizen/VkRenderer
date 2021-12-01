@@ -179,6 +179,11 @@ namespace vi
 		return _imageIndex;
 	}
 
+	VkRenderPass SwapChain::GetRenderPass() const
+	{
+		return _renderPass;
+	}
+
 	SwapChain::SupportDetails SwapChain::QuerySwapChainSupport(const VkSurfaceKHR surface, const VkPhysicalDevice device)
 	{
 		SupportDetails details{};
