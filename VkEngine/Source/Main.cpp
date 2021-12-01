@@ -1,33 +1,19 @@
 #include "pch.h"
-#include "VkRenderer/WindowHandlerGLFW.h"
-#include "VkRenderer/VkRenderer.h"
-#include "VkRenderer/SwapChain.h"
+#include "RenderSystem.h"
 
 int main()
 {
 	{
-		vi::WindowHandlerGLFW windowHandler;
-
-		vi::VkRenderer::Settings settings;
-		settings.windowHandler = &windowHandler;
-		settings.debugger.validationLayers.push_back("VK_LAYER_RENDERDOC_Capture");
-		vi::VkRenderer renderer{ settings };
-		auto& swapChain = renderer.GetSwapChain();
+		RenderSystem renderSystem;
 
 		while (true)
 		{
 			bool quit;
-			windowHandler.BeginFrame(quit);
-			
+			renderSystem.BeginFrame(quit);	
 			if (quit)
 				break;
 
-			swapChain.BeginFrame();
-
-			// Do stuff.
-
-			bool shouldRecreateAssets;
-			swapChain.EndFrame(shouldRecreateAssets);
+			renderSystem.EndFrame();
 		}
 	}
 
