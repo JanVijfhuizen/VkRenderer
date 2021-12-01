@@ -45,7 +45,43 @@ namespace vi
 				VkShaderStageFlagBits flag;
 			};
 
-			std::vector<Binding> bindings;
+			std::vector<Binding> bindings{};
+		};
+
+		struct PipelineInfo final
+		{
+			struct Module final
+			{
+				VkShaderModule module;
+				VkShaderStageFlagBits flags;
+			};
+
+			struct PushConstant final
+			{
+				size_t size;
+				VkShaderStageFlags flag;
+			};
+
+			VkRenderPass renderPass;
+			std::vector<Module> modules{};
+			std::vector<VkDescriptorSetLayout> setLayouts{};
+			std::vector<PushConstant> pushConstants{};
+
+			VkVertexInputBindingDescription bindingDescription;
+			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+
+			VkPrimitiveTopology primitiveTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+			VkBool32 primitiveRestartEnable = VK_FALSE;
+			VkExtent2D extent;
+			VkBool32 depthClampEnable = VK_FALSE;
+			VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL;
+			float lineWidth = 1;
+			VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT;
+			VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+			bool depthBufferEnabled = true;
+
+			VkPipeline basePipeline = VK_NULL_HANDLE;
+			int32_t basePipelineIndex = -1;
 		};
 
 		explicit VkRenderer(const Settings& settings);
@@ -64,6 +100,9 @@ namespace vi
 		[[nodiscard]] VkDescriptorPool CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, uint32_t count) const;
 		void CreateDescriptorSets(VkDescriptorPool pool, VkDescriptorSetLayout layout, uint32_t setCount, VkDescriptorSet* outSets) const;
 		void DestroyDescriptorPool(VkDescriptorPool pool) const;
+
+		void CreatePipeline(const PipelineInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout);
+		void DestroyPipeline(VkPipeline pipeline, VkPipelineLayout layout) const;
 
 		[[nodiscard]] VkShaderModule CreateShaderModule(const std::vector<char>& data) const;
 		void DestroyShaderModule(VkShaderModule module) const;
