@@ -35,6 +35,19 @@ namespace vi
 			VkAttachmentStoreOp depthStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		};
 
+		struct LayoutInfo final
+		{
+			struct Binding final
+			{
+				VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				size_t size = sizeof(int32_t);
+				uint32_t count = 1;
+				VkShaderStageFlagBits flag;
+			};
+
+			std::vector<Binding> bindings;
+		};
+
 		explicit VkRenderer(const Settings& settings);
 		~VkRenderer();
 
@@ -45,8 +58,12 @@ namespace vi
 			VkFence fence = VK_NULL_HANDLE) const;
 		void DeviceWaitIdle() const;
 
-		void BindVertexBuffer(VkBuffer buffer) const;
-		void BindIndicesBuffer(VkBuffer buffer) const;
+		[[nodiscard]] VkDescriptorSetLayout CreateLayout(const LayoutInfo& info) const;
+		void DestroyLayout(VkDescriptorSetLayout layout) const;
+
+		[[nodiscard]] VkDescriptorPool CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, uint32_t count) const;
+		void CreateDescriptorSets(VkDescriptorPool pool, VkDescriptorSetLayout layout, uint32_t setCount, VkDescriptorSet* outSets) const;
+		void DestroyDescriptorPool(VkDescriptorPool pool) const;
 
 		[[nodiscard]] VkShaderModule CreateShaderModule(const std::vector<char>& data) const;
 		void DestroyShaderModule(VkShaderModule module) const;
@@ -63,13 +80,12 @@ namespace vi
 		void DestroyImageView(VkImageView imageView) const;
 
 		[[nodiscard]] VkSampler CreateSampler(VkFilter magFilter = VK_FILTER_LINEAR, VkFilter minFilter = VK_FILTER_LINEAR) const;
+		void BindSampler(VkDescriptorSet set, VkImageView imageView, VkImageLayout layout, VkSampler sampler, uint32_t bindingIndex, uint32_t arrayIndex) const;
 		void DestroySampler(VkSampler sampler) const;
 
 		[[nodiscard]] VkFramebuffer CreateFrameBuffer(const VkImageView* imageViews, 
 			uint32_t imageViewCount, VkRenderPass renderPass, VkExtent2D extent) const;
 		void DestroyFrameBuffer(VkFramebuffer frameBuffer) const;
-
-		[[nodiscard]] SwapChain& GetSwapChain();
 
 		[[nodiscard]] VkRenderPass CreateRenderPass(const RenderPassInfo& info = {}) const;
 		void BeginRenderPass(VkFramebuffer frameBuffer, VkRenderPass renderPass, 
@@ -91,6 +107,9 @@ namespace vi
 		void DestroyFence(VkFence fence) const;
 
 		[[nodiscard]] VkBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags flags) const;
+		void BindVertexBuffer(VkBuffer buffer) const;
+		void BindIndicesBuffer(VkBuffer buffer) const;
+		void BindBuffer(VkDescriptorSet set, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range, uint32_t bindingIndex, uint32_t arrayIndex) const;
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset = 0, VkDeviceSize dstOffset = 0) const;
 		void CopyBuffer(VkBuffer srcBuffer, VkImage dstImage, uint32_t width, uint32_t height) const;
 		void DestroyBuffer(VkBuffer buffer) const;
@@ -98,16 +117,16 @@ namespace vi
 		[[nodiscard]] VkDeviceMemory AllocateMemory(VkImage image, VkMemoryPropertyFlags flags) const;
 		[[nodiscard]] VkDeviceMemory AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags) const;
 		[[nodiscard]] VkDeviceMemory AllocateMemory(VkMemoryRequirements memRequirements, VkMemoryPropertyFlags flags) const;
-
 		void BindMemory(VkImage image, VkDeviceMemory memory, VkDeviceSize offset = 0) const;
 		void BindMemory(VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize offset = 0) const;
-
+		template <typename T>
+		void MapMemory(VkDeviceMemory memory, T* input, VkDeviceSize offset);
 		void FreeMemory(VkDeviceMemory memory) const;
 
 		template <typename T>
-		void MapMemory(VkDeviceMemory memory, T* input, VkDeviceSize offset);
-		template <typename T>
 		void UpdatePushConstant(VkPipelineLayout layout, VkFlags flag, const T& input);
+
+		[[nodiscard]] SwapChain& GetSwapChain();
 
 		[[nodiscard]] VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates,
 			VkImageTiling tiling, VkFormatFeatureFlags features) const;

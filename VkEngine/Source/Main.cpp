@@ -14,6 +14,17 @@ int main()
 		vi::VkRenderer renderer{ settings };
 		auto& swapChain = renderer.GetSwapChain();
 
+		// Testing code.
+		vi::VkRenderer::LayoutInfo layoutInfo{};
+		const auto layout = renderer.CreateLayout(layoutInfo);
+
+		VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+		uint32_t capacities[] = { 1, 1 };
+		const auto pool = renderer.CreateDescriptorPool(uboTypes, capacities, 2);
+
+		VkDescriptorSet set;
+		renderer.CreateDescriptorSets(pool, layout, 1, &set);
+
 		while (true)
 		{
 			bool quit;
@@ -29,6 +40,10 @@ int main()
 			bool shouldRecreateAssets;
 			swapChain.EndFrame(shouldRecreateAssets);
 		}
+
+		// Cleanup testing code.
+		renderer.DestroyLayout(layout);
+		renderer.DestroyDescriptorPool(pool);
 	}
 
 	return 0;
