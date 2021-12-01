@@ -31,10 +31,13 @@ public:
 
 	[[nodiscard]] constexpr T& operator[](uint32_t index);
 
+	ArrayPtr();
 	explicit ArrayPtr(T* begin, size_t size);
 
 	[[nodiscard]] constexpr Iterator begin();
 	[[nodiscard]] Iterator end();
+
+	[[nodiscard]] constexpr size_t GetSize() const;
 
 private:
 	T* _begin;
@@ -56,6 +59,12 @@ constexpr typename ArrayPtr<T>::Iterator ArrayPtr<T>::begin()
 	it.index = 0;
 
 	return it;
+}
+
+template <typename T>
+constexpr size_t ArrayPtr<T>::GetSize() const
+{
+	return _size;
 }
 
 template <typename T>
@@ -95,6 +104,9 @@ typename ArrayPtr<T>::Iterator ArrayPtr<T>::Iterator::operator++(int)
 	++index;
 	return temp;
 }
+
+template <typename T>
+ArrayPtr<T>::ArrayPtr() = default;
 
 template <typename T>
 ArrayPtr<T>::ArrayPtr(T* begin, const size_t size) : _begin(begin), _size(size)

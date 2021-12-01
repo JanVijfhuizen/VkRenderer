@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Queues.h"
 #include "StackAllocator.h"
+#include "ArrayPtr.h"
 
 namespace vi
 {
@@ -82,11 +83,11 @@ namespace vi
 		VkFormat _format;
 		VkSwapchainKHR _swapChain;
 
-		std::vector<Frame> _frames{};
-		std::vector<Image> _images{};
-		std::vector<VkFence> _imagesInFlight{};
+		ArrayPtr<Frame> _frames;
+		ArrayPtr<Image> _images;
+		ArrayPtr<VkFence> _imagesInFlight;
 
-		VkRenderPass _renderPass;
+		VkRenderPass _renderPass = VK_NULL_HANDLE;
 		
 		uint32_t _frameIndex = 0;
 		uint32_t _imageIndex;

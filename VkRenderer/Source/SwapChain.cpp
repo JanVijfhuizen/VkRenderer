@@ -70,9 +70,11 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(info.device, &createInfo, nullptr, &_swapChain);
 		assert(!result);
 
-		_images.resize(imageCount);
-		_frames.resize(_MAX_FRAMES_IN_FLIGHT);
-		_imagesInFlight.resize(_images.size(), VK_NULL_HANDLE);
+		_images = ArrayPtr<Image>(_info.allocator->Alloc<Image>(imageCount), imageCount);
+		_frames = ArrayPtr<Frame>(_info.allocator->Alloc<Frame>(_MAX_FRAMES_IN_FLIGHT), _MAX_FRAMES_IN_FLIGHT);
+		_imagesInFlight = ArrayPtr<VkFence>(_info.allocator->Alloc<VkFence>(imageCount), imageCount);
+		for (auto& fence : _imagesInFlight)
+			fence = VK_NULL_HANDLE;
 
 		CreateImages();
 		CreateSyncObjects();
@@ -92,7 +94,6 @@ namespace vi
 
 		for (const auto& image : _images)
 			renderer->DestroyImageView(image.imageView);
-		_images.clear();
 
 		for (const auto& frame : _frames)
 		{
@@ -100,16 +101,18 @@ namespace vi
 			renderer->DestroySemaphore(frame.renderFinishedSemaphore);
 			renderer->DestroyFence(frame.inFlightFence);
 		}
-		_frames.clear();
-		_imagesInFlight.clear();
+
+		for (uint32_t i = 0; i < 3; ++i)
+			_info.allocator->Pop();
 
 		vkDestroySwapchainKHR(device, _swapChain, nullptr);
 	}
 
 	void SwapChain::SetRenderPass(const VkRenderPass renderPass)
 	{
+		if(_renderPass != VK_NULL_HANDLE)
+			CleanupBuffers();
 		_renderPass = renderPass;
-		CleanupBuffers();
 		CreateBuffers();
 	}
 
@@ -156,7 +159,7 @@ namespace vi
 		presentInfo.pImageIndices = &_imageIndex;
 
 		const auto result = vkQueuePresentKHR(_info.queues.present, &presentInfo);
-		_frameIndex = (_frameIndex + 1) % _frames.size();
+		_frameIndex = (_frameIndex + 1) % _frames.GetSize();
 
 		return result;
 	}
@@ -173,7 +176,7 @@ namespace vi
 
 	uint32_t SwapChain::GetImageCount() const
 	{
-		return _images.size();
+		return _images.GetSize();
 	}
 
 	uint32_t SwapChain::GetCurrentImageIndex() const
@@ -216,7 +219,7 @@ namespace vi
 	void SwapChain::CreateImages()
 	{
 		const auto renderer = _info.renderer;
-		uint32_t count = _images.size();
+		uint32_t count = _images.GetSize();
 
 		std::vector<VkImage> vkImages{};
 		vkImages.resize(count);
@@ -246,7 +249,7 @@ namespace vi
 	void SwapChain::CreateBuffers()
 	{
 		auto renderer = _info.renderer;
-		const uint32_t count = _images.size();
+		const uint32_t count = _images.GetSize();
 
 		std::vector<VkCommandBuffer> commandBuffers{};
 		commandBuffers.resize(count);
@@ -292,7 +295,7 @@ namespace vi
 
 	void SwapChain::CleanupBuffers()
 	{
-		auto renderer = _info.renderer;
+		const auto renderer = _info.renderer;
 
 		for (auto& image : _images)
 		{
