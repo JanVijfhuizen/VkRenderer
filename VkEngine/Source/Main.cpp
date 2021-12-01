@@ -10,7 +10,7 @@ int main()
 
 		float* f = defaultAllocator.Alloc<float>(17);
 		ArrayPtr<float> array(f, 17);
-		/*
+
 		for (auto& f : array)
 		{
 			f = 123;
@@ -20,7 +20,6 @@ int main()
 		{
 			std::cout << f << std::endl;
 		}
-		*/
 	}
 
 	{

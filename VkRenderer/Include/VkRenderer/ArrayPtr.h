@@ -34,11 +34,11 @@ public:
 	explicit ArrayPtr(T* begin, size_t size);
 
 	[[nodiscard]] constexpr Iterator begin();
-	[[nodiscard]] constexpr Iterator end();
+	[[nodiscard]] Iterator end();
 
 private:
-	const T* _begin;
-	const size_t _size;
+	T* _begin;
+	size_t _size;
 };
 
 template <typename T>
@@ -50,13 +50,23 @@ constexpr T& ArrayPtr<T>::operator[](const uint32_t index)
 template <typename T>
 constexpr typename ArrayPtr<T>::Iterator ArrayPtr<T>::begin()
 {
-	return Iterator(_begin, _size, 0);
+	Iterator it;
+	it.begin = _begin;
+	it.size = _size;
+	it.index = 0;
+
+	return it;
 }
 
 template <typename T>
-constexpr typename ArrayPtr<T>::Iterator ArrayPtr<T>::end()
+typename ArrayPtr<T>::Iterator ArrayPtr<T>::end()
 {
-	return Iterator(_begin, _size, _size);
+	Iterator it;
+	it.begin = _begin;
+	it.size = _size;
+	it.index = _size;
+
+	return it;
 }
 
 template <typename T>
