@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "VkRenderer/WindowHandlerGLFW.h"
 #include "VkRenderer/VkRenderer.h"
+#include "VkRenderer/SwapChain.h"
 
 int main()
 {
@@ -15,10 +16,18 @@ int main()
 
 		while (true)
 		{
-			bool quit = false;
+			bool quit;
 			windowHandler.BeginFrame(quit);
+			
 			if (quit)
 				break;
+
+			swapChain.BeginFrame();
+
+			// Do stuff.
+
+			bool shouldRecreateAssets;
+			swapChain.EndFrame(shouldRecreateAssets);
 		}
 	}
 

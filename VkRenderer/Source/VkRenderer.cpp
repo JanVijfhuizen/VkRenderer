@@ -55,6 +55,7 @@ namespace vi
 	VkRenderer::~VkRenderer()
 	{
 		DeviceWaitIdle();
+		DestroyRenderPass(_defaultSwapChainRenderPass);
 		delete _swapChain;
 		vkDestroyCommandPool(_device, _commandPool, nullptr);
 		vkDestroyDevice(_device, nullptr);
@@ -93,6 +94,91 @@ namespace vi
 	{
 		const auto result = vkDeviceWaitIdle(_device);
 		assert(!result);
+	}
+
+	VkRenderPass VkRenderer::CreateRenderPass(const RenderPassInfo& info) const
+	{
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkAttachmentReference depthAttachmentRef{};
+		depthAttachmentRef.attachment = info.useColorAttachment;
+		depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = info.useColorAttachment;
+		subpass.pColorAttachments = &colorAttachmentRef;
+		if(info.useDepthAttachment)
+			subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = 0;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = 0;
+		dependency.dstAccessMask = 0;
+
+		std::vector<VkAttachmentDescription> descriptions{};
+
+		if(info.useColorAttachment)
+		{
+			const auto format = _swapChain->GetFormat();
+
+			VkAttachmentDescription colorDescription{};
+			colorDescription.format = format;
+			colorDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+			colorDescription.loadOp = info.colorLoadOp;
+			colorDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			colorDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			colorDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			colorDescription.initialLayout = info.colorInitialLayout;
+			colorDescription.finalLayout = info.colorFinalLayout;
+			descriptions.push_back(colorDescription);
+
+			dependency.srcStageMask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependency.dstStageMask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependency.dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		}
+
+		if(info.useDepthAttachment)
+		{
+			VkAttachmentDescription depthDescription{};
+			depthDescription.format = GetDepthBufferFormat();
+			depthDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+			depthDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			depthDescription.storeOp = info.depthStoreOp;
+			depthDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			depthDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			depthDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			depthDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			descriptions.push_back(depthDescription);
+
+			dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			dependency.dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		}
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = descriptions.size();
+		renderPassInfo.pAttachments = descriptions.data();
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
+
+		VkRenderPass renderPass;
+		const auto result = vkCreateRenderPass(_device, &renderPassInfo, nullptr, &renderPass);
+		assert(!result);
+		return renderPass;
+	}
+
+	void VkRenderer::DestroyRenderPass(const VkRenderPass renderPass) const
+	{
+		vkDestroyRenderPass(_device, renderPass, nullptr);
 	}
 
 	void VkRenderer::BindVertexBuffer(const VkBuffer buffer) const
@@ -298,6 +384,9 @@ namespace vi
 			info.windowHandler = _windowHandler;
 			info.renderer = this;
 			_swapChain = new SwapChain(info);
+
+			_defaultSwapChainRenderPass = CreateRenderPass();
+			_swapChain->SetRenderPass(_defaultSwapChainRenderPass);
 		}
 		
 		return *_swapChain;
