@@ -6,6 +6,7 @@
 namespace vi
 {
 	class SwapChain;
+	class WindowHandler;
 
 	class VkRenderer final
 	{
@@ -15,7 +16,7 @@ namespace vi
 			InstanceFactory::Settings instance{};
 			Debugger::Settings debugger{};
 
-			class WindowHandler* windowHandler;
+			WindowHandler* windowHandler;
 
 			std::vector<const char*> deviceExtensions =
 			{
@@ -113,7 +114,7 @@ namespace vi
 		[[nodiscard]] VkFormat GetDepthBufferFormat() const;
 
 	private:
-		class WindowHandler* _windowHandler;
+		WindowHandler* _windowHandler;
 		Debugger* _debugger = nullptr;
 		SwapChain* _swapChain = nullptr;
 		VkRenderPass _defaultSwapChainRenderPass;

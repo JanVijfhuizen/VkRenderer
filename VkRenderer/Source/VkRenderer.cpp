@@ -55,6 +55,7 @@ namespace vi
 	VkRenderer::~VkRenderer()
 	{
 		DeviceWaitIdle();
+		DestroyRenderPass(_defaultSwapChainRenderPass);
 		delete _swapChain;
 		vkDestroyCommandPool(_device, _commandPool, nullptr);
 		vkDestroyDevice(_device, nullptr);
