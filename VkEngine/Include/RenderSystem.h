@@ -16,8 +16,8 @@ public:
 	void BeginFrame(bool& quit);
 	void EndFrame();
 
-	vi::WindowHandlerGLFW& GetWindowHandler() const;
-	vi::VkRenderer& GetVkRenderer() const;
+	[[nodiscard]] vi::WindowHandlerGLFW& GetWindowHandler() const;
+	[[nodiscard]] vi::VkRenderer& GetVkRenderer() const;
 
 private:
 	vi::WindowHandlerGLFW* _windowHandler;
