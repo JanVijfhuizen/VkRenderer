@@ -1,27 +1,30 @@
 #pragma once
 
-template <typename T>
-class Singleton final
+template <class T>
+class Singleton
 {
 public:
+	Singleton();
+
 	[[nodiscard]] static T& Get();
-	static void Set(T* instance);
 
 private:
 	static T* _instance;
 };
 
-template <typename T>
+template <class T>
+Singleton<T>::Singleton()
+{
+	if (_instance)
+		delete _instance;
+	_instance = static_cast<T*>(this);
+}
+
+template <class T>
 T& Singleton<T>::Get()
 {
 	return *_instance;
 }
 
-template <typename T>
-void Singleton<T>::Set(T* instance)
-{
-	_instance = instance;
-}
-
-template <typename T>
+template <class T>
 T* Singleton<T>::_instance = nullptr;

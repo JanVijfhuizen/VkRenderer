@@ -7,20 +7,24 @@ namespace vi
 	class SwapChain;
 }
 
-class RenderSystem final
+struct Renderer final
 {
-public:
-	RenderSystem();
-	~RenderSystem();
+	class System final
+	{
+	public:
+		System();
+		~System();
 
-	void BeginFrame(bool& quit);
-	void EndFrame();
+		void BeginFrame(bool& quit);
+		void EndFrame() const;
 
-	[[nodiscard]] vi::WindowHandlerGLFW& GetWindowHandler() const;
-	[[nodiscard]] vi::VkRenderer& GetVkRenderer() const;
+		[[nodiscard]] vi::WindowHandlerGLFW& GetWindowHandler() const;
+		[[nodiscard]] vi::VkRenderer& GetVkRenderer() const;
 
-private:
-	vi::WindowHandlerGLFW* _windowHandler;
-	vi::VkRenderer* _vkRenderer;
-	vi::SwapChain* _swapChain;
+	private:
+		vi::WindowHandlerGLFW* _windowHandler;
+		vi::VkRenderer* _vkRenderer;
+		vi::SwapChain* _swapChain;
+	};
 };
+

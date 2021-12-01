@@ -22,8 +22,10 @@ namespace vi
 		return imageCount;
 	}
 
-	SwapChain::SwapChain(const Info& info) : _info(info)
+	void SwapChain::Construct(const Info& info)
 	{
+		_info = info;
+
 		const SupportDetails support = QuerySwapChainSupport(info.surface, info.physicalDevice);
 		const auto families = PhysicalDeviceFactory::GetQueueFamilies(info.surface, info.physicalDevice);
 
@@ -76,12 +78,12 @@ namespace vi
 		CreateSyncObjects();
 	}
 
-	SwapChain::~SwapChain()
+	void SwapChain::Cleanup()
 	{
 		const auto renderer = _info.renderer;
 
 		for (auto& fence : _imagesInFlight)
-			if(fence)
+			if (fence)
 				renderer->WaitForFence(fence);
 
 		auto& device = _info.device;

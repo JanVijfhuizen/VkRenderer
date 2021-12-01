@@ -2,10 +2,10 @@
 #include "Debugger.h"
 #include "InstanceFactory.h"
 #include "Queues.h"
+#include "SwapChain.h"
 
 namespace vi
 {
-	class SwapChain;
 	class WindowHandler;
 
 	class VkRenderer final
@@ -174,7 +174,7 @@ namespace vi
 	private:
 		WindowHandler* _windowHandler;
 		Debugger* _debugger = nullptr;
-		SwapChain* _swapChain = nullptr;
+		SwapChain _swapChain;
 		VkRenderPass _defaultSwapChainRenderPass;
 
 		VkInstance _instance;

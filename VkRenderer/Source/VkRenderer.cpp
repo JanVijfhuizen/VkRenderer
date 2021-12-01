@@ -50,13 +50,26 @@ namespace vi
 
 		const auto result = vkCreateCommandPool(_device, &poolInfo, nullptr, &_commandPool);
 		assert(!result);
+
+		SwapChain::Info swapChainInfo{};
+		swapChainInfo.surface = _surface;
+		swapChainInfo.physicalDevice = _physicalDevice;
+		swapChainInfo.device = _device;
+		swapChainInfo.queues = _queues;
+		swapChainInfo.commandPool = _commandPool;
+		swapChainInfo.windowHandler = _windowHandler;
+		swapChainInfo.renderer = this;
+		_swapChain.Construct(swapChainInfo);
+
+		_defaultSwapChainRenderPass = CreateRenderPass();
+		_swapChain.SetRenderPass(_defaultSwapChainRenderPass);
 	}
 
 	VkRenderer::~VkRenderer()
 	{
 		DeviceWaitIdle();
 		DestroyRenderPass(_defaultSwapChainRenderPass);
-		delete _swapChain;
+		_swapChain.Cleanup();
 		vkDestroyCommandPool(_device, _commandPool, nullptr);
 		vkDestroyDevice(_device, nullptr);
 		vkDestroySurfaceKHR(_instance, _surface, nullptr);
@@ -345,7 +358,7 @@ namespace vi
 
 		if(info.useColorAttachment)
 		{
-			const auto format = _swapChain->GetFormat();
+			const auto format = _swapChain.GetFormat();
 
 			VkAttachmentDescription colorDescription{};
 			colorDescription.format = format;
@@ -634,23 +647,7 @@ namespace vi
 
 	SwapChain& VkRenderer::GetSwapChain()
 	{
-		if (!_swapChain)
-		{
-			SwapChain::Info info{};
-			info.surface = _surface;
-			info.physicalDevice = _physicalDevice;
-			info.device = _device;
-			info.queues = _queues;
-			info.commandPool = _commandPool;
-			info.windowHandler = _windowHandler;
-			info.renderer = this;
-			_swapChain = new SwapChain(info);
-
-			_defaultSwapChainRenderPass = CreateRenderPass();
-			_swapChain->SetRenderPass(_defaultSwapChainRenderPass);
-		}
-		
-		return *_swapChain;
+		return _swapChain;
 	}
 
 	void VkRenderer::BeginRenderPass(const VkFramebuffer frameBuffer, 

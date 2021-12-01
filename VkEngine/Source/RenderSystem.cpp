@@ -3,25 +3,28 @@
 #include "VkRenderer/WindowHandlerGLFW.h"
 #include "VkRenderer/VkRenderer.h"
 #include "VkRenderer/SwapChain.h"
+#include "DefaultAllocator.h"
 
-RenderSystem::RenderSystem()
+Renderer::System::System()
 {
-	_windowHandler = new vi::WindowHandlerGLFW;
+	_windowHandler = DefaultAllocator::Get().Alloc<vi::WindowHandlerGLFW>();
+	new (_windowHandler) vi::WindowHandlerGLFW();
 
 	vi::VkRenderer::Settings settings;
 	settings.windowHandler = _windowHandler;
 	settings.debugger.validationLayers.push_back("VK_LAYER_RENDERDOC_Capture");
-	_vkRenderer = new vi::VkRenderer{settings};
+	_vkRenderer = DefaultAllocator::Get().Alloc<vi::VkRenderer>();
+	new (_vkRenderer) vi::VkRenderer(settings);
 	_swapChain = &_vkRenderer->GetSwapChain();
 }
 
-RenderSystem::~RenderSystem()
+Renderer::System::~System()
 {
-	delete _vkRenderer;
-	delete _windowHandler;
+	_windowHandler->~WindowHandlerGLFW();
+	_vkRenderer->~VkRenderer();
 }
 
-void RenderSystem::BeginFrame(bool& quit)
+void Renderer::System::BeginFrame(bool& quit)
 {
 	_windowHandler->BeginFrame(quit);
 	if (quit)
@@ -30,18 +33,18 @@ void RenderSystem::BeginFrame(bool& quit)
 	_swapChain->BeginFrame();
 }
 
-void RenderSystem::EndFrame()
+void Renderer::System::EndFrame() const
 {
 	bool shouldRecreateAssets;
 	_swapChain->EndFrame(shouldRecreateAssets);
 }
 
-vi::WindowHandlerGLFW& RenderSystem::GetWindowHandler() const
+vi::WindowHandlerGLFW& Renderer::System::GetWindowHandler() const
 {
 	return *_windowHandler;
 }
 
-vi::VkRenderer& RenderSystem::GetVkRenderer() const
+vi::VkRenderer& Renderer::System::GetVkRenderer() const
 {
 	return *_vkRenderer;
 }

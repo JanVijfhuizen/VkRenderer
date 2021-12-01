@@ -89,8 +89,8 @@ namespace vi
 		uint32_t _frameIndex = 0;
 		uint32_t _imageIndex;
 
-		explicit SwapChain(const Info& info);
-		~SwapChain();
+		void Construct(const Info& info);
+		void Cleanup();
 
 		void CreateImages();
 		void CreateSyncObjects();

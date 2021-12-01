@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "RenderSystem.h"
+#include "DefaultAllocator.h"
 
 int main()
 {
 	{
-		RenderSystem renderSystem;
+		DefaultAllocator defaultAllocator;
+		Renderer::System renderSystem;
 
 		while (true)
 		{
