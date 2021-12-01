@@ -2,7 +2,7 @@
 #include "pch.h"
 #include "VkRenderer/StackAllocator.h"
 
-class DefaultAllocator final : public StackAllocator, public Singleton<DefaultAllocator>
+class DefaultAllocator final : public vi::StackAllocator, public Singleton<DefaultAllocator>
 {
 
 };

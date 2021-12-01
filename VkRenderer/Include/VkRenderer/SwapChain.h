@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Queues.h"
+#include "StackAllocator.h"
 
 namespace vi
 {
@@ -44,6 +45,7 @@ namespace vi
 			VkCommandPool commandPool;
 
 			class WindowHandler* windowHandler;
+			class StackAllocator* allocator;
 			VkRenderer* renderer;
 		};
 

@@ -22,6 +22,7 @@ namespace vi
 			{
 				VK_KHR_SWAPCHAIN_EXTENSION_NAME
 			};
+			class StackAllocator* allocator;
 		};
 
 		struct RenderPassInfo final

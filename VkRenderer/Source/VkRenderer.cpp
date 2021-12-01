@@ -58,6 +58,7 @@ namespace vi
 		swapChainInfo.queues = _queues;
 		swapChainInfo.commandPool = _commandPool;
 		swapChainInfo.windowHandler = _windowHandler;
+		swapChainInfo.allocator = settings.allocator;
 		swapChainInfo.renderer = this;
 		_swapChain.Construct(swapChainInfo);
 
