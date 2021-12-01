@@ -5,6 +5,7 @@ class Singleton
 {
 public:
 	Singleton();
+	~Singleton();
 
 	[[nodiscard]] static T& Get();
 
@@ -18,6 +19,13 @@ Singleton<T>::Singleton()
 	if (_instance)
 		delete _instance;
 	_instance = static_cast<T*>(this);
+}
+
+template <class T>
+Singleton<T>::~Singleton()
+{
+	if (_instance == this)
+		_instance = nullptr;
 }
 
 template <class T>
