@@ -131,6 +131,38 @@ namespace vi
 		vkDestroyDescriptorSetLayout(_device, layout, nullptr);
 	}
 
+	VkDescriptorPool VkRenderer::CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, const uint32_t count) const
+	{
+		std::vector<VkDescriptorPoolSize> sizes{};
+		sizes.resize(count);
+
+		uint32_t maxSets = 0;
+
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			auto& size = sizes[i];
+			size.type = types[i];
+			size.descriptorCount = capacities[i];
+			maxSets += size.descriptorCount;
+		}
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.poolSizeCount = count;
+		poolInfo.pPoolSizes = sizes.data();
+		poolInfo.maxSets = maxSets;
+
+		VkDescriptorPool pool;
+		const auto result = vkCreateDescriptorPool(_device, &poolInfo, nullptr, &pool);
+		assert(!result);
+		return pool;
+	}
+
+	void VkRenderer::DestroyDescriptorPool(const VkDescriptorPool pool) const
+	{
+		vkDestroyDescriptorPool(_device, pool, nullptr);
+	}
+
 	VkRenderPass VkRenderer::CreateRenderPass(const RenderPassInfo& info) const
 	{
 		VkAttachmentReference colorAttachmentRef{};
