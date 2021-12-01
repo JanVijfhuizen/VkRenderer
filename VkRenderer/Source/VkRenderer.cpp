@@ -96,6 +96,41 @@ namespace vi
 		assert(!result);
 	}
 
+	VkDescriptorSetLayout VkRenderer::CreateLayout(const LayoutInfo& info) const
+	{
+		const uint32_t bindingsCount = info.bindings.size();
+		std::vector<VkDescriptorSetLayoutBinding> layoutBindings{};
+		layoutBindings.resize(bindingsCount);
+
+		for (uint32_t i = 0; i < bindingsCount; ++i)
+		{
+			const auto& binding = info.bindings[i];
+			auto& uboLayoutBinding = layoutBindings[i];
+
+			uboLayoutBinding.binding = i;
+			uboLayoutBinding.descriptorType = binding.type;
+			uboLayoutBinding.descriptorCount = binding.count;
+			uboLayoutBinding.stageFlags = binding.flag;
+		}
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.pNext = nullptr;
+		layoutInfo.flags = 0;
+		layoutInfo.bindingCount = bindingsCount;
+		layoutInfo.pBindings = layoutBindings.data();
+
+		VkDescriptorSetLayout layout;
+		const auto result = vkCreateDescriptorSetLayout(_device, &layoutInfo, nullptr, &layout);
+		assert(!result);
+		return layout;
+	}
+
+	void VkRenderer::DestroyLayout(const VkDescriptorSetLayout layout) const
+	{
+		vkDestroyDescriptorSetLayout(_device, layout, nullptr);
+	}
+
 	VkRenderPass VkRenderer::CreateRenderPass(const RenderPassInfo& info) const
 	{
 		VkAttachmentReference colorAttachmentRef{};

@@ -35,6 +35,19 @@ namespace vi
 			VkAttachmentStoreOp depthStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		};
 
+		struct LayoutInfo final
+		{
+			struct Binding final
+			{
+				VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				size_t size = sizeof(int32_t);
+				uint32_t count = 1;
+				VkShaderStageFlagBits flag;
+			};
+
+			std::vector<Binding> bindings;
+		};
+
 		explicit VkRenderer(const Settings& settings);
 		~VkRenderer();
 
@@ -44,6 +57,9 @@ namespace vi
 			VkSemaphore signalSemaphore = VK_NULL_HANDLE, 
 			VkFence fence = VK_NULL_HANDLE) const;
 		void DeviceWaitIdle() const;
+
+		[[nodiscard]] VkDescriptorSetLayout CreateLayout(const LayoutInfo& info) const;
+		void DestroyLayout(VkDescriptorSetLayout layout) const;
 
 		void BindVertexBuffer(VkBuffer buffer) const;
 		void BindIndicesBuffer(VkBuffer buffer) const;
