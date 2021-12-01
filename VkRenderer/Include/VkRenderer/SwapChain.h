@@ -28,6 +28,7 @@ namespace vi
 		[[nodiscard]] VkExtent2D GetExtent() const;
 		[[nodiscard]] uint32_t GetImageCount() const;
 		[[nodiscard]] uint32_t GetCurrentImageIndex() const;
+		[[nodiscard]] VkRenderPass GetRenderPass() const;
 
 		[[nodiscard]] static SupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
 
