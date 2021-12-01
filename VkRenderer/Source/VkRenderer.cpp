@@ -163,6 +163,22 @@ namespace vi
 		vkDestroyDescriptorPool(_device, pool, nullptr);
 	}
 
+	void VkRenderer::CreateDescriptorSets(const VkDescriptorPool pool, 
+		const VkDescriptorSetLayout layout, const uint32_t setCount,
+		VkDescriptorSet* outSets) const
+	{
+		std::vector<VkDescriptorSetLayout> layouts(setCount, layout);
+
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = pool;
+		allocInfo.descriptorSetCount = setCount;
+		allocInfo.pSetLayouts = layouts.data();
+
+		const auto result = vkAllocateDescriptorSets(_device, &allocInfo, outSets);
+		assert(!result);
+	}
+
 	VkRenderPass VkRenderer::CreateRenderPass(const RenderPassInfo& info) const
 	{
 		VkAttachmentReference colorAttachmentRef{};
@@ -257,6 +273,47 @@ namespace vi
 	void VkRenderer::BindIndicesBuffer(const VkBuffer buffer) const
 	{
 		vkCmdBindIndexBuffer(_currentCommandBuffer, buffer, 0, VK_INDEX_TYPE_UINT16);
+	}
+
+	void VkRenderer::BindBuffer(const VkDescriptorSet set, const VkBuffer buffer, 
+		const VkDeviceSize offset, const VkDeviceSize range, 
+		const uint32_t bindingIndex, const uint32_t arrayIndex) const
+	{
+		VkDescriptorBufferInfo bufferInfo{};
+		bufferInfo.buffer = buffer;
+		bufferInfo.offset = offset;
+		bufferInfo.range = range;
+
+		VkWriteDescriptorSet descriptorWrite{};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = set;
+		descriptorWrite.dstBinding = bindingIndex;
+		descriptorWrite.dstArrayElement = arrayIndex;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pBufferInfo = &bufferInfo;
+
+		vkUpdateDescriptorSets(_device, 1, &descriptorWrite, 0, nullptr);
+	}
+
+	void VkRenderer::BindSampler(const VkDescriptorSet set, const VkImageView imageView, const VkImageLayout layout,
+		const VkSampler sampler, const uint32_t bindingIndex, const uint32_t arrayIndex) const
+	{
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.imageLayout = layout;
+		imageInfo.imageView = imageView;
+		imageInfo.sampler = sampler;
+
+		VkWriteDescriptorSet descriptorWrite{};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = set;
+		descriptorWrite.dstBinding = bindingIndex;
+		descriptorWrite.dstArrayElement = arrayIndex;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pImageInfo = &imageInfo;
+
+		vkUpdateDescriptorSets(_device, 1, &descriptorWrite, 0, nullptr);
 	}
 
 	VkShaderModule VkRenderer::CreateShaderModule(const std::vector<char>& data) const
