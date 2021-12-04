@@ -160,7 +160,7 @@ namespace vi
 		void BindMemory(VkImage image, VkDeviceMemory memory, VkDeviceSize offset = 0) const;
 		void BindMemory(VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize offset = 0) const;
 		template <typename T>
-		void MapMemory(VkDeviceMemory memory, T* input, VkDeviceSize offset);
+		void MapMemory(VkDeviceMemory memory, T* input, VkDeviceSize offset, size_t size = sizeof(T));
 		void FreeMemory(VkDeviceMemory memory) const;
 
 		template <typename T>
@@ -192,10 +192,9 @@ namespace vi
 	};
 
 	template <typename T>
-	void VkRenderer::MapMemory(const VkDeviceMemory memory, T* input, const VkDeviceSize offset)
+	void VkRenderer::MapMemory(const VkDeviceMemory memory, T* input, const VkDeviceSize offset, const size_t size)
 	{
 		void* data;
-		const uint32_t size = sizeof(T);
 		vkMapMemory(_device, memory, offset, size, 0, &data);
 		memcpy(data, static_cast<const void*>(input), size);
 		vkUnmapMemory(_device, memory);

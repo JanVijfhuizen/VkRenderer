@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Rendering/RenderSystem.h"
 #include "Transform.h"
+#include "Rendering/Mesh.h"
 
 int main()
 {
@@ -9,6 +10,7 @@ int main()
 		ce::Cecsar cecsar(capacity);
 		Renderer::System renderSystem(capacity);
 		Transform::System transformSystem(capacity);
+		Mesh::System meshSystem(capacity);
 
 		while (true)
 		{
