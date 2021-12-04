@@ -5,7 +5,7 @@ class Singleton
 {
 public:
 	Singleton();
-	~Singleton();
+	virtual ~Singleton();
 
 	[[nodiscard]] static T& Get();
 

@@ -24,10 +24,13 @@
     <ClCompile Include="Source\Cecsar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\RenderSystem.cpp">
+    <ClCompile Include="Source\Rendering\RenderSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Include\DefaultAllocator.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,7 +59,10 @@
     <ClInclude Include="Include\tiny_obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\RenderSystem.h">
+    <ClInclude Include="Include\Rendering\RenderSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

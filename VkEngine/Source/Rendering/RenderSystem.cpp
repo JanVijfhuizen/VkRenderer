@@ -1,11 +1,11 @@
 ﻿#include "pch.h"
-#include "RenderSystem.h"
+#include "Rendering/RenderSystem.h"
 #include "VkRenderer/WindowHandlerGLFW.h"
 #include "VkRenderer/VkRenderer.h"
 #include "VkRenderer/SwapChain.h"
 #include "DefaultAllocator.h"
 
-Renderer::System::System()
+Renderer::System::System(const uint32_t capacity) : SparseSet<Renderer>(capacity)
 {
 	_windowHandler = _allocator.Alloc<vi::WindowHandlerGLFW>();
 	new (_windowHandler) vi::WindowHandlerGLFW();

@@ -1,10 +1,14 @@
 #include "pch.h"
-#include "RenderSystem.h"
+#include "Rendering/RenderSystem.h"
+#include "Transform.h"
 
 int main()
 {
 	{
-		Renderer::System renderSystem;
+		const uint32_t capacity = 100;
+		ce::Cecsar cecsar(capacity);
+		Renderer::System renderSystem(capacity);
+		Transform::System transformSystem(capacity);
 
 		while (true)
 		{
@@ -17,5 +21,5 @@ int main()
 		}
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -10,10 +10,10 @@ namespace vi
 
 struct Renderer final
 {
-	class System final
+	class System final : public ce::SparseSet<Renderer>, public Singleton<System>
 	{
 	public:
-		System();
+		explicit System(uint32_t capacity);
 		~System();
 
 		void BeginFrame(bool& quit);
