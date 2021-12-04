@@ -5,7 +5,7 @@
 #include "VkRenderer/SwapChain.h"
 #include "DefaultAllocator.h"
 
-Renderer::System::System(const uint32_t capacity) : SparseSet<Renderer>(capacity)
+RenderSystem::RenderSystem()
 {
 	_windowHandler = _allocator.Alloc<vi::WindowHandlerGLFW>();
 	new (_windowHandler) vi::WindowHandlerGLFW();
@@ -19,13 +19,13 @@ Renderer::System::System(const uint32_t capacity) : SparseSet<Renderer>(capacity
 	_swapChain = &_vkRenderer->GetSwapChain();
 }
 
-Renderer::System::~System()
+RenderSystem::~RenderSystem()
 {
 	_windowHandler->~WindowHandlerGLFW();
 	_vkRenderer->~VkRenderer();
 }
 
-void Renderer::System::BeginFrame(bool& quit)
+void RenderSystem::BeginFrame(bool& quit)
 {
 	_windowHandler->BeginFrame(quit);
 	if (quit)
@@ -34,18 +34,18 @@ void Renderer::System::BeginFrame(bool& quit)
 	_swapChain->BeginFrame();
 }
 
-void Renderer::System::EndFrame() const
+void RenderSystem::EndFrame() const
 {
 	bool shouldRecreateAssets;
 	_swapChain->EndFrame(shouldRecreateAssets);
 }
 
-vi::WindowHandlerGLFW& Renderer::System::GetWindowHandler() const
+vi::WindowHandlerGLFW& RenderSystem::GetWindowHandler() const
 {
 	return *_windowHandler;
 }
 
-vi::VkRenderer& Renderer::System::GetVkRenderer() const
+vi::VkRenderer& RenderSystem::GetVkRenderer() const
 {
 	return *_vkRenderer;
 }

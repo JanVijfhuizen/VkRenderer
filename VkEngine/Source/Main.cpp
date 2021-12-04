@@ -2,16 +2,19 @@
 #include "Rendering/RenderSystem.h"
 #include "Transform.h"
 #include "Rendering/Mesh.h"
+#include "Rendering/Material.h"
 
 int main()
 {
 	{
 		const uint32_t capacity = 100;
 		ce::Cecsar cecsar(capacity);
-		Renderer::System renderSystem(capacity);
+		RenderSystem renderSystem{};
+
 		Transform::System transformSystem(capacity);
 		Mesh::System meshSystem(capacity);
 
+		Material::System materialSystem(capacity);
 		const auto vertData = Vertex::Load("Cube.obj");
 		const uint32_t handle = meshSystem.Create(vertData);
 

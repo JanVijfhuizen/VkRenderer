@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Include\DefaultAllocator.h" />
+    <ClCompile Include="Source\Rendering\Material.cpp" />
     <ClCompile Include="Source\Rendering\Mesh.cpp" />
     <ClCompile Include="Source\Rendering\RenderSystem.cpp" />
     <ClCompile Include="Source\Cecsar.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="Include\FileReader.h" />
     <ClInclude Include="Include\Cecsar.h" />
     <ClInclude Include="Include\Entity.h" />
+    <ClInclude Include="Include\Rendering\Material.h" />
     <ClInclude Include="Include\Singleton.h" />
     <ClInclude Include="Include\Set.h" />
     <ClInclude Include="Include\SparseSet.h" />
@@ -178,6 +180,7 @@
     <ClInclude Include="Include\Transform.h" />
     <ClInclude Include="Include\Rendering\Mesh.h" />
     <ClInclude Include="Include\Rendering\Vertex.h" />
+    <ClInclude Include="Include\Rendering\RenderSet.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">

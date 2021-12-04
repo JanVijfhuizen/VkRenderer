@@ -31,7 +31,7 @@ namespace ce
 				return a._index == b._index;
 			};
 
-			friend bool operator!= (const Iterator& a, const Iterator& b)
+			friend bool operator!=(const Iterator& a, const Iterator& b)
 			{
 				return !(a == b);
 			};

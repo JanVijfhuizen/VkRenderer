@@ -8,7 +8,7 @@ struct Mesh final
 	class System final : public ce::SparseSet<Mesh>, public Singleton<System>
 	{
 	public:
-		explicit System(uint32_t capacity);
+		explicit System(uint32_t size);
 		~System();
 
 		[[nodiscard]] uint32_t Create(const Vertex::Data& vertData);

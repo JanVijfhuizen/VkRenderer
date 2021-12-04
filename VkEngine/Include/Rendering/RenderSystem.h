@@ -8,25 +8,21 @@ namespace vi
 	class SwapChain;
 }
 
-struct Renderer final
+class RenderSystem final : public Singleton<RenderSystem>
 {
-	class System final : public ce::SparseSet<Renderer>, public Singleton<System>
-	{
-	public:
-		explicit System(uint32_t capacity);
-		~System();
+public:
+	RenderSystem();
+	~RenderSystem();
 
-		void BeginFrame(bool& quit);
-		void EndFrame() const;
+	void BeginFrame(bool& quit);
+	void EndFrame() const;
 
-		[[nodiscard]] vi::WindowHandlerGLFW& GetWindowHandler() const;
-		[[nodiscard]] vi::VkRenderer& GetVkRenderer() const;
+	[[nodiscard]] vi::WindowHandlerGLFW& GetWindowHandler() const;
+	[[nodiscard]] vi::VkRenderer& GetVkRenderer() const;
 
-	private:
-		vi::StackAllocator _allocator{};
-		vi::WindowHandlerGLFW* _windowHandler;
-		vi::VkRenderer* _vkRenderer;
-		vi::SwapChain* _swapChain;
-	};
+private:
+	vi::StackAllocator _allocator{};
+	vi::WindowHandlerGLFW* _windowHandler;
+	vi::VkRenderer* _vkRenderer;
+	vi::SwapChain* _swapChain;
 };
-

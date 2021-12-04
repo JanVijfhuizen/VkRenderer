@@ -3,14 +3,14 @@
 #include "VkRenderer/VkRenderer.h"
 #include "Rendering/RenderSystem.h"
 
-Mesh::System::System(const uint32_t capacity) : SparseSet<Mesh>(capacity)
+Mesh::System::System(const uint32_t size) : SparseSet<Mesh>(size)
 {
 
 }
 
 Mesh::System::~System()
 {
-	auto& renderSystem = Renderer::System::Get();
+	auto& renderSystem = RenderSystem::Get();
 	auto& vkRenderer = renderSystem.GetVkRenderer();
 
 	for (const auto& data : _data)
@@ -24,7 +24,7 @@ Mesh::System::~System()
 
 uint32_t Mesh::System::Create(const Vertex::Data& vertData)
 {
-	auto& renderSystem = Renderer::System::Get();
+	auto& renderSystem = RenderSystem::Get();
 	auto& vkRenderer = renderSystem.GetVkRenderer();
 
 	auto& vertices = vertData.vertices;
