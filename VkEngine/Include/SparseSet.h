@@ -113,9 +113,9 @@ namespace ce
 	{
 		_data = new uint64_t[(sizeof(T) + sizeof(uint32_t) * 2) * size];
 
-		_values = reinterpret_cast<T*>(_data);
-		_dense = reinterpret_cast<uint32_t*>(&_data[sizeof(uint32_t) * size]);
-		_sparse = reinterpret_cast<int32_t*>(&_data[sizeof(uint32_t) * 2 * size]);
+		_dense = reinterpret_cast<uint32_t*>(_data);
+		_sparse = reinterpret_cast<int32_t*>(&_data[sizeof(uint32_t) * size]);
+		_values = reinterpret_cast<T*>(&_data[sizeof(uint32_t) * size * 2]);
 
 		for (uint32_t i = 0; i < size; ++i)
 			_sparse[i] = -1;
