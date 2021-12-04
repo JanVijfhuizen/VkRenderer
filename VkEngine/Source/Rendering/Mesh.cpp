@@ -8,13 +8,27 @@ Mesh::System::System(const uint32_t capacity) : SparseSet<Mesh>(capacity)
 
 }
 
-uint32_t Mesh::System::Create(const Vertex::Data& vertexData)
+Mesh::System::~System()
 {
 	auto& renderSystem = Renderer::System::Get();
 	auto& vkRenderer = renderSystem.GetVkRenderer();
 
-	auto& vertices = vertexData.vertices;
-	auto& indices = vertexData.indices;
+	for (const auto& data : _data)
+	{
+		vkRenderer.DestroyBuffer(data.vertexBuffer);
+		vkRenderer.FreeMemory(data.vertexMemory);
+		vkRenderer.DestroyBuffer(data.indexBuffer);
+		vkRenderer.FreeMemory(data.indexMemory);
+	}
+}
+
+uint32_t Mesh::System::Create(const Vertex::Data& vertData)
+{
+	auto& renderSystem = Renderer::System::Get();
+	auto& vkRenderer = renderSystem.GetVkRenderer();
+
+	auto& vertices = vertData.vertices;
+	auto& indices = vertData.indices;
 
 	auto cpyCommandBuffer = vkRenderer.CreateCommandBuffer();
 	const auto cpyFence = vkRenderer.CreateFence();
@@ -63,7 +77,8 @@ uint32_t Mesh::System::Create(const Vertex::Data& vertexData)
 	data.vertexMemory = vertMem;
 	data.indexBuffer = indBuffer;
 	data.indexMemory = indMem;
-	data.indCount = indices.size();
+	data.indexCount = indices.size();
 
-	return -1;
+	_data.push_back(data);
+	return _data.size() - 1;
 }

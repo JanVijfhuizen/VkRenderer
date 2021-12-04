@@ -12,6 +12,9 @@ int main()
 		Transform::System transformSystem(capacity);
 		Mesh::System meshSystem(capacity);
 
+		const auto vertData = Vertex::Load("Cube.obj");
+		const uint32_t handle = meshSystem.Create(vertData);
+
 		while (true)
 		{
 			bool quit;

@@ -9,8 +9,9 @@ struct Mesh final
 	{
 	public:
 		explicit System(uint32_t capacity);
+		~System();
 
-		[[nodiscard]] uint32_t Create(const Vertex::Data& vertexData);
+		[[nodiscard]] uint32_t Create(const Vertex::Data& vertData);
 
 	private:
 		struct Data final
@@ -19,7 +20,9 @@ struct Mesh final
 			VkDeviceMemory vertexMemory;
 			VkBuffer indexBuffer;
 			VkDeviceMemory indexMemory;
-			uint32_t indCount;
+			uint32_t indexCount;
 		};
+
+		std::vector<Data> _data{};
 	};
 };
