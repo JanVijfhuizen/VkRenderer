@@ -28,16 +28,27 @@ RenderSystem::~RenderSystem()
 void RenderSystem::BeginFrame(bool& quit)
 {
 	_windowHandler->BeginFrame(quit);
+	_swapChainGBCollector.Update();
+
 	if (quit)
+	{
+		_swapChainGBCollector.FreeAll();
 		return;
+	}
 
 	_swapChain->BeginFrame();
 }
 
-void RenderSystem::EndFrame() const
+void RenderSystem::EndFrame()
 {
 	bool shouldRecreateAssets;
 	_swapChain->EndFrame(shouldRecreateAssets);
+
+	if(shouldRecreateAssets)
+	{
+		_swapChainGBCollector.FreeAll();
+		return;
+	}
 }
 
 vi::WindowHandlerGLFW& RenderSystem::GetWindowHandler() const

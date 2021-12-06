@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "VkRenderer/StackAllocator.h"
+#include "SwapChainGC.h"
 
 namespace vi
 {
@@ -15,7 +16,7 @@ public:
 	~RenderSystem();
 
 	void BeginFrame(bool& quit);
-	void EndFrame() const;
+	void EndFrame();
 
 	[[nodiscard]] vi::WindowHandlerGLFW& GetWindowHandler() const;
 	[[nodiscard]] vi::VkRenderer& GetVkRenderer() const;
@@ -25,4 +26,5 @@ private:
 	vi::WindowHandlerGLFW* _windowHandler;
 	vi::VkRenderer* _vkRenderer;
 	vi::SwapChain* _swapChain;
+	SwapChainGC _swapChainGBCollector{};
 };
