@@ -2,7 +2,6 @@
 #include "Rendering/RenderSystem.h"
 #include "Transform.h"
 #include "Rendering/Mesh.h"
-#include "Rendering/Material.h"
 
 int main()
 {
@@ -14,7 +13,6 @@ int main()
 		Transform::System transformSystem(capacity);
 		Mesh::System meshSystem(capacity);
 
-		Material::System materialSystem(capacity);
 		const auto vertData = Vertex::Load("Cube.obj");
 		const uint32_t handle = meshSystem.Create(vertData);
 

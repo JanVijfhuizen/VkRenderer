@@ -3,7 +3,6 @@
 #include "VkRenderer/WindowHandlerGLFW.h"
 #include "VkRenderer/VkRenderer.h"
 #include "VkRenderer/SwapChain.h"
-#include "DefaultAllocator.h"
 
 RenderSystem::RenderSystem()
 {
@@ -28,13 +27,9 @@ RenderSystem::~RenderSystem()
 void RenderSystem::BeginFrame(bool& quit)
 {
 	_windowHandler->BeginFrame(quit);
-	_swapChainGBCollector.Update();
 
 	if (quit)
-	{
-		_swapChainGBCollector.FreeAll();
 		return;
-	}
 
 	_swapChain->BeginFrame();
 }
@@ -44,11 +39,8 @@ void RenderSystem::EndFrame()
 	bool shouldRecreateAssets;
 	_swapChain->EndFrame(shouldRecreateAssets);
 
-	if(shouldRecreateAssets)
-	{
-		_swapChainGBCollector.FreeAll();
+	if (shouldRecreateAssets)
 		return;
-	}
 }
 
 vi::WindowHandlerGLFW& RenderSystem::GetWindowHandler() const
