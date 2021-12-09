@@ -6,7 +6,7 @@ namespace vi
 	#define STACK_ALLOCATOR_ALLOC_SIZE 1000
 	#endif
 
-	class StackAllocator
+	class StackAllocator final
 	{
 	public:
 		StackAllocator();

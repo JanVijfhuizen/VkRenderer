@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="Include\VkRenderer\ArrayPtr.h" />
     <ClInclude Include="Include\VkRenderer\LogicalDeviceFactory.h" />
+    <ClInclude Include="Include\VkRenderer\PoolAllocator.h" />
     <ClInclude Include="Include\VkRenderer\Queues.h" />
     <ClInclude Include="Include\VkRenderer\StackAllocator.h" />
     <ClInclude Include="Include\VkRenderer\SwapChain.h" />

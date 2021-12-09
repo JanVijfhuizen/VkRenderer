@@ -2,6 +2,7 @@
 #include "Rendering/RenderSystem.h"
 #include "Transform.h"
 #include "Rendering/Mesh.h"
+#include "VkRenderer/PoolAllocator.h"
 
 int main()
 {
