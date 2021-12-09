@@ -14,7 +14,7 @@ namespace vi
 		[[nodiscard]] size_t GetCapacity() const;
 		[[nodiscard]] size_t GetBlockSize() const;
 		[[nodiscard]] size_t GetCount() const;
-		[[nodiscard]] void** GetData() const;
+		[[nodiscard]] void* GetData() const;
 		
 	private:
 		void** _data;
@@ -25,11 +25,21 @@ namespace vi
 	};
 
 	inline PoolAllocator::PoolAllocator(const size_t blockSize, const size_t capacity) : 
-	_blockSize(blockSize), _capacity(capacity)
+		_blockSize(blockSize), _capacity(capacity)
 	{
-		_data = new void*[blockSize * capacity];
-		for (size_t i = 0; i < capacity - 1; ++i)
-			_data[i * blockSize] = &_data[(i + 1) * _blockSize];
+		size_t size = _blockSize / 4;
+		if (size == 0)
+			size = 1;
+
+		_data = new void*[size * _capacity];
+
+		void** current = _data;
+		for (size_t i = 0; i < _capacity - 1; ++i)
+		{
+			*current = &current[size];
+			current = reinterpret_cast<void**>(*current);
+		}
+
 		_next = _data;
 	}
 
@@ -41,17 +51,17 @@ namespace vi
 	inline void* PoolAllocator::Allocate()
 	{
 		_count++;
-		void** alloc = _next;
-		_next = reinterpret_cast<void**>(*alloc);
-		return reinterpret_cast<void*>(alloc);
+		void* alloc = _next;
+		_next = reinterpret_cast<void**>(*_next);
+		return alloc;
 	}
 
 	inline void PoolAllocator::Free(void* ptr)
 	{
 		_count--;
-		void** r = reinterpret_cast<void**>(ptr);
-		*r = _next;
-		_next = r;
+		void** freed = reinterpret_cast<void**>(ptr);
+		*freed = _next;
+		_next = freed;
 	}
 
 	inline size_t PoolAllocator::GetCapacity() const
@@ -69,7 +79,7 @@ namespace vi
 		return _count;
 	}
 
-	inline void** PoolAllocator::GetData() const
+	inline void* PoolAllocator::GetData() const
 	{
 		return _data;
 	}
