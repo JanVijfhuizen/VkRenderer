@@ -27,7 +27,7 @@ namespace vi
 	inline PoolAllocator::PoolAllocator(const size_t blockSize, const size_t capacity) : 
 		_blockSize(blockSize), _capacity(capacity)
 	{
-		size_t size = _blockSize / 4;
+		size_t size = _blockSize / sizeof(void*);
 		if (size == 0)
 			size = 1;
 

@@ -8,21 +8,24 @@ namespace vi
 		explicit FreeListAllocator(size_t size);
 		~FreeListAllocator();
 
-		[[nodiscard]] void* Allocate(size_t size) const;
+		[[nodiscard]] void* Allocate(size_t size);
 		void Free(void* ptr);
 
 	private:
-		void** _data;
+		size_t* _data;
 		size_t _size;
-		void** _next;
+		size_t* _next;
 	};
 
-	inline FreeListAllocator::FreeListAllocator(const size_t size) : _size(size)
+	inline FreeListAllocator::FreeListAllocator(size_t size) : _size(size)
 	{
-		_data = new void* [size];
-		const auto s = reinterpret_cast<size_t*>(&_data[1]);
-		*s = sizeof(void*) * (size - 1);
+		size /= sizeof(size_t);
+
+		_data = new size_t[size];
 		_next = _data;
+
+		*reinterpret_cast<void**>(_data) = nullptr;
+		_next[1] = size - 2;
 	}
 
 	inline FreeListAllocator::~FreeListAllocator()
@@ -30,30 +33,45 @@ namespace vi
 		delete[] _data;
 	}
 
-	inline void* FreeListAllocator::Allocate(const size_t size) const
+	inline void* FreeListAllocator::Allocate(size_t size)
 	{
-		void** previous = nullptr;
-		void** current = _next;
+		size = size / 4 + 2;
 
-		while(true)
+		size_t* current = _next;
+
+		while(current)
 		{
-			const auto cS = reinterpret_cast<size_t*>(&current[1]);
-			if(*cS >= size)
+			auto& space = current[1];
+			const auto next = reinterpret_cast<size_t*>(*current);
+
+			if(space < size)
 			{
-				void** next = &current[size];
-				const auto nS = reinterpret_cast<size_t*>(&next[1]);
-				*nS = *cS - size - sizeof(void*);
-
-				if (previous)
-					*previous = next;
-
-				*current = next;
-				*cS = size;
-				return current;
+				current = next;
+				continue;
 			}
 
-			previous = current;
-			current = reinterpret_cast<void**>(*current);
+			const size_t diff = space - size;
+
+			if (diff > 1)
+			{
+				space = size;
+
+				const auto partitioned = reinterpret_cast<size_t*>(&current[size + 2]);
+				*reinterpret_cast<size_t**>(current) = partitioned;
+				*reinterpret_cast<size_t**>(partitioned) = next;
+
+				partitioned[1] = diff - 2;
+			}
+
+			if (_next == current)
+				_next = reinterpret_cast<size_t*>(*current);
+			return &current[2];
 		}
+
+		return nullptr;
+	}
+
+	inline void FreeListAllocator::Free(void* ptr)
+	{
 	}
 }
