@@ -13,16 +13,27 @@ namespace vi
 		template <typename T>
 		void Free(T* ptr);
 
-		[[nodiscard]] void* MAllocate(size_t size);
-		void MFree(void* ptr);
+		[[nodiscard]] void* MAllocate(size_t size) const;
+		void MFree(void* ptr) const;
 
 		[[nodiscard]] size_t GetCapacity() const;
-		[[nodiscard]] void* GetData() const;
 
 	private:
-		size_t* _data;
+		struct Block final
+		{
+			size_t* data;
+			size_t* next;
+			Block* child = nullptr;
+
+			explicit Block(size_t capacity);
+			~Block();
+
+			void* TryAllocate(size_t size);
+			bool TryFree(void* ptr);
+		};
+
+		Block* _block;
 		size_t _capacity;
-		size_t* _next;
 	};
 
 	template <typename T, typename ... Args>
