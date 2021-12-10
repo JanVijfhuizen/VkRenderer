@@ -6,13 +6,13 @@
 
 RenderSystem::RenderSystem()
 {
-	_windowHandler = _allocator.Allocate<vi::WindowHandlerGLFW>();
+	_windowHandler = GMEM.Alloc<vi::WindowHandlerGLFW>();
 
 	vi::VkRenderer::Settings settings;
 	settings.windowHandler = _windowHandler;
 	settings.debugger.validationLayers.push_back("VK_LAYER_RENDERDOC_Capture");
-	settings.allocator = &_allocator;
-	_vkRenderer = _allocator.Allocate<vi::VkRenderer>(settings);
+	settings.allocator = &GMEM;
+	_vkRenderer = GMEM.Alloc<vi::VkRenderer>(settings);
 	_swapChain = &_vkRenderer->GetSwapChain();
 }
 

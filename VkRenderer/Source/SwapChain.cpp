@@ -71,9 +71,9 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(info.device, &createInfo, nullptr, &_swapChain);
 		assert(!result);
 
-		const auto memImage = _info.allocator->MAllocate(sizeof(Image) * imageCount);
-		const auto memFrames = _info.allocator->MAllocate(sizeof(Frame) * _MAX_FRAMES_IN_FLIGHT);
-		const auto memImagesInFlight = _info.allocator->MAllocate(sizeof(VkFence) * imageCount);
+		const auto memImage = _info.allocator->MAlloc(sizeof(Image) * imageCount);
+		const auto memFrames = _info.allocator->MAlloc(sizeof(Frame) * _MAX_FRAMES_IN_FLIGHT);
+		const auto memImagesInFlight = _info.allocator->MAlloc(sizeof(VkFence) * imageCount);
 
 		_images = ArrayPtr<Image>(reinterpret_cast<Image*>(memImage), imageCount);
 		_frames = ArrayPtr<Frame>(reinterpret_cast<Frame*>(memFrames), _MAX_FRAMES_IN_FLIGHT);

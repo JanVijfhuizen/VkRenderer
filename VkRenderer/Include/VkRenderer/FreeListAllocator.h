@@ -9,11 +9,11 @@ namespace vi
 		~FreeListAllocator();
 
 		template <typename T, typename ...Args>
-		[[nodiscard]] T* Allocate(Args... args);
+		[[nodiscard]] T* Alloc(Args... args);
 		template <typename T>
 		void Free(T* ptr);
 
-		[[nodiscard]] void* MAllocate(size_t size) const;
+		[[nodiscard]] void* MAlloc(size_t size) const;
 		void MFree(void* ptr) const;
 
 		[[nodiscard]] size_t GetCapacity() const;
@@ -37,9 +37,9 @@ namespace vi
 	};
 
 	template <typename T, typename ... Args>
-	T* FreeListAllocator::Allocate(Args... args)
+	T* FreeListAllocator::Alloc(Args... args)
 	{
-		const auto ptr = reinterpret_cast<T*>(MAllocate(sizeof(T)));
+		const auto ptr = reinterpret_cast<T*>(MAlloc(sizeof(T)));
 		new (ptr) T(args...);
 		return ptr;
 	}

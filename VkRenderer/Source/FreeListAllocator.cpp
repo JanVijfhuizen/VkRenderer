@@ -20,7 +20,7 @@ namespace vi
 		}
 	}
 
-	void* FreeListAllocator::MAllocate(const size_t size) const
+	void* FreeListAllocator::MAlloc(const size_t size) const
 	{
 		Block* previous = nullptr;
 		Block* current = _block;
