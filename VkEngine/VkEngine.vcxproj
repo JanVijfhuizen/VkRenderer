@@ -151,6 +151,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\Mesh.cpp" />
+    <ClCompile Include="Source\Rendering\RenderSystem.cpp" />
     <ClCompile Include="Source\Cecsar.cpp" />
     <ClCompile Include="Source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -159,6 +161,8 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="Source\Transform.cpp" />
+    <ClCompile Include="Source\Rendering\Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\FileReader.h" />
@@ -169,6 +173,10 @@
     <ClInclude Include="Include\SparseSet.h" />
     <ClInclude Include="Include\pch.h" />
     <ClInclude Include="Include\tiny_obj_loader.h" />
+    <ClInclude Include="Include\Rendering\RenderSystem.h" />
+    <ClInclude Include="Include\Transform.h" />
+    <ClInclude Include="Include\Rendering\Mesh.h" />
+    <ClInclude Include="Include\Rendering\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">

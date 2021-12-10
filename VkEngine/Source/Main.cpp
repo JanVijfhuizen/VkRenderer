@@ -1,35 +1,31 @@
 #include "pch.h"
-#include "VkRenderer/WindowHandlerGLFW.h"
-#include "VkRenderer/VkRenderer.h"
-#include "VkRenderer/SwapChain.h"
+#include "Rendering/RenderSystem.h"
+#include "Transform.h"
+#include "Rendering/Mesh.h"
 
 int main()
 {
 	{
-		vi::WindowHandlerGLFW windowHandler;
+		const uint32_t capacity = 100;
+		ce::Cecsar cecsar(capacity);
+		RenderSystem renderSystem{};
 
-		vi::VkRenderer::Settings settings;
-		settings.windowHandler = &windowHandler;
-		settings.debugger.validationLayers.push_back("VK_LAYER_RENDERDOC_Capture");
-		vi::VkRenderer renderer{ settings };
-		auto& swapChain = renderer.GetSwapChain();
+		Transform::System transformSystem(capacity);
+		Mesh::System meshSystem(capacity);
+
+		const auto vertData = Vertex::Load("Cube.obj");
+		const uint32_t handle = meshSystem.Create(vertData);
 
 		while (true)
 		{
 			bool quit;
-			windowHandler.BeginFrame(quit);
-			
+			renderSystem.BeginFrame(quit);	
 			if (quit)
 				break;
 
-			swapChain.BeginFrame();
-
-			// Do stuff.
-
-			bool shouldRecreateAssets;
-			swapChain.EndFrame(shouldRecreateAssets);
+			renderSystem.EndFrame();
 		}
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

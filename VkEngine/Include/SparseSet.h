@@ -31,7 +31,7 @@ namespace ce
 				return a._index == b._index;
 			};
 
-			friend bool operator!= (const Iterator& a, const Iterator& b)
+			friend bool operator!=(const Iterator& a, const Iterator& b)
 			{
 				return !(a == b);
 			};
@@ -64,6 +64,7 @@ namespace ce
 		[[nodiscard]] constexpr Iterator end();
 
 	private:
+		uint64_t* _data;
 		T* _values;
 		uint32_t* _dense;
 		int32_t* _sparse;
@@ -110,9 +111,11 @@ namespace ce
 	template <typename T>
 	SparseSet<T>::SparseSet(const uint32_t size) : _size(size)
 	{
-		_values = new T[size];
-		_dense = new uint32_t[size];
-		_sparse = new int32_t[size];
+		_data = new uint64_t[(sizeof(T) + sizeof(uint32_t) * 2) * size];
+
+		_dense = reinterpret_cast<uint32_t*>(_data);
+		_sparse = reinterpret_cast<int32_t*>(&_data[sizeof(uint32_t) * size]);
+		_values = reinterpret_cast<T*>(&_data[sizeof(uint32_t) * size * 2]);
 
 		for (uint32_t i = 0; i < size; ++i)
 			_sparse[i] = -1;
@@ -121,9 +124,7 @@ namespace ce
 	template <typename T>
 	SparseSet<T>::~SparseSet()
 	{
-		delete[] _values;
-		delete[] _dense;
-		delete[] _sparse;
+		delete[] _data;
 	}
 
 	template <typename T>
