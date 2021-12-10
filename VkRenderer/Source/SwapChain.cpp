@@ -135,7 +135,8 @@ namespace vi
 		clearColors[0].color = { 0, 0, 0, 1 };
 		clearColors[1].depthStencil = { 1, 0 };
 
-		renderer->BeginRenderPass(image.frameBuffer, _renderPass, {}, { _extent.width, _extent.height }, clearColors, 2);
+		renderer->BeginRenderPass(image.frameBuffer, _renderPass, {}, 
+			{ _extent.width, _extent.height }, clearColors, 2);
 	}
 
 	void SwapChain::EndFrame(bool& shouldRecreateAssets)
