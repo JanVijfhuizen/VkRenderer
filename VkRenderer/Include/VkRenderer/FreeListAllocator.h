@@ -73,5 +73,26 @@ namespace vi
 
 	inline void FreeListAllocator::Free(void* ptr)
 	{
+		const auto partition = &reinterpret_cast<size_t*>(ptr)[-2];
+
+		size_t* current = _next;
+
+		while (current)
+		{
+			auto& space = current[1];
+			size_t i = partition[1];
+			size_t j = current[1 + space];
+			
+			const auto adjecent = &current[space + 2];
+
+			if(adjecent == partition)
+			{
+				space += partition[1] + 2;
+				return;
+			}
+
+			const auto next = reinterpret_cast<size_t*>(*current);
+			current = next;
+		}
 	}
 }

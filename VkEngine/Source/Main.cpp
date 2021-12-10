@@ -31,6 +31,8 @@ int main()
 			std::cout << arrF[i] << std::endl;
 		}
 
+		alloc.Free(arrF);
+
 		return 0;
 	}
 
