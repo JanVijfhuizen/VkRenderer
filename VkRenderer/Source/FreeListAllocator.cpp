@@ -19,7 +19,7 @@ namespace vi
 		delete[] _data;
 	}
 
-	void* FreeListAllocator::Allocate(size_t size)
+	void* FreeListAllocator::MAllocate(size_t size)
 	{
 		size = size / 4 + 2;
 
@@ -57,7 +57,7 @@ namespace vi
 		return nullptr;
 	}
 
-	void FreeListAllocator::Free(void* ptr)
+	void FreeListAllocator::MFree(void* ptr)
 	{
 		const auto partition = &reinterpret_cast<size_t*>(ptr)[-2];
 		const auto adjecent = &partition[partition[1] + 2];
