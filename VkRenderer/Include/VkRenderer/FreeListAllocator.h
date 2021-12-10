@@ -28,7 +28,7 @@ namespace vi
 			explicit Block(size_t capacity);
 			~Block();
 
-			void* TryAllocate(size_t size);
+			[[nodiscard]] void* TryAllocate(size_t size);
 			bool TryFree(void* ptr);
 		};
 
