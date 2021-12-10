@@ -35,7 +35,9 @@
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\FreeListAllocator.cpp" />
     <ClCompile Include="Source\LogicalDeviceFactory.cpp" />
+    <ClCompile Include="Source\PoolAllocator.cpp" />
     <ClCompile Include="Source\StackAllocator.cpp" />
     <ClCompile Include="Source\SwapChain.cpp" />
     <ClCompile Include="Source\PhysicalDeviceFactory.cpp" />
