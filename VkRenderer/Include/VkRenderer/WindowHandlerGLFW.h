@@ -12,6 +12,8 @@ namespace vi
 		void BeginFrame(bool& outQuit) const;
 		bool QueryHasResized() override;
 
+		const VkInfo& GetVkInfo() const override;
+
 	private:
 		GLFWwindow* _window;
 		VkInfo _info;
@@ -19,9 +21,7 @@ namespace vi
 		bool _resized = false;
 
 		[[nodiscard]] VkSurfaceKHR CreateSurface(VkInstance instance) override;
-		const VkInfo& GetVkInfo() const override;
 		void GetRequiredExtensions(std::vector<const char*>& extensions) override;
-
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
 	};
 }

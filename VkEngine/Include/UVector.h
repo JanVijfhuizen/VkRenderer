@@ -33,7 +33,7 @@ public:
 	explicit UVector(size_t size = 8);
 	virtual ~UVector();
 
-	virtual void Add(const T& value);
+	virtual T& Add(const T& value);
 	virtual void EraseAt(size_t index);
 	virtual void Clear();
 
@@ -117,7 +117,7 @@ UVector<T>::~UVector()
 }
 
 template <typename T>
-void UVector<T>::Add(const T& value)
+T& UVector<T>::Add(const T& value)
 {
 	if(++_count >= _size)
 	{
@@ -137,7 +137,9 @@ void UVector<T>::Add(const T& value)
 		_data = reinterpret_cast<T*>(newData);
 	}
 
-	_data[_count - 1] = value;
+	auto& t = _data[_count - 1];
+	t = value;
+	return t;
 }
 
 template <typename T>

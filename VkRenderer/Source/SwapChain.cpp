@@ -20,6 +20,8 @@ namespace vi
 		if (maxImageCount > 0 && imageCount > maxImageCount)
 			imageCount = maxImageCount;
 
+		if (imageCount > 4)
+			imageCount =  4;
 		return imageCount;
 	}
 

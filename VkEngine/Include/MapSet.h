@@ -15,7 +15,7 @@ class MapSet : public ce::Set, public UVector<KeyValuePair<uint32_t, Value>>
 public:
 	explicit MapSet(size_t size);
 
-	void Add(const KeyValuePair<uint32_t, Value>& keyPair) override;
+	KeyValuePair<uint32_t, Value>& Add(const KeyValuePair<uint32_t, Value>& keyPair) override;
 	void Erase(uint32_t sparseId) override;
 };
 
@@ -26,7 +26,7 @@ MapSet<Value>::MapSet(const size_t size) : UVector<KeyValuePair<uint32_t, Value>
 }
 
 template <typename Value>
-void MapSet<Value>::Add(const KeyValuePair<uint32_t, Value>& keyPair)
+KeyValuePair<uint32_t, Value>& MapSet<Value>::Add(const KeyValuePair<uint32_t, Value>& keyPair)
 {
 	const size_t count = UVector<KeyValuePair<uint32_t, Value>>::GetCount() - 1;
 	for (size_t i = 0; i < count; ++i)
@@ -35,11 +35,11 @@ void MapSet<Value>::Add(const KeyValuePair<uint32_t, Value>& keyPair)
 		if (value.key == keyPair.key)
 		{
 			value = keyPair;
-			return;
+			return value;
 		}
 	}
 
-	UVector<KeyValuePair<uint32_t, Value>>::Add(keyPair);
+	return UVector<KeyValuePair<uint32_t, Value>>::Add(keyPair);
 }
 
 template <typename Value>
