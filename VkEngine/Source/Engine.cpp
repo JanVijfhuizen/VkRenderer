@@ -3,6 +3,7 @@
 #include "Rendering/Mesh.h"
 #include "Transform.h"
 #include "Rendering/RenderSystem.h"
+#include "Rendering/Camera.h"
 
 void Engine::Run(const Info& info)
 {
@@ -14,6 +15,7 @@ void Engine::Run(const Info& info)
 		{
 			Transform::System transformSystem(info.capacity);
 			Mesh::System meshSystem(info.capacity);
+			Camera::System cameraSystem{};
 
 			if(info.awake)
 				info.awake();

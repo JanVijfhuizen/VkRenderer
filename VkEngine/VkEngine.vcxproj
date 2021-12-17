@@ -172,6 +172,7 @@
     <ClInclude Include="Include\FileReader.h" />
     <ClInclude Include="Include\Cecsar.h" />
     <ClInclude Include="Include\Entity.h" />
+    <ClInclude Include="Include\MapSet.h" />
     <ClInclude Include="Include\Rendering\Camera.h" />
     <ClInclude Include="Include\Rendering\DefaultMaterial.h" />
     <ClInclude Include="Include\Rendering\SwapChainSet.h" />

@@ -98,5 +98,8 @@
     <ClInclude Include="Include\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\MapSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,10 +1,11 @@
 ﻿#pragma once
-#include "UVector.h"
+#include "MapSet.h"
 
 struct Camera final
 {
-public:
-	class System final : UVector<Camera>, public Singleton<System>
+	class System final : MapSet<Camera>, public Singleton<System>
 	{
+	public:
+		System();
 	};
 };

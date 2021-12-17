@@ -31,7 +31,7 @@ public:
 	[[nodiscard]] constexpr T& operator[](size_t sparseId);
 
 	explicit UVector(size_t size = 8);
-	~UVector();
+	virtual ~UVector();
 
 	virtual void Add(const T& value);
 	virtual void EraseAt(size_t index);
