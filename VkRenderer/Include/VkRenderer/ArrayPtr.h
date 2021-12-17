@@ -54,7 +54,7 @@ constexpr T& ArrayPtr<T>::operator[](const uint32_t index)
 template <typename T>
 constexpr typename ArrayPtr<T>::Iterator ArrayPtr<T>::begin()
 {
-	Iterator it;
+	Iterator it{};
 	it.begin = _data;
 	it.size = _size;
 	it.index = 0;
@@ -77,7 +77,7 @@ constexpr T* ArrayPtr<T>::GetData() const
 template <typename T>
 typename ArrayPtr<T>::Iterator ArrayPtr<T>::end()
 {
-	Iterator it;
+	Iterator it{};
 	it.begin = _data;
 	it.size = _size;
 	it.index = _size;

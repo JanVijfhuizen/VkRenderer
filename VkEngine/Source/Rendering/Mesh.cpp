@@ -79,6 +79,6 @@ uint32_t Mesh::System::Create(const Vertex::Data& vertData)
 	data.indexMemory = indMem;
 	data.indexCount = indices.size();
 
-	_data.push_back(data);
-	return _data.size() - 1;
+	_data.Add(data);
+	return _data.GetCount() - 1;
 }

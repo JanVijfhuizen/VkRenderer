@@ -20,8 +20,13 @@ namespace vi
 		}
 	}
 
-	void* FreeListAllocator::MAlloc(const size_t size) const
+	void* FreeListAllocator::MAlloc(size_t size) const
 	{
+		{
+			const size_t allocDiff = size % sizeof(size_t);
+			size += (sizeof(size_t) - allocDiff) * (allocDiff > 0);
+		}
+
 		Block* previous = nullptr;
 		Block* current = _block;
 
