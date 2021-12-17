@@ -20,8 +20,13 @@ namespace vi
 		}
 	}
 
-	void* FreeListAllocator::MAlloc(const size_t size) const
+	void* FreeListAllocator::MAlloc(size_t size) const
 	{
+		{
+			const size_t allocDiff = size % sizeof(size_t);
+			size += (sizeof(size_t) - allocDiff) * (allocDiff > 0);
+		}
+
 		Block* previous = nullptr;
 		Block* current = _block;
 
@@ -111,8 +116,8 @@ namespace vi
 
 	bool FreeListAllocator::Block::TryFree(void* ptr)
 	{
-		const auto partition = &reinterpret_cast<size_t*>(ptr)[-2];
-		const auto adjecent = &partition[partition[1] + 2];
+		const auto partition = reinterpret_cast<size_t*>(ptr) - 2;
+		const auto adjecent = partition + partition[1] + 2;
 
 		size_t* previous = nullptr;
 		size_t* current = next;
@@ -123,17 +128,17 @@ namespace vi
 
 			if (adjecent == current)
 			{
-				*partition = current[2];
+				*partition = *current;
 				partition[1] += space + 2;
 
-				if (next == current)
+				if (!previous)
 					next = partition;
 				else
 					*reinterpret_cast<size_t**>(previous) = partition;
 				return true;
 			}
 
-			const auto currentAdjecent = &current[space + 2];
+			const auto currentAdjecent = current + space + 2;
 
 			if (currentAdjecent == partition)
 			{

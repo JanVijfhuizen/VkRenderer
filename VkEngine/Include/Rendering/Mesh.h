@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Vertex.h"
+#include "UVector.h"
 
 struct Mesh final
 {
@@ -23,6 +24,6 @@ struct Mesh final
 			uint32_t indexCount;
 		};
 
-		std::vector<Data> _data{};
+		UVector<Data> _data{};
 	};
 };
