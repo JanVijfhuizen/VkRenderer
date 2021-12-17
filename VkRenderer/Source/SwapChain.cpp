@@ -3,6 +3,7 @@
 #include "PhysicalDeviceFactory.h"
 #include "WindowHandler.h"
 #include "VkRenderer.h"
+#include "FreeListAllocator.h"
 
 namespace vi
 {
@@ -70,9 +71,13 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(info.device, &createInfo, nullptr, &_swapChain);
 		assert(!result);
 
-		_images = ArrayPtr<Image>(_info.allocator->Alloc<Image>(imageCount), imageCount);
-		_frames = ArrayPtr<Frame>(_info.allocator->Alloc<Frame>(_MAX_FRAMES_IN_FLIGHT), _MAX_FRAMES_IN_FLIGHT);
-		_imagesInFlight = ArrayPtr<VkFence>(_info.allocator->Alloc<VkFence>(imageCount), imageCount);
+		const auto memImage = _info.allocator->MAlloc(sizeof(Image) * imageCount);
+		const auto memFrames = _info.allocator->MAlloc(sizeof(Frame) * _MAX_FRAMES_IN_FLIGHT);
+		const auto memImagesInFlight = _info.allocator->MAlloc(sizeof(VkFence) * imageCount);
+
+		_images = ArrayPtr<Image>(reinterpret_cast<Image*>(memImage), imageCount);
+		_frames = ArrayPtr<Frame>(reinterpret_cast<Frame*>(memFrames), _MAX_FRAMES_IN_FLIGHT);
+		_imagesInFlight = ArrayPtr<VkFence>(reinterpret_cast<VkFence*>(memImagesInFlight), imageCount);
 		for (auto& fence : _imagesInFlight)
 			fence = VK_NULL_HANDLE;
 
@@ -102,8 +107,9 @@ namespace vi
 			renderer->DestroyFence(frame.inFlightFence);
 		}
 
-		for (uint32_t i = 0; i < 3; ++i)
-			_info.allocator->Pop();
+		_info.allocator->Free(_images.GetData());
+		_info.allocator->Free(_frames.GetData());
+		_info.allocator->Free(_imagesInFlight.GetData());
 
 		vkDestroySwapchainKHR(device, _swapChain, nullptr);
 	}
@@ -129,7 +135,8 @@ namespace vi
 		clearColors[0].color = { 0, 0, 0, 1 };
 		clearColors[1].depthStencil = { 1, 0 };
 
-		renderer->BeginRenderPass(image.frameBuffer, _renderPass, {}, { _extent.width, _extent.height }, clearColors, 2);
+		renderer->BeginRenderPass(image.frameBuffer, _renderPass, {}, 
+			{ _extent.width, _extent.height }, clearColors, 2);
 	}
 
 	void SwapChain::EndFrame(bool& shouldRecreateAssets)

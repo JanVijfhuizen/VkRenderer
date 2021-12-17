@@ -6,24 +6,76 @@ namespace vi
 	FreeListAllocator::FreeListAllocator(size_t capacity) : _capacity(capacity)
 	{
 		capacity /= sizeof(size_t);
-
-		_data = new size_t[capacity];
-		_next = _data;
-
-		*reinterpret_cast<void**>(_data) = nullptr;
-		_next[1] = capacity - 2;
+		_block = new Block(capacity);
 	}
 
 	FreeListAllocator::~FreeListAllocator()
 	{
-		delete[] _data;
+		Block* current = _block;
+		while(current)
+		{
+			Block* next = current->child;
+			delete current;
+			current = next;
+		}
 	}
 
-	void* FreeListAllocator::Allocate(size_t size)
+	void* FreeListAllocator::MAlloc(const size_t size) const
 	{
-		size = size / 4 + 2;
+		Block* previous = nullptr;
+		Block* current = _block;
 
-		size_t* current = _next;
+		while (current)
+		{
+			void* ptr = current->TryAllocate(size);
+			if (ptr)
+				return ptr;
+
+			previous = current;
+			current = current->child;
+		}
+
+		const auto block = new Block(_capacity / sizeof(size_t));
+		previous->child = block;
+		return block->TryAllocate(size);
+	}
+
+	void FreeListAllocator::MFree(void* ptr) const
+	{
+		Block* current = _block;
+		while (current)
+		{
+			if (current->TryFree(ptr))
+				return;
+
+			current = current->child;
+		}
+	}
+
+	size_t FreeListAllocator::GetCapacity() const
+	{
+		return _capacity;
+	}
+
+	FreeListAllocator::Block::Block(const size_t capacity)
+	{
+		data = new size_t[capacity];
+		next = data;
+
+		*reinterpret_cast<void**>(data) = nullptr;
+		next[1] = capacity - 2;
+	}
+
+	FreeListAllocator::Block::~Block()
+	{
+		delete[] data;
+	}
+
+	void* FreeListAllocator::Block::TryAllocate(size_t size)
+	{
+		size = size / 4 + 2 + (size % sizeof(size_t) != 0);
+
+		size_t* current = next;
 
 		while (current)
 		{
@@ -49,21 +101,21 @@ namespace vi
 				partitioned[1] = diff - 2;
 			}
 
-			if (_next == current)
-				_next = reinterpret_cast<size_t*>(*current);
+			if (this->next == current)
+				this->next = reinterpret_cast<size_t*>(*current);
 			return &current[2];
 		}
 
 		return nullptr;
 	}
 
-	void FreeListAllocator::Free(void* ptr)
+	bool FreeListAllocator::Block::TryFree(void* ptr)
 	{
-		const auto partition = &reinterpret_cast<size_t*>(ptr)[-2];
-		const auto adjecent = &partition[partition[1] + 2];
+		const auto partition = reinterpret_cast<size_t*>(ptr) - 2;
+		const auto adjecent = partition + partition[1] + 2;
 
 		size_t* previous = nullptr;
-		size_t* current = _next;
+		size_t* current = next;
 
 		while (current)
 		{
@@ -71,37 +123,29 @@ namespace vi
 
 			if (adjecent == current)
 			{
-				*partition = current[2];
+				*partition = *current;
 				partition[1] += space + 2;
 
-				if (_next == current)
-					_next = partition;
+				if (!previous)
+					next = partition;
 				else
 					*reinterpret_cast<size_t**>(previous) = partition;
-				return;
+				return true;
 			}
 
-			const auto currentAdjecent = &current[space + 2];
+			const auto currentAdjecent = current + space + 2;
 
 			if (currentAdjecent == partition)
 			{
 				space += partition[1] + 2;
-				return;
+				return true;
 			}
 
 			const auto next = reinterpret_cast<size_t*>(*current);
 			previous = current;
 			current = next;
 		}
-	}
 
-	size_t FreeListAllocator::GetCapacity() const
-	{
-		return _capacity;
-	}
-
-	void* FreeListAllocator::GetData() const
-	{
-		return _data;
+		return false;
 	}
 }

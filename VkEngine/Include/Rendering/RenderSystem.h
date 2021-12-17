@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "VkRenderer/StackAllocator.h"
 
 namespace vi
 {
@@ -21,7 +20,6 @@ public:
 	[[nodiscard]] vi::VkRenderer& GetVkRenderer() const;
 
 private:
-	vi::StackAllocator _allocator{};
 	vi::WindowHandlerGLFW* _windowHandler;
 	vi::VkRenderer* _vkRenderer;
 	vi::SwapChain* _swapChain;

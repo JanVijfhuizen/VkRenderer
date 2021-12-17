@@ -101,7 +101,7 @@ namespace ce
 	typename SparseSet<T>::Iterator SparseSet<T>::Iterator::operator++(int)
 	{
 		Iterator temp{ *this };
-		++_index;
+		++temp._index;
 		return temp;
 	}
 

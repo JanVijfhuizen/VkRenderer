@@ -168,6 +168,8 @@
     <ClInclude Include="Include\FileReader.h" />
     <ClInclude Include="Include\Cecsar.h" />
     <ClInclude Include="Include\Entity.h" />
+    <ClInclude Include="Include\Rendering\SwapChainSet.h" />
+    <ClInclude Include="Include\UVector.h" />
     <ClInclude Include="Include\Singleton.h" />
     <ClInclude Include="Include\Set.h" />
     <ClInclude Include="Include\SparseSet.h" />
