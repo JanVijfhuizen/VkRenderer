@@ -8,7 +8,7 @@ public:
 	{
 	public:
 		T* begin;
-		size_t size;
+		size_t count;
 		size_t index;
 
 		T& operator*() const;
@@ -60,7 +60,7 @@ constexpr typename UVector<T>::Iterator UVector<T>::begin()
 {
 	Iterator it{};
 	it.begin = _data;
-	it.size = _size;
+	it.count = _count;
 	it.index = 0;
 
 	return it;
@@ -71,8 +71,8 @@ typename UVector<T>::Iterator UVector<T>::end()
 {
 	Iterator it{};
 	it.begin = _data;
-	it.size = _size;
-	it.index = _size;
+	it.count = _count;
+	it.index = _count;
 
 	return it;
 }
@@ -99,7 +99,7 @@ const typename UVector<T>::Iterator& UVector<T>::Iterator::operator++()
 template <typename T>
 typename UVector<T>::Iterator UVector<T>::Iterator::operator++(int)
 {
-	Iterator temp(begin, size, index);
+	Iterator temp(begin, count, index);
 	++index;
 	return temp;
 }

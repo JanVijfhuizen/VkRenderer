@@ -138,6 +138,7 @@ namespace vi
 				return true;
 			}
 
+			// Todo.
 			const auto currentAdjecent = &current[space + 2];
 
 			if (currentAdjecent == partition)
