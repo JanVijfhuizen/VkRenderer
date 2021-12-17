@@ -1,7 +1,7 @@
 #pragma once
 
 template <typename T>
-class UVector final
+class UVector
 {
 public:
 	class Iterator final
@@ -33,9 +33,9 @@ public:
 	explicit UVector(size_t size = 8);
 	~UVector();
 
-	void Add(const T& value);
-	void EraseAt(size_t index);
-	void Clear();
+	virtual void Add(const T& value);
+	virtual void EraseAt(size_t index);
+	virtual void Clear();
 
 	[[nodiscard]] size_t GetCount() const;
 	[[nodiscard]] size_t GetSize() const;

@@ -151,6 +151,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Engine.cpp" />
+    <ClCompile Include="Source\Rendering\Camera.cpp" />
+    <ClCompile Include="Source\Rendering\DefaultMaterial.cpp" />
     <ClCompile Include="Source\Rendering\Mesh.cpp" />
     <ClCompile Include="Source\Rendering\RenderSystem.cpp" />
     <ClCompile Include="Source\Cecsar.cpp" />
@@ -165,9 +168,12 @@
     <ClCompile Include="Source\Rendering\Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\Engine.h" />
     <ClInclude Include="Include\FileReader.h" />
     <ClInclude Include="Include\Cecsar.h" />
     <ClInclude Include="Include\Entity.h" />
+    <ClInclude Include="Include\Rendering\Camera.h" />
+    <ClInclude Include="Include\Rendering\DefaultMaterial.h" />
     <ClInclude Include="Include\Rendering\SwapChainSet.h" />
     <ClInclude Include="Include\UVector.h" />
     <ClInclude Include="Include\Singleton.h" />
