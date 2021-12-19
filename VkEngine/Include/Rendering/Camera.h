@@ -4,7 +4,7 @@
 
 struct Camera final
 {
-	struct Ubo final
+	struct alignas(256) Ubo final
 	{
 		glm::mat4 view;
 		glm::mat4 projection;

@@ -119,7 +119,7 @@ UVector<T>::~UVector()
 template <typename T>
 T& UVector<T>::Add(const T& value)
 {
-	if(++_count >= _size)
+	if(_count++ >= _size)
 	{
 		const size_t oldMemSize = sizeof(T) * _size;
 

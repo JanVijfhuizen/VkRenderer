@@ -8,7 +8,7 @@ DescriptorPool::DescriptorPool() = default;
 DescriptorPool::DescriptorPool(const VkDescriptorSetLayout layout, 
 	VkDescriptorType* types, uint32_t* sizes,
 	const uint32_t typeCount, const uint32_t blockSize) :
-	_layout(layout), _blockSize(blockSize), _open(blockSize), _typeCount(typeCount)
+	_layout(layout), _typeCount(typeCount), _blockSize(blockSize), _open(blockSize)
 {
 	const size_t typesSize = sizeof(VkDescriptorType) * typeCount;
 	_types = reinterpret_cast<VkDescriptorType*>(GMEM.MAlloc(typesSize));
@@ -19,6 +19,23 @@ DescriptorPool::DescriptorPool(const VkDescriptorSetLayout layout,
 	memcpy(_sizes, sizes, sizesSize);
 
 	AddBlock();
+}
+
+DescriptorPool& DescriptorPool::operator=(DescriptorPool&& other) noexcept
+{
+	this->~DescriptorPool();
+
+	_layout = other._layout;
+	_typeCount = other._typeCount;
+	_blockSize = other._blockSize;
+	_open = other._open;
+	for (auto& subPool : other._subPools)
+		_subPools.Add(subPool);
+
+	other._types = nullptr;
+	other._sizes = nullptr;
+	other._subPools.Clear();
+	return *this;
 }
 
 DescriptorPool::~DescriptorPool()
@@ -53,7 +70,6 @@ void DescriptorPool::AddBlock()
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	const auto subPool = renderer.CreateDescriptorPool(_types, _sizes, _typeCount);
-
 	_subPools.Add(subPool);
 
 	const auto sets = reinterpret_cast<VkDescriptorSet*>(GMEM_TEMP.MAlloc(sizeof(VkDescriptorSet) * _blockSize));

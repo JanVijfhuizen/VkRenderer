@@ -111,6 +111,9 @@ namespace vi
 
 	bool FreeListAllocator::Block::TryFree(void* ptr)
 	{
+		if (!ptr)
+			return true;
+
 		const auto partition = reinterpret_cast<size_t*>(ptr) - 2;
 		const auto adjecent = partition + partition[1] + 2;
 

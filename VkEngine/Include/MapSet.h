@@ -35,7 +35,7 @@ Value& MapSet<Value>::Insert(const uint32_t index)
 template <typename Value>
 KeyValuePair<uint32_t, Value>& MapSet<Value>::Add(const KeyValuePair<uint32_t, Value>& keyPair)
 {
-	const size_t count = UVector<KeyValuePair<uint32_t, Value>>::GetCount() - 1;
+	const size_t count = UVector<KeyValuePair<uint32_t, Value>>::GetCount();
 	for (size_t i = 0; i < count; ++i)
 	{
 		auto& value = UVector<KeyValuePair<uint32_t, Value>>::operator [](i);
