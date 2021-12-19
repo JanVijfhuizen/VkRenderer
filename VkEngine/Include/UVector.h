@@ -125,13 +125,13 @@ T& UVector<T>::Add(const T& value)
 
 		void* tempData = GMEM_TEMP.MAlloc(oldMemSize);
 		memcpy(tempData, _data, oldMemSize);
-		GMEM.Free(_data);
+		GMEM.Delete(_data);
 
 		const size_t newCapacity = _size * 2;
 		void* newData = GMEM.MAlloc(sizeof(T) * newCapacity);
 
 		memcpy(newData, tempData, oldMemSize);
-		GMEM_TEMP.Free(tempData);
+		GMEM_TEMP.Delete(tempData);
 
 		_size = newCapacity;
 		_data = reinterpret_cast<T*>(newData);

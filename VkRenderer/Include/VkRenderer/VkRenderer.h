@@ -98,7 +98,7 @@ namespace vi
 		[[nodiscard]] VkDescriptorSetLayout CreateLayout(const LayoutInfo& info) const;
 		void DestroyLayout(VkDescriptorSetLayout layout) const;
 
-		[[nodiscard]] VkDescriptorPool CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, uint32_t count) const;
+		[[nodiscard]] VkDescriptorPool CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, uint32_t capacityCount) const;
 		void CreateDescriptorSets(VkDescriptorPool pool, VkDescriptorSetLayout layout, uint32_t setCount, VkDescriptorSet* outSets) const;
 		void DestroyDescriptorPool(VkDescriptorPool pool) const;
 

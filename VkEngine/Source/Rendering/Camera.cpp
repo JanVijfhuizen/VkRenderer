@@ -7,7 +7,26 @@
 
 Camera::System::System() : MapSet<Camera>(1)
 {
+	auto& renderSystem = RenderSystem::Get();
+	auto& renderer = renderSystem.GetVkRenderer();
 
+	vi::VkRenderer::LayoutInfo camLayoutInfo{};
+	vi::VkRenderer::LayoutInfo::Binding bindingInfo;
+	bindingInfo.size = sizeof Ubo;
+	bindingInfo.flag = VK_SHADER_STAGE_VERTEX_BIT;
+	camLayoutInfo.bindings.push_back(bindingInfo);
+	_layout = renderer.CreateLayout(camLayoutInfo);
+
+	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	_descriptorPool = DescriptorPool(_layout, ArrayPtr(&types, 1), 4);
+}
+
+Camera::System::~System()
+{
+	auto& renderSystem = RenderSystem::Get();
+	auto& renderer = renderSystem.GetVkRenderer();
+
+	renderer.DestroyLayout(_layout);
 }
 
 void Camera::System::Update()
@@ -47,13 +66,12 @@ KeyValuePair<unsigned, Camera>& Camera::System::Add(const KeyValuePair<unsigned,
 
 	const uint32_t imageCount = swapChain.GetImageCount();
 
-	// Todo add descriptor from set.
-
+	camera._descriptor = _descriptorPool.Get();
 	camera._buffer = renderer.CreateBuffer(sizeof(Ubo) * imageCount, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 	camera._memory = renderer.AllocateMemory(camera._buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	renderer.BindMemory(camera._buffer, camera._memory);
-	renderer.BindBuffer(camera._descriptor, camera._buffer, 0, sizeof(Ubo) * imageCount, 0, 0);
+	//renderer.BindBuffer(camera._descriptor, camera._buffer, 0, sizeof(Ubo) * imageCount, 0, 0);
 
 	return t;
 }
@@ -65,8 +83,7 @@ void Camera::System::EraseAt(const size_t index)
 	auto& renderSystem = RenderSystem::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
-	// Todo remove descriptor from set.
-
+	_descriptorPool.Add(camera._descriptor);
 	renderer.FreeMemory(camera._memory);
 	renderer.DestroyBuffer(camera._buffer);
 

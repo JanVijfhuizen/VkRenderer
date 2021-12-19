@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "MapSet.h"
+#include "DescriptorPool.h"
 
 struct Camera final
 {
@@ -15,14 +16,20 @@ struct Camera final
 		Perspective
 	};
 
-	class System final : MapSet<Camera>, public Singleton<System>
+	class System final : public MapSet<Camera>, public Singleton<System>
 	{
 	public:
 		System();
+		~System();
+
 		void Update();
 
 		KeyValuePair<unsigned, Camera>& Add(const KeyValuePair<unsigned, Camera>& value) override;
 		void EraseAt(size_t index) override;
+
+	private:
+		DescriptorPool _descriptorPool;
+		VkDescriptorSetLayout _layout;
 	};
 
 	glm::vec3 lookat{};

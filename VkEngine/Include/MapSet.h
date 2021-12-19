@@ -15,6 +15,7 @@ class MapSet : public ce::Set, public UVector<KeyValuePair<uint32_t, Value>>
 public:
 	explicit MapSet(size_t size);
 
+	Value& Insert(uint32_t index);
 	KeyValuePair<uint32_t, Value>& Add(const KeyValuePair<uint32_t, Value>& keyPair) override;
 	void Erase(uint32_t sparseId) override;
 };
@@ -23,6 +24,12 @@ template <typename Value>
 MapSet<Value>::MapSet(const size_t size) : UVector<KeyValuePair<uint32_t, Value>>(size)
 {
 
+}
+
+template <typename Value>
+Value& MapSet<Value>::Insert(const uint32_t index)
+{
+	return Add({ index, {} }).value;
 }
 
 template <typename Value>

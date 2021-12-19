@@ -145,14 +145,14 @@ namespace vi
 		vkDestroyDescriptorSetLayout(_device, layout, nullptr);
 	}
 
-	VkDescriptorPool VkRenderer::CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, const uint32_t count) const
+	VkDescriptorPool VkRenderer::CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, const uint32_t capacityCount) const
 	{
 		std::vector<VkDescriptorPoolSize> sizes{};
-		sizes.resize(count);
+		sizes.resize(capacityCount);
 
 		uint32_t maxSets = 0;
 
-		for (uint32_t i = 0; i < count; ++i)
+		for (uint32_t i = 0; i < capacityCount; ++i)
 		{
 			auto& size = sizes[i];
 			size.type = types[i];
@@ -162,7 +162,7 @@ namespace vi
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = count;
+		poolInfo.poolSizeCount = capacityCount;
 		poolInfo.pPoolSizes = sizes.data();
 		poolInfo.maxSets = maxSets;
 
