@@ -51,7 +51,7 @@ void Camera::System::Update()
 		ubo.projection = glm::perspective(glm::radians(camera.fieldOfView),
 			aspectRatio, camera.clipNear, camera.clipFar);
 
-		renderer.MapMemory(camera._memory, &ubo, sizeof(Ubo) * imageIndex, 1);
+		renderer.MapMemory(camera._memory, &ubo, sizeof(Ubo) * imageIndex, sizeof(Ubo));
 	}
 }
 
@@ -66,12 +66,15 @@ KeyValuePair<unsigned, Camera>& Camera::System::Add(const KeyValuePair<unsigned,
 
 	const uint32_t imageCount = swapChain.GetImageCount();
 
-	camera._descriptor = _descriptorPool.Get();
 	camera._buffer = renderer.CreateBuffer(sizeof(Ubo) * imageCount, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 	camera._memory = renderer.AllocateMemory(camera._buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	renderer.BindMemory(camera._buffer, camera._memory, 0);
 
-	renderer.BindMemory(camera._buffer, camera._memory);
-	//renderer.BindBuffer(camera._descriptor, camera._buffer, 0, sizeof(Ubo) * imageCount, 0, 0);
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+		camera._descriptors[i] = _descriptorPool.Get();
+		renderer.BindBuffer(camera._descriptors[i], camera._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
+	}
 
 	return t;
 }
@@ -82,8 +85,13 @@ void Camera::System::EraseAt(const size_t index)
 
 	auto& renderSystem = RenderSystem::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
 
-	_descriptorPool.Add(camera._descriptor);
+	const uint32_t imageCount = swapChain.GetImageCount();
+
+	for (uint32_t i = 0; i < imageCount; ++i)
+		_descriptorPool.Add(camera._descriptors[i]);
+
 	renderer.FreeMemory(camera._memory);
 	renderer.DestroyBuffer(camera._buffer);
 

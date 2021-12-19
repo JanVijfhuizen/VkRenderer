@@ -42,5 +42,5 @@ private:
 
 	VkBuffer _buffer;
 	VkDeviceMemory _memory;
-	VkDescriptorSet _descriptor;
+	VkDescriptorSet _descriptors[4];
 };
