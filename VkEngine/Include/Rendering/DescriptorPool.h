@@ -1,12 +1,11 @@
 ﻿#pragma once
 #include "UVector.h"
-#include "VkRenderer/ArrayPtr.h"
 
 class DescriptorPool final
 {
 public:
 	DescriptorPool();
-	DescriptorPool(VkDescriptorSetLayout layout, ArrayPtr<VkDescriptorType> types, uint32_t blockSize);
+	DescriptorPool(VkDescriptorSetLayout layout, VkDescriptorType* types, uint32_t* sizes, uint32_t typeCount, uint32_t blockSize);
 	~DescriptorPool();
 
 	[[nodiscard]] VkDescriptorSet Get();
@@ -14,7 +13,9 @@ public:
 
 private:
 	VkDescriptorSetLayout _layout;
-	ArrayPtr<VkDescriptorType> _types;
+	VkDescriptorType* _types;
+	uint32_t* _sizes;
+	uint32_t _typeCount;
 	uint32_t _blockSize;
 
 	UVector<VkDescriptorSet> _open;

@@ -6,19 +6,25 @@
 DescriptorPool::DescriptorPool() = default;
 
 DescriptorPool::DescriptorPool(const VkDescriptorSetLayout layout, 
-	const ArrayPtr<VkDescriptorType> types, const uint32_t blockSize) : _layout(layout), _blockSize(blockSize), _open(blockSize)
+	VkDescriptorType* types, uint32_t* sizes,
+	const uint32_t typeCount, const uint32_t blockSize) :
+	_layout(layout), _blockSize(blockSize), _open(blockSize), _typeCount(typeCount)
 {
-	const size_t size = sizeof(VkDescriptorType) * types.GetSize();
-	const auto typePtr = reinterpret_cast<VkDescriptorType*>(GMEM.MAlloc(size));
-	memcpy(typePtr, types.GetData(), size);
-	_types = ArrayPtr( typePtr, types.GetSize());
+	const size_t typesSize = sizeof(VkDescriptorType) * typeCount;
+	_types = reinterpret_cast<VkDescriptorType*>(GMEM.MAlloc(typesSize));
+	memcpy(_types, types, typesSize);
+
+	const size_t sizesSize = sizeof(uint32_t) * typeCount;
+	_sizes = reinterpret_cast<uint32_t*>(GMEM.MAlloc(sizesSize));
+	memcpy(_sizes, sizes, sizesSize);
 
 	AddBlock();
 }
 
 DescriptorPool::~DescriptorPool()
 {
-	GMEM.MFree(_types.GetData());
+	GMEM.MFree(_types);
+	GMEM.MFree(_sizes);
 
 	auto& renderSystem = RenderSystem::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
@@ -31,7 +37,9 @@ VkDescriptorSet DescriptorPool::Get()
 {
 	if (_open.GetCount() == 0)
 		AddBlock();
-	return _open[0];
+	const auto set = _open[0];
+	_open.EraseAt(0);
+	return set;
 }
 
 void DescriptorPool::Add(const VkDescriptorSet set)
@@ -44,11 +52,7 @@ void DescriptorPool::AddBlock()
 	auto& renderSystem = RenderSystem::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
-	const auto capacities = reinterpret_cast<uint32_t*>(GMEM_TEMP.MAlloc(sizeof(uint32_t) * _blockSize));
-	for (uint32_t i = 0; i < _blockSize; ++i)
-		capacities[i] = _blockSize;
-	const auto subPool = renderer.CreateDescriptorPool(_types.GetData(), capacities, 1);
-	GMEM_TEMP.MFree(capacities);
+	const auto subPool = renderer.CreateDescriptorPool(_types, _sizes, _typeCount);
 
 	_subPools.Add(subPool);
 

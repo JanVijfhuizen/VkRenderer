@@ -18,7 +18,18 @@ Camera::System::System() : MapSet<Camera>(1)
 	_layout = renderer.CreateLayout(camLayoutInfo);
 
 	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	_descriptorPool = DescriptorPool(_layout, ArrayPtr(&types, 1), 4);
+	uint32_t sizes = 4;
+	_descriptorPool = DescriptorPool(_layout, &types, &sizes, 1, 4);
+
+	// temp
+	const auto subPool = renderer.CreateDescriptorPool(&types, &sizes, 1);
+	VkDescriptorSet set[2];
+	renderer.CreateDescriptorSets(subPool, _layout, 2, set);
+
+	auto buffer = renderer.CreateBuffer(sizeof(Ubo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+	auto memory = renderer.AllocateMemory(buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	renderer.BindMemory(buffer, memory, 0);
+	renderer.BindBuffer(set[0], buffer, 0, sizeof(Ubo), 0, 0);
 }
 
 Camera::System::~System()
