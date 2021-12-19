@@ -3,10 +3,18 @@
 #include "Rendering/Mesh.h"
 #include "Engine.h"
 #include "Rendering/Camera.h"
+#include "Rendering/DefaultMaterial.h"
 
 int main()
 {
 	Engine::Info info{};
+
+	info.awake = []()
+	{
+		const uint32_t size = ce::Cecsar::Get().GetSize();
+		GMEM.New<DefaultMaterial::System>(size);
+	};
+
 	info.start = []()
 	{
 		auto& cecsar = ce::Cecsar::Get();
@@ -26,6 +34,11 @@ int main()
 		auto& camComponent = cameraSystem.Insert(camera.index);
 		auto& camTransform = transformSystem.Insert(camera.index);
 		camTransform.position = { 0, 0, -10 };
+	};
+
+	info.cleanup = []()
+	{
+		GMEM.Delete(&DefaultMaterial::System::Get());
 	};
 
 	Engine::Run(info);

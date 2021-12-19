@@ -12,10 +12,11 @@ namespace ce
 	public:
 		explicit Cecsar(uint32_t size);
 
-		Entity AddEntity();
+		[[nodiscard]] Entity AddEntity();
 		void EraseEntity(uint32_t index);
 
 		void AddSet(Set* set);
+		[[nodiscard]] uint32_t GetSize() const;
 
 	private:
 		int32_t _globalId = 0;

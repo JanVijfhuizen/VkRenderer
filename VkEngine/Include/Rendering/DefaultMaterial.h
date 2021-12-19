@@ -6,7 +6,7 @@ public:
 	class System final : public ce::SparseSet<DefaultMaterial>, public Singleton<System>
 	{
 	public:
-		System();
+		explicit System(uint32_t size);
 		~System();
 	};
 };

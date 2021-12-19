@@ -41,6 +41,9 @@ void Engine::Run(const Info& info)
 
 				renderSystem.EndFrame();
 			}
+
+			if (info.cleanup)
+				info.cleanup();
 		}
 	}
 }
