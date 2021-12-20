@@ -82,3 +82,8 @@ uint32_t Mesh::System::Create(const Vertex::Data& vertData)
 	_data.Add(data);
 	return _data.GetCount() - 1;
 }
+
+const Mesh::Data& Mesh::System::GetMeshData(Mesh& mesh)
+{
+	return _data[mesh.handle];
+}

@@ -78,41 +78,34 @@ void DefaultMaterial::System::Update()
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	auto& cameraSystem = Camera::System::Get();
-	auto& transforms = Transform::System::Get();
-	auto& meshes = Mesh::System::Get();
+	auto& transformSystem = Transform::System::Get();
+	auto& meshSystem = Mesh::System::Get();
 
 	if (cameraSystem.GetSize() == 0)
 		return;
 
-	const auto bakedTransforms = transforms.GetBakedTransforms();
+	const auto bakedTransforms = transformSystem.GetBakedTransforms();
 	auto& mainCamera = cameraSystem.GetMainCamera();
 
-	union
+	VkDescriptorSet sets[2]
 	{
-		struct
-		{
-			VkDescriptorSet cameraSet;
-			VkDescriptorSet materialSet;
-		};
-		VkDescriptorSet sets[2];
+		mainCamera.GetDescriptor()
 	};
 
-	/*
-	cameraSet = mainCamera.GetDescriptor();
-	renderer.BindPipeline(_pipeline);
+	renderer.BindPipeline(_pipeline, _pipelineLayout);
 
 	for (const auto [material, sparseId] : *this)
 	{
 		const uint32_t denseId = GetDenseId(sparseId);
-		auto& mesh = meshes[sparseId];
-		auto& bakedTransform = bakedTransforms[transforms.GetDenseId(sparseId)];
-
-		materialSet = descriptorSet;
+		const auto& mesh = meshSystem.GetMeshData(meshSystem[sparseId]);
+		auto& bakedTransform = bakedTransforms[transformSystem.GetDenseId(sparseId)];
+		/*
+		sets[1] = descriptorSet;
 		renderSystem.UseMesh(mesh);
 		renderer.BindDescriptorSets(sets, 3);
 		renderer.BindSampler(descriptorSet, diffuseTex.imageView, frame.matDiffuseSampler, 0, 0);
-		renderer.UpdatePushConstant(_pipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, bakedTransform);
-		renderer.Draw(mesh.indCount);
+		renderer.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, bakedTransform);
+		renderer.Draw(mesh.indexCount);
+		*/
 	}
-	*/
 }

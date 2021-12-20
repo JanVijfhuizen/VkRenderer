@@ -100,9 +100,11 @@ namespace vi
 
 		[[nodiscard]] VkDescriptorPool CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, uint32_t typeCount) const;
 		void CreateDescriptorSets(VkDescriptorPool pool, VkDescriptorSetLayout layout, uint32_t setCount, VkDescriptorSet* outSets) const;
+		void BindDescriptorSets(VkDescriptorSet* sets, uint32_t setCount) const;
 		void DestroyDescriptorPool(VkDescriptorPool pool) const;
 
 		void CreatePipeline(const PipelineInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout);
+		void BindPipeline(VkPipeline pipeline, VkPipelineLayout layout);
 		void DestroyPipeline(VkPipeline pipeline, VkPipelineLayout layout) const;
 
 		[[nodiscard]] VkShaderModule CreateShaderModule(const std::vector<char>& data) const;
@@ -186,6 +188,8 @@ namespace vi
 		VkCommandPool _commandPool;
 
 		VkCommandBuffer _currentCommandBuffer;
+		VkPipeline _currentPipeline;
+		VkPipelineLayout _currentPipelineLayout;
 
 		[[nodiscard]] uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 		static void GetLayoutMasks(VkImageLayout layout, VkAccessFlags& outAccessFlags, VkPipelineStageFlags& outPipelineStageFlags);

@@ -4,6 +4,7 @@
 #include "Transform.h"
 #include "Rendering/RenderSystem.h"
 #include "Rendering/Camera.h"
+#include "VkRenderer/VkRenderer.h"
 
 void Engine::Run(const Info& info)
 {
@@ -42,6 +43,8 @@ void Engine::Run(const Info& info)
 
 				renderSystem.EndFrame();
 			}
+
+			renderSystem.GetVkRenderer().DeviceWaitIdle();
 
 			if (info.cleanup)
 				info.cleanup();

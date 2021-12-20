@@ -308,6 +308,13 @@ namespace vi
 		assert(!result);
 	}
 
+	void VkRenderer::BindPipeline(const VkPipeline pipeline, const VkPipelineLayout layout)
+	{
+		_currentPipeline = pipeline;
+		_currentPipelineLayout = layout;
+		vkCmdBindPipeline(_currentCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+	}
+
 	void VkRenderer::DestroyPipeline(const VkPipeline pipeline, const VkPipelineLayout layout) const
 	{
 		vkDestroyPipeline(_device, pipeline, nullptr);
@@ -328,6 +335,12 @@ namespace vi
 
 		const auto result = vkAllocateDescriptorSets(_device, &allocInfo, outSets);
 		assert(!result);
+	}
+
+	void VkRenderer::BindDescriptorSets(VkDescriptorSet* sets, const uint32_t setCount) const
+	{
+		vkCmdBindDescriptorSets(_currentCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			_currentPipelineLayout, 0, setCount, sets, 0, nullptr);
 	}
 
 	VkRenderPass VkRenderer::CreateRenderPass(const RenderPassInfo& info) const
