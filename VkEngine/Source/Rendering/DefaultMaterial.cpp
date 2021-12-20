@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "Rendering/DefaultMaterial.h"
-#include "Rendering/RenderSystem.h"
+#include "Rendering/RenderManager.h"
 #include "FileReader.h"
 #include "Rendering/Camera.h"
 #include "VkRenderer/VkRenderer.h"
@@ -11,8 +11,8 @@
 
 DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial>(size)
 {
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
 	auto& swapChain = renderer.GetSwapChain();
 
 	auto& cameraSystem = Camera::System::Get();
@@ -64,8 +64,8 @@ DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial
 
 DefaultMaterial::System::~System()
 {
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
 
 	for (const auto [defaultMaterial, sparseId]: *this)
 		OnErase(sparseId);
@@ -78,8 +78,10 @@ DefaultMaterial::System::~System()
 
 void DefaultMaterial::System::Update()
 {
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
+
 	auto& textureManager = Texture::Manager::Get();
 
 	auto& cameraSystem = Camera::System::Get();
@@ -89,19 +91,19 @@ void DefaultMaterial::System::Update()
 	if (cameraSystem.GetSize() == 0)
 		return;
 
+	const uint32_t imageIndex = swapChain.GetCurrentImageIndex();
 	const auto bakedTransforms = transformSystem.GetBakedTransforms();
 	auto& mainCamera = cameraSystem.GetMainCamera();
 
 	VkDescriptorSet sets[2]
 	{
-		mainCamera.GetDescriptor()
+		mainCamera.GetDescriptors()[imageIndex]
 	};
 
 	renderer.BindPipeline(_pipeline, _pipelineLayout);
 
 	for (const auto [material, sparseId] : *this)
 	{
-		const uint32_t denseId = GetDenseId(sparseId);
 		const auto& mesh = meshSystem.GetData(meshSystem[sparseId]);
 		const auto& bakedTransform = bakedTransforms[transformSystem.GetDenseId(sparseId)];
 		const auto& diffuseTexture = textureManager.GetData(material.textureHandle);
@@ -119,8 +121,8 @@ void DefaultMaterial::System::Update()
 
 DefaultMaterial& DefaultMaterial::System::Insert(const uint32_t sparseId)
 {
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
 
 	auto& defaultMaterial = SparseSet<DefaultMaterial>::Insert(sparseId);
 	defaultMaterial.diffuseSampler = renderer.CreateSampler();
@@ -136,8 +138,8 @@ void DefaultMaterial::System::Erase(const uint32_t sparseId)
 
 void DefaultMaterial::System::OnErase(const uint32_t sparseId)
 {
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
 
 	auto& defaultMaterial = operator[](sparseId);
 	renderer.DestroySampler(defaultMaterial.diffuseSampler);

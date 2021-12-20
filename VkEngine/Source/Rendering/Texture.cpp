@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "Rendering/Texture.h"
-#include "Rendering/RenderSystem.h"
+#include "Rendering/RenderManager.h"
 #include "VkRenderer/VkRenderer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -14,8 +14,8 @@ Texture::Manager::Manager()
 
 Texture::Manager::~Manager()
 {
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
 
 	for (auto& data : _data)
 	{
@@ -27,8 +27,8 @@ Texture::Manager::~Manager()
 
 uint32_t Texture::Manager::CreateTexture(const std::string& fileName)
 {
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
 
 	int32_t w, h, d;
 	const auto tex = Load("Textures/" + fileName, w, h, d);

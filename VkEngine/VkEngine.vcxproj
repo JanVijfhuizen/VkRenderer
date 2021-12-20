@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\SwapChainGC.cpp" />
     <ClCompile Include="Source\Rendering\Texture.cpp" />
     <ClCompile Include="Source\FileReader.cpp" />
     <ClCompile Include="Source\Rendering\DescriptorPool.cpp" />
@@ -158,7 +159,7 @@
     <ClCompile Include="Source\Rendering\Camera.cpp" />
     <ClCompile Include="Source\Rendering\DefaultMaterial.cpp" />
     <ClCompile Include="Source\Rendering\Mesh.cpp" />
-    <ClCompile Include="Source\Rendering\RenderSystem.cpp" />
+    <ClCompile Include="Source\Rendering\RenderManager.cpp" />
     <ClCompile Include="Source\Cecsar.cpp" />
     <ClCompile Include="Source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -179,6 +180,7 @@
     <ClInclude Include="Include\Rendering\Camera.h" />
     <ClInclude Include="Include\Rendering\DefaultMaterial.h" />
     <ClInclude Include="Include\Rendering\DescriptorPool.h" />
+    <ClInclude Include="Include\Rendering\SwapChainGC.h" />
     <ClInclude Include="Include\Rendering\Texture.h" />
     <ClInclude Include="Include\UVector.h" />
     <ClInclude Include="Include\Singleton.h" />
@@ -186,7 +188,7 @@
     <ClInclude Include="Include\SparseSet.h" />
     <ClInclude Include="Include\pch.h" />
     <ClInclude Include="Include\tiny_obj_loader.h" />
-    <ClInclude Include="Include\Rendering\RenderSystem.h" />
+    <ClInclude Include="Include\Rendering\RenderManager.h" />
     <ClInclude Include="Include\Transform.h" />
     <ClInclude Include="Include\Rendering\Mesh.h" />
     <ClInclude Include="Include\Rendering\Vertex.h" />

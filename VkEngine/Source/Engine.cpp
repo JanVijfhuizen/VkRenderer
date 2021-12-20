@@ -2,19 +2,21 @@
 #include "Engine.h"
 #include "Rendering/Mesh.h"
 #include "Transform.h"
-#include "Rendering/RenderSystem.h"
+#include "Rendering/RenderManager.h"
 #include "Rendering/Camera.h"
 #include "VkRenderer/VkRenderer.h"
 #include "Rendering/Texture.h"
+#include "Rendering/SwapChainGC.h"
 
 void Engine::Run(const Info& info)
 {
 	ce::Cecsar cecsar(info.capacity);
 
 	{
-		RenderManager renderSystem{};
+		RenderManager renderManager{};
 
 		{
+			SwapChainGC gc;
 			Texture::Manager textureManager;
 
 			Transform::System transformSystem(info.capacity);
@@ -30,7 +32,7 @@ void Engine::Run(const Info& info)
 			{
 				bool quit;
 
-				renderSystem.BeginFrame(quit);
+				renderManager.BeginFrame(quit);
 				if (quit)
 					break;
 
@@ -44,10 +46,10 @@ void Engine::Run(const Info& info)
 						break;
 				}
 
-				renderSystem.EndFrame();
+				renderManager.EndFrame();
 			}
 
-			renderSystem.GetVkRenderer().DeviceWaitIdle();
+			renderManager.GetVkRenderer().DeviceWaitIdle();
 
 			if (info.cleanup)
 				info.cleanup();

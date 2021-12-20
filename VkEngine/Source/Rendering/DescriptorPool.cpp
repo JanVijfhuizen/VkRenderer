@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "Rendering/DescriptorPool.h"
-#include "Rendering/RenderSystem.h"
+#include "Rendering/RenderManager.h"
 #include "VkRenderer/VkRenderer.h"
 
 DescriptorPool::DescriptorPool() = default;
@@ -43,8 +43,8 @@ DescriptorPool::~DescriptorPool()
 	GMEM.MFree(_types);
 	GMEM.MFree(_sizes);
 
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
 
 	for (auto& subPool : _subPools)
 		renderer.DestroyDescriptorPool(subPool);
@@ -66,8 +66,8 @@ void DescriptorPool::Add(const VkDescriptorSet set)
 
 void DescriptorPool::AddBlock()
 {
-	auto& renderSystem = RenderManager::Get();
-	auto& renderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
 
 	const auto subPool = renderer.CreateDescriptorPool(_types, _sizes, _typeCount);
 	_subPools.Add(subPool);

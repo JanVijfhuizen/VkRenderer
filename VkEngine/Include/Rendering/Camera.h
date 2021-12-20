@@ -40,12 +40,12 @@ struct Camera final
 		VkDescriptorSetLayout _layout;
 	};
 
-	[[nodiscard]] VkDescriptorSet GetDescriptor() const;
+	[[nodiscard]] VkDescriptorSet* GetDescriptors();
 
 private:
 	friend System;
 
 	VkBuffer _buffer;
 	VkDeviceMemory _memory;
-	VkDescriptorSet _descriptor;
+	VkDescriptorSet _descriptors[SWAPCHAIN_MAX_FRAMES];
 };

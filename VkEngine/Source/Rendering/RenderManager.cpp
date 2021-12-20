@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Rendering/RenderSystem.h"
+#include "Rendering/RenderManager.h"
 #include "VkRenderer/WindowHandlerGLFW.h"
 #include "VkRenderer/VkRenderer.h"
 #include "VkRenderer/SwapChain.h"
