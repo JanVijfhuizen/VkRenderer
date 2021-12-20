@@ -36,6 +36,11 @@ int main()
 		camTransform.position = { 0, 0, -10 };
 	};
 
+	info.update = [](bool& outQuit)
+	{
+		DefaultMaterial::System::Get().Update();
+	};
+
 	info.cleanup = []()
 	{
 		GMEM.Delete(&DefaultMaterial::System::Get());

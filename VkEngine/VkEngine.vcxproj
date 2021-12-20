@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\FileReader.cpp" />
     <ClCompile Include="Source\Rendering\DescriptorPool.cpp" />
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\Rendering\Camera.cpp" />

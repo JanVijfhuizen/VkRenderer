@@ -14,8 +14,8 @@ public:
 
 private:
 	VkDescriptorSetLayout _layout;
-	VkDescriptorType* _types;
-	uint32_t* _sizes;
+	VkDescriptorType* _types = nullptr;
+	uint32_t* _sizes = nullptr;
 	uint32_t _typeCount;
 	uint32_t _blockSize;
 

@@ -30,6 +30,7 @@ void Engine::Run(const Info& info)
 				if (quit)
 					break;
 
+				transformSystem.Update();
 				cameraSystem.Update();
 
 				if (info.update)

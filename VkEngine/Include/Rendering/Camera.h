@@ -27,6 +27,9 @@ struct Camera final
 		KeyValuePair<unsigned, Camera>& Add(const KeyValuePair<unsigned, Camera>& value) override;
 		void EraseAt(size_t index) override;
 
+		[[nodiscard]] Camera& GetMainCamera();
+		[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
+
 	private:
 		DescriptorPool _descriptorPool;
 		VkDescriptorSetLayout _layout;
@@ -37,10 +40,12 @@ struct Camera final
 	float clipNear = 0.1f;
 	float clipFar = 1e3f;
 
+	[[nodiscard]] VkDescriptorSet GetDescriptor() const;
+
 private:
 	friend System;
 
 	VkBuffer _buffer;
 	VkDeviceMemory _memory;
-	VkDescriptorSet _descriptors[4];
+	VkDescriptorSet _descriptor;
 };
