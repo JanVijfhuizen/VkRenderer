@@ -5,15 +5,18 @@
 #include "Rendering/RenderSystem.h"
 #include "Rendering/Camera.h"
 #include "VkRenderer/VkRenderer.h"
+#include "Rendering/Texture.h"
 
 void Engine::Run(const Info& info)
 {
 	ce::Cecsar cecsar(info.capacity);
 
 	{
-		RenderSystem renderSystem{};
+		RenderManager renderSystem{};
 
 		{
+			Texture::Manager textureManager;
+
 			Transform::System transformSystem(info.capacity);
 			Mesh::System meshSystem(info.capacity);
 			Camera::System cameraSystem{};

@@ -7,10 +7,11 @@
 #include "Rendering/Vertex.h"
 #include "Transform.h"
 #include "Rendering/Mesh.h"
+#include "Rendering/Texture.h"
 
 DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial>(size)
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 	auto& swapChain = renderer.GetSwapChain();
 
@@ -63,7 +64,7 @@ DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial
 
 DefaultMaterial::System::~System()
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	renderer.DestroyPipeline(_pipeline, _pipelineLayout);
@@ -74,8 +75,9 @@ DefaultMaterial::System::~System()
 
 void DefaultMaterial::System::Update()
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
+	auto& textureManager = Texture::Manager::Get();
 
 	auto& cameraSystem = Camera::System::Get();
 	auto& transformSystem = Transform::System::Get();
@@ -97,15 +99,39 @@ void DefaultMaterial::System::Update()
 	for (const auto [material, sparseId] : *this)
 	{
 		const uint32_t denseId = GetDenseId(sparseId);
-		const auto& mesh = meshSystem.GetMeshData(meshSystem[sparseId]);
-		auto& bakedTransform = bakedTransforms[transformSystem.GetDenseId(sparseId)];
-		/*
-		sets[1] = descriptorSet;
-		renderSystem.UseMesh(mesh);
-		renderer.BindDescriptorSets(sets, 3);
-		renderer.BindSampler(descriptorSet, diffuseTex.imageView, frame.matDiffuseSampler, 0, 0);
+		const auto& mesh = meshSystem.GetData(meshSystem[sparseId]);
+		const auto& bakedTransform = bakedTransforms[transformSystem.GetDenseId(sparseId)];
+		const auto& diffuseTexture = textureManager.GetData(material.textureHandle);
+		sets[1] = material._descriptor;
+
+		renderer.BindVertexBuffer(mesh.vertexBuffer);
+		renderer.BindIndicesBuffer(mesh.indexBuffer);
+
+		renderer.BindDescriptorSets(sets, 2);
+		renderer.BindSampler(material._descriptor, diffuseTexture.imageView, diffuseTexture.layout, material.diffuseSampler, 0, 0);
 		renderer.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, bakedTransform);
 		renderer.Draw(mesh.indexCount);
-		*/
 	}
+}
+
+DefaultMaterial& DefaultMaterial::System::Insert(const uint32_t sparseId)
+{
+	auto& renderSystem = RenderManager::Get();
+	auto& renderer = renderSystem.GetVkRenderer();
+
+	auto& defaultMaterial = SparseSet<DefaultMaterial>::Insert(sparseId);
+	defaultMaterial.diffuseSampler = renderer.CreateSampler();
+	defaultMaterial._descriptor = _descriptorPool.Get();
+	return defaultMaterial;
+}
+
+void DefaultMaterial::System::Erase(const uint32_t sparseId)
+{
+	auto& renderSystem = RenderManager::Get();
+	auto& renderer = renderSystem.GetVkRenderer();
+
+	auto& defaultMaterial = operator[](sparseId);
+	renderer.DestroySampler(defaultMaterial.diffuseSampler);
+	_descriptorPool.Add(defaultMaterial._descriptor);
+	SparseSet<DefaultMaterial>::Erase(sparseId);
 }

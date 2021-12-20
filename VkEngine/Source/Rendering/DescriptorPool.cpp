@@ -43,7 +43,7 @@ DescriptorPool::~DescriptorPool()
 	GMEM.MFree(_types);
 	GMEM.MFree(_sizes);
 
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	for (auto& subPool : _subPools)
@@ -66,7 +66,7 @@ void DescriptorPool::Add(const VkDescriptorSet set)
 
 void DescriptorPool::AddBlock()
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	const auto subPool = renderer.CreateDescriptorPool(_types, _sizes, _typeCount);

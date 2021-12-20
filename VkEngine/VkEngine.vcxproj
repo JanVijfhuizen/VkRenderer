@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\Texture.cpp" />
     <ClCompile Include="Source\FileReader.cpp" />
     <ClCompile Include="Source\Rendering\DescriptorPool.cpp" />
     <ClCompile Include="Source\Engine.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="Include\Rendering\Camera.h" />
     <ClInclude Include="Include\Rendering\DefaultMaterial.h" />
     <ClInclude Include="Include\Rendering\DescriptorPool.h" />
+    <ClInclude Include="Include\Rendering\Texture.h" />
     <ClInclude Include="Include\UVector.h" />
     <ClInclude Include="Include\Singleton.h" />
     <ClInclude Include="Include\Set.h" />

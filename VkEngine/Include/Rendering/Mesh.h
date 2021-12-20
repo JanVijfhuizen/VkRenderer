@@ -22,7 +22,7 @@ struct Mesh final
 		~System();
 
 		[[nodiscard]] uint32_t Create(const Vertex::Data& vertData);
-		[[nodiscard]] const Data& GetMeshData(Mesh& mesh);
+		[[nodiscard]] const Data& GetData(Mesh& mesh);
 
 	private:
 		UVector<Data> _data{};

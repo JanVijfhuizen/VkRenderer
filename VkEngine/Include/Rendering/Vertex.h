@@ -2,15 +2,15 @@
 
 struct Vertex final
 {
+	glm::vec3 position{};
+	glm::vec3 normal{ 0, 0, 1 };
+	glm::vec2 textureCoordinates{};
+
 	struct Data final
 	{
 		std::vector<Vertex> vertices{};
 		std::vector<uint16_t> indices{};
 	};
-
-	glm::vec3 position{};
-	glm::vec3 normal{ 0, 0, 1 };
-	glm::vec2 textureCoordinates{};
 
 	[[nodiscard]] static Data Load(const std::string& fileName);
 

@@ -4,6 +4,11 @@
 
 struct Camera final
 {
+	glm::vec3 lookat{};
+	float fieldOfView = 45;
+	float clipNear = 0.1f;
+	float clipFar = 1e3f;
+
 	struct alignas(256) Ubo final
 	{
 		glm::mat4 view;
@@ -34,11 +39,6 @@ struct Camera final
 		DescriptorPool _descriptorPool;
 		VkDescriptorSetLayout _layout;
 	};
-
-	glm::vec3 lookat{};
-	float fieldOfView = 45;
-	float clipNear = 0.1f;
-	float clipFar = 1e3f;
 
 	[[nodiscard]] VkDescriptorSet GetDescriptor() const;
 

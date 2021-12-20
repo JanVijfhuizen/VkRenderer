@@ -4,7 +4,7 @@
 #include "VkRenderer/VkRenderer.h"
 #include "VkRenderer/SwapChain.h"
 
-RenderSystem::RenderSystem()
+RenderManager::RenderManager()
 {
 	_windowHandler = GMEM.New<vi::WindowHandlerGLFW>();
 
@@ -16,13 +16,13 @@ RenderSystem::RenderSystem()
 	_swapChain = &_vkRenderer->GetSwapChain();
 }
 
-RenderSystem::~RenderSystem()
+RenderManager::~RenderManager()
 {
 	_windowHandler->~WindowHandlerGLFW();
 	_vkRenderer->~VkRenderer();
 }
 
-void RenderSystem::BeginFrame(bool& quit)
+void RenderManager::BeginFrame(bool& quit)
 {
 	_windowHandler->BeginFrame(quit);
 	if (quit)
@@ -31,7 +31,7 @@ void RenderSystem::BeginFrame(bool& quit)
 	_swapChain->BeginFrame();
 }
 
-void RenderSystem::EndFrame()
+void RenderManager::EndFrame()
 {
 	bool shouldRecreateAssets;
 	_swapChain->EndFrame(shouldRecreateAssets);
@@ -40,12 +40,12 @@ void RenderSystem::EndFrame()
 		return;
 }
 
-vi::WindowHandlerGLFW& RenderSystem::GetWindowHandler() const
+vi::WindowHandlerGLFW& RenderManager::GetWindowHandler() const
 {
 	return *_windowHandler;
 }
 
-vi::VkRenderer& RenderSystem::GetVkRenderer() const
+vi::VkRenderer& RenderManager::GetVkRenderer() const
 {
 	return *_vkRenderer;
 }

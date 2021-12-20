@@ -3,6 +3,9 @@
 
 struct DefaultMaterial final
 {
+	VkSampler diffuseSampler;
+	uint32_t textureHandle = 0;
+
 	class System final : public ce::SparseSet<DefaultMaterial>, public Singleton<System>
 	{
 	public:
@@ -10,6 +13,9 @@ struct DefaultMaterial final
 		~System();
 
 		void Update();
+
+		DefaultMaterial& Insert(uint32_t sparseId) override;
+		void Erase(uint32_t sparseId) override;
 
 	private:
 		VkShaderModule _vertModule;
@@ -19,4 +25,7 @@ struct DefaultMaterial final
 		VkPipelineLayout _pipelineLayout;
 		DescriptorPool _descriptorPool;
 	};
+
+private:
+	VkDescriptorSet _descriptor;
 };

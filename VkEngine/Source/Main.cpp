@@ -21,17 +21,19 @@ int main()
 		auto& meshSystem = Mesh::System::Get();
 		auto& transformSystem = Transform::System::Get();
 		auto& cameraSystem = Camera::System::Get();
+		auto& defaultMaterialSystem = DefaultMaterial::System::Get();
 
 		const auto vertData = Vertex::Load("Cube.obj");
 		const uint32_t handle = meshSystem.Create(vertData);
 
 		const auto cube = cecsar.AddEntity();
 		transformSystem.Insert(cube.index);
+		defaultMaterialSystem.Insert(cube.index);
 		auto& mesh = meshSystem.Insert(cube.index);
 		mesh.handle = handle;
 
 		const auto camera = cecsar.AddEntity();
-		auto& camComponent = cameraSystem.Insert(camera.index);
+		cameraSystem.Insert(camera.index);
 		auto& camTransform = transformSystem.Insert(camera.index);
 		camTransform.position = { 0, 0, -10 };
 	};

@@ -10,7 +10,7 @@ Mesh::System::System(const uint32_t size) : SparseSet<Mesh>(size)
 
 Mesh::System::~System()
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& vkRenderer = renderSystem.GetVkRenderer();
 
 	for (const auto& data : _data)
@@ -24,7 +24,7 @@ Mesh::System::~System()
 
 uint32_t Mesh::System::Create(const Vertex::Data& vertData)
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& vkRenderer = renderSystem.GetVkRenderer();
 
 	auto& vertices = vertData.vertices;
@@ -83,7 +83,7 @@ uint32_t Mesh::System::Create(const Vertex::Data& vertData)
 	return _data.GetCount() - 1;
 }
 
-const Mesh::Data& Mesh::System::GetMeshData(Mesh& mesh)
+const Mesh::Data& Mesh::System::GetData(Mesh& mesh)
 {
 	return _data[mesh.handle];
 }

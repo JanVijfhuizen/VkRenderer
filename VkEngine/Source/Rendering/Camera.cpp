@@ -7,7 +7,7 @@
 
 Camera::System::System() : MapSet<Camera>(1)
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	vi::VkRenderer::LayoutInfo camLayoutInfo{};
@@ -25,7 +25,7 @@ Camera::System::System() : MapSet<Camera>(1)
 
 Camera::System::~System()
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	renderer.DestroyLayout(_layout);
@@ -36,7 +36,7 @@ Camera::System::~System()
 
 void Camera::System::Update()
 {
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& windowSystem = renderSystem.GetWindowHandler();
 	auto& renderer = renderSystem.GetVkRenderer();
 
@@ -63,9 +63,8 @@ KeyValuePair<unsigned, Camera>& Camera::System::Add(const KeyValuePair<unsigned,
 	auto& t = MapSet<Camera>::Add(value);
 	auto& camera = t.value;
 
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
-	auto& swapChain = renderer.GetSwapChain();
 
 	camera._buffer = renderer.CreateBuffer(sizeof(Ubo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 	camera._memory = renderer.AllocateMemory(camera._buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -81,7 +80,7 @@ void Camera::System::EraseAt(const size_t index)
 {
 	auto& camera = operator[](index).value;
 
-	auto& renderSystem = RenderSystem::Get();
+	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	_descriptorPool.Add(camera._descriptor);
