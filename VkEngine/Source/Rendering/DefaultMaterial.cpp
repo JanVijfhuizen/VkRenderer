@@ -67,6 +67,9 @@ DefaultMaterial::System::~System()
 	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
+	for (const auto [defaultMaterial, sparseId]: *this)
+		OnErase(sparseId);
+
 	renderer.DestroyPipeline(_pipeline, _pipelineLayout);
 	renderer.DestroyShaderModule(_vertModule);
 	renderer.DestroyShaderModule(_fragModule);
@@ -127,11 +130,16 @@ DefaultMaterial& DefaultMaterial::System::Insert(const uint32_t sparseId)
 
 void DefaultMaterial::System::Erase(const uint32_t sparseId)
 {
+	OnErase(sparseId);
+	SparseSet<DefaultMaterial>::Erase(sparseId);
+}
+
+void DefaultMaterial::System::OnErase(const uint32_t sparseId)
+{
 	auto& renderSystem = RenderManager::Get();
 	auto& renderer = renderSystem.GetVkRenderer();
 
 	auto& defaultMaterial = operator[](sparseId);
 	renderer.DestroySampler(defaultMaterial.diffuseSampler);
 	_descriptorPool.Add(defaultMaterial._descriptor);
-	SparseSet<DefaultMaterial>::Erase(sparseId);
 }

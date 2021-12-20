@@ -24,6 +24,8 @@ struct DefaultMaterial final
 		VkPipeline _pipeline;
 		VkPipelineLayout _pipelineLayout;
 		DescriptorPool _descriptorPool;
+
+		void OnErase(uint32_t sparseId);
 	};
 
 private:
