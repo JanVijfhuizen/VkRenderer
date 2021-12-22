@@ -20,6 +20,8 @@ namespace vi
 		if (maxImageCount > 0 && imageCount > maxImageCount)
 			imageCount = maxImageCount;
 
+		if (imageCount > SWAPCHAIN_MAX_FRAMES)
+			imageCount = SWAPCHAIN_MAX_FRAMES;
 		return imageCount;
 	}
 
@@ -107,9 +109,9 @@ namespace vi
 			renderer->DestroyFence(frame.inFlightFence);
 		}
 
-		_info.allocator->Free(_images.GetData());
-		_info.allocator->Free(_frames.GetData());
-		_info.allocator->Free(_imagesInFlight.GetData());
+		_info.allocator->Delete(_images.GetData());
+		_info.allocator->Delete(_frames.GetData());
+		_info.allocator->Delete(_imagesInFlight.GetData());
 
 		vkDestroySwapchainKHR(device, _swapChain, nullptr);
 	}

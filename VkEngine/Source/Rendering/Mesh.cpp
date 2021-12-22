@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Rendering/Mesh.h"
 #include "VkRenderer/VkRenderer.h"
-#include "Rendering/RenderSystem.h"
+#include "Rendering/RenderManager.h"
 
 Mesh::System::System(const uint32_t size) : SparseSet<Mesh>(size)
 {
@@ -10,8 +10,8 @@ Mesh::System::System(const uint32_t size) : SparseSet<Mesh>(size)
 
 Mesh::System::~System()
 {
-	auto& renderSystem = RenderSystem::Get();
-	auto& vkRenderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& vkRenderer = renderManager.GetVkRenderer();
 
 	for (const auto& data : _data)
 	{
@@ -24,8 +24,8 @@ Mesh::System::~System()
 
 uint32_t Mesh::System::Create(const Vertex::Data& vertData)
 {
-	auto& renderSystem = RenderSystem::Get();
-	auto& vkRenderer = renderSystem.GetVkRenderer();
+	auto& renderManager = RenderManager::Get();
+	auto& vkRenderer = renderManager.GetVkRenderer();
 
 	auto& vertices = vertData.vertices;
 	auto& indices = vertData.indices;
@@ -81,4 +81,9 @@ uint32_t Mesh::System::Create(const Vertex::Data& vertData)
 
 	_data.Add(data);
 	return _data.GetCount() - 1;
+}
+
+const Mesh::Data& Mesh::System::GetData(Mesh& mesh)
+{
+	return _data[mesh.handle];
 }

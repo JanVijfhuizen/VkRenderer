@@ -9,9 +9,9 @@ namespace vi
 		~FreeListAllocator();
 
 		template <typename T, typename ...Args>
-		[[nodiscard]] T* Alloc(Args... args);
+		[[nodiscard]] T* New(Args... args);
 		template <typename T>
-		void Free(T* ptr);
+		void Delete(T* ptr);
 
 		[[nodiscard]] void* MAlloc(size_t size) const;
 		void MFree(void* ptr) const;
@@ -30,6 +30,8 @@ namespace vi
 
 			[[nodiscard]] void* TryAllocate(size_t size);
 			bool TryFree(void* ptr);
+
+			[[nodiscard]] static size_t ToChunkSize(size_t size);
 		};
 
 		Block* _block;
@@ -37,7 +39,7 @@ namespace vi
 	};
 
 	template <typename T, typename ... Args>
-	T* FreeListAllocator::Alloc(Args... args)
+	T* FreeListAllocator::New(Args... args)
 	{
 		const auto ptr = reinterpret_cast<T*>(MAlloc(sizeof(T)));
 		new (ptr) T(args...);
@@ -45,7 +47,7 @@ namespace vi
 	}
 
 	template <typename T>
-	void FreeListAllocator::Free(T* ptr)
+	void FreeListAllocator::Delete(T* ptr)
 	{
 		ptr->~T();
 		MFree(ptr);

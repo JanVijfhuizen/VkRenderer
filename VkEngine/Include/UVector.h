@@ -1,7 +1,7 @@
 #pragma once
 
 template <typename T>
-class UVector final
+class UVector
 {
 public:
 	class Iterator final
@@ -31,11 +31,12 @@ public:
 	[[nodiscard]] constexpr T& operator[](size_t sparseId);
 
 	explicit UVector(size_t size = 8);
-	~UVector();
+	virtual ~UVector();
+	UVector& operator=(UVector&& other) noexcept;
 
-	void Add(const T& value);
-	void EraseAt(size_t index);
-	void Clear();
+	virtual T& Add(const T& value);
+	virtual void EraseAt(size_t index);
+	virtual void Clear();
 
 	[[nodiscard]] size_t GetCount() const;
 	[[nodiscard]] size_t GetSize() const;
@@ -105,9 +106,14 @@ typename UVector<T>::Iterator UVector<T>::Iterator::operator++(int)
 }
 
 template <typename T>
-UVector<T>::UVector(const size_t size) : _size(size)
+UVector<T>::UVector(const size_t size)
 {
-	_data = reinterpret_cast<T*>(GMEM.MAlloc(sizeof(T) * size));
+	uint32_t power = 1;
+	while (power < size)
+		power *= 2;
+	_size = power;
+
+	_data = reinterpret_cast<T*>(GMEM.MAlloc(sizeof(T) * _size));
 }
 
 template <typename T>
@@ -117,27 +123,41 @@ UVector<T>::~UVector()
 }
 
 template <typename T>
-void UVector<T>::Add(const T& value)
+UVector<T>& UVector<T>::operator=(UVector&& other) noexcept
 {
-	if(++_count >= _size)
+	this->~UVector();
+
+	_size = other._size;
+	_count = other._count;
+	_data = other._data;
+	other._data = nullptr;
+	return *this;
+}
+
+template <typename T>
+T& UVector<T>::Add(const T& value)
+{
+	if(_count++ >= _size)
 	{
 		const size_t oldMemSize = sizeof(T) * _size;
 
 		void* tempData = GMEM_TEMP.MAlloc(oldMemSize);
 		memcpy(tempData, _data, oldMemSize);
-		GMEM.Free(_data);
+		GMEM.Delete(_data);
 
 		const size_t newCapacity = _size * 2;
 		void* newData = GMEM.MAlloc(sizeof(T) * newCapacity);
 
 		memcpy(newData, tempData, oldMemSize);
-		GMEM_TEMP.Free(tempData);
+		GMEM_TEMP.Delete(tempData);
 
 		_size = newCapacity;
 		_data = reinterpret_cast<T*>(newData);
 	}
 
-	_data[_count - 1] = value;
+	auto& t = _data[_count - 1];
+	t = value;
+	return t;
 }
 
 template <typename T>

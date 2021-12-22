@@ -7,11 +7,11 @@ namespace vi
 	class SwapChain;
 }
 
-class RenderSystem final : public Singleton<RenderSystem>
+class RenderManager final : public Singleton<RenderManager>
 {
 public:
-	RenderSystem();
-	~RenderSystem();
+	RenderManager();
+	~RenderManager();
 
 	void BeginFrame(bool& quit);
 	void EndFrame();

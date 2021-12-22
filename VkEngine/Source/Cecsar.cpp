@@ -38,4 +38,9 @@ namespace ce
 	{
 		_sets.push_back(set);
 	}
+
+	uint32_t Cecsar::GetSize() const
+	{
+		return _entities.GetSize();
+	}
 }
