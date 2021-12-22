@@ -28,13 +28,18 @@ DescriptorPool& DescriptorPool::operator=(DescriptorPool&& other) noexcept
 	_layout = other._layout;
 	_typeCount = other._typeCount;
 	_blockSize = other._blockSize;
-	_open = other._open;
+	_open = UVector<VkDescriptorSet>(other._open.GetCount());
+	for (auto& open : other._open)
+		_open.Add(open);
+
+	_types = other._types;
+	other._types = nullptr;
+	_sizes = other._sizes;
+	other._sizes = nullptr;
 	for (auto& subPool : other._subPools)
 		_subPools.Add(subPool);
-
-	other._types = nullptr;
-	other._sizes = nullptr;
 	other._subPools.Clear();
+
 	return *this;
 }
 

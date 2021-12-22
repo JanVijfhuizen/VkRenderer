@@ -32,6 +32,7 @@ public:
 
 	explicit UVector(size_t size = 8);
 	virtual ~UVector();
+	UVector& operator=(UVector&& other) noexcept;
 
 	virtual T& Add(const T& value);
 	virtual void EraseAt(size_t index);
@@ -105,15 +106,32 @@ typename UVector<T>::Iterator UVector<T>::Iterator::operator++(int)
 }
 
 template <typename T>
-UVector<T>::UVector(const size_t size) : _size(size)
+UVector<T>::UVector(const size_t size)
 {
-	_data = reinterpret_cast<T*>(GMEM.MAlloc(sizeof(T) * size));
+	uint32_t power = 1;
+	while (power < size)
+		power *= 2;
+	_size = power;
+
+	_data = reinterpret_cast<T*>(GMEM.MAlloc(sizeof(T) * _size));
 }
 
 template <typename T>
 UVector<T>::~UVector()
 {
 	GMEM.MFree(_data);
+}
+
+template <typename T>
+UVector<T>& UVector<T>::operator=(UVector&& other) noexcept
+{
+	this->~UVector();
+
+	_size = other._size;
+	_count = other._count;
+	_data = other._data;
+	other._data = nullptr;
+	return *this;
 }
 
 template <typename T>
