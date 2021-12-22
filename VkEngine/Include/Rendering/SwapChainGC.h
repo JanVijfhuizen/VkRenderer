@@ -10,17 +10,26 @@ public:
 
 	void Enqueue(VkBuffer buffer);
 	void Enqueue(VkSampler sampler);
+	void Enqueue(VkDeviceMemory memory);
 
 private:
 	struct Deleteable final
 	{
+		enum class Type
+		{
+			buffer,
+			sampler,
+			memory
+		};
+
 		union
 		{
 			VkBuffer buffer;
 			VkSampler sampler;
+			VkDeviceMemory memory;
 		};
 
-		uint32_t type;
+		Type type;
 		uint32_t index;
 	};
 

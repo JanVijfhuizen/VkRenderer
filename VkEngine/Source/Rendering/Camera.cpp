@@ -4,6 +4,7 @@
 #include "VkRenderer/VkRenderer.h"
 #include "VkRenderer/WindowHandlerGLFW.h"
 #include "Transform.h"
+#include "Rendering/SwapChainGC.h"
 
 Camera::System::System() : MapSet<Camera>(1)
 {
@@ -97,8 +98,9 @@ void Camera::System::EraseAt(const size_t index)
 	for (uint32_t i = 0; i < imageCount; ++i)
 		_descriptorPool.Add(camera._descriptors[i]);
 
-	renderer.FreeMemory(camera._memory);
-	renderer.DestroyBuffer(camera._buffer);
+	auto& gc = SwapChainGC::Get();
+	gc.Enqueue(camera._buffer);
+	gc.Enqueue(camera._memory);
 
 	MapSet<Camera>::EraseAt(index);
 }
