@@ -151,6 +151,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\Light.cpp" />
+    <ClCompile Include="Source\Rendering\ShadowCaster.cpp" />
     <ClCompile Include="Source\Rendering\SwapChainGC.cpp" />
     <ClCompile Include="Source\Rendering\Texture.cpp" />
     <ClCompile Include="Source\FileReader.cpp" />
@@ -180,6 +182,8 @@
     <ClInclude Include="Include\Rendering\Camera.h" />
     <ClInclude Include="Include\Rendering\DefaultMaterial.h" />
     <ClInclude Include="Include\Rendering\DescriptorPool.h" />
+    <ClInclude Include="Include\Rendering\Light.h" />
+    <ClInclude Include="Include\Rendering\ShadowCaster.h" />
     <ClInclude Include="Include\Rendering\SwapChainGC.h" />
     <ClInclude Include="Include\Rendering\Texture.h" />
     <ClInclude Include="Include\UVector.h" />
@@ -197,6 +201,9 @@
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">
       <Project>{19ef4ac1-ea8d-47d5-9a59-f9c52514f0ea}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\shadowMapper.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

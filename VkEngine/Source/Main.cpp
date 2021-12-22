@@ -4,6 +4,8 @@
 #include "Engine.h"
 #include "Rendering/Camera.h"
 #include "Rendering/DefaultMaterial.h"
+#include "Rendering/ShadowCaster.h"
+#include "Rendering/Light.h"
 
 int main()
 {
@@ -13,6 +15,8 @@ int main()
 	{
 		const uint32_t size = ce::Cecsar::Get().GetSize();
 		GMEM.New<DefaultMaterial::System>(size);
+		GMEM.New<ShadowCaster::System>(size);
+		GMEM.New<Light::System>();
 	};
 
 	info.start = []()
@@ -22,6 +26,7 @@ int main()
 		auto& transformSystem = Transform::System::Get();
 		auto& cameraSystem = Camera::System::Get();
 		auto& defaultMaterialSystem = DefaultMaterial::System::Get();
+		auto& shadowCasterSystem = ShadowCaster::System::Get();
 
 		const auto vertData = Vertex::Load("Cube.obj");
 		const uint32_t handle = meshSystem.Create(vertData);
@@ -31,6 +36,7 @@ int main()
 		defaultMaterialSystem.Insert(cube.index);
 		auto& mesh = meshSystem.Insert(cube.index);
 		mesh.handle = handle;
+		shadowCasterSystem.Insert(cube.index);
 
 		const auto ground = cecsar.AddEntity();
 		auto& groundTransform = transformSystem.Insert(ground.index);
@@ -59,6 +65,8 @@ int main()
 	info.cleanup = []()
 	{
 		GMEM.Delete(&DefaultMaterial::System::Get());
+		GMEM.Delete(&ShadowCaster::System::Get());
+		GMEM.Delete(&Light::System::Get());
 	};
 
 	Engine::Run(info);
