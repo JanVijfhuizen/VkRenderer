@@ -3,7 +3,6 @@
 
 struct DefaultMaterial final
 {
-	VkSampler diffuseSampler;
 	uint32_t textureHandle = 0;
 
 	class System final : public ce::SparseSet<DefaultMaterial>, public Singleton<System>
@@ -29,5 +28,6 @@ struct DefaultMaterial final
 	};
 
 private:
-	VkDescriptorSet _descriptor;
+	VkSampler _diffuseSamplers[SWAPCHAIN_MAX_FRAMES];
+	VkDescriptorSet _descriptors[SWAPCHAIN_MAX_FRAMES];
 };

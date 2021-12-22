@@ -95,10 +95,10 @@ void Camera::System::EraseAt(const size_t index)
 
 	const uint32_t imageCount = swapChain.GetImageCount();
 
-	for (uint32_t i = 0; i < imageCount; ++i)
-		_descriptorPool.Add(camera._descriptors[i]);
-
 	auto& gc = SwapChainGC::Get();
+
+	for (uint32_t i = 0; i < imageCount; ++i)
+		gc.Enqueue(camera._descriptors[i], _descriptorPool);
 	gc.Enqueue(camera._buffer);
 	gc.Enqueue(camera._memory);
 

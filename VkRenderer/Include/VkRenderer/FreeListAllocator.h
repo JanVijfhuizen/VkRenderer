@@ -30,6 +30,8 @@ namespace vi
 
 			[[nodiscard]] void* TryAllocate(size_t size);
 			bool TryFree(void* ptr);
+
+			[[nodiscard]] static size_t ToChunkSize(size_t size);
 		};
 
 		Block* _block;

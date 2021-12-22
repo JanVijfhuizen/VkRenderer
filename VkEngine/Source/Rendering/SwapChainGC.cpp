@@ -2,11 +2,12 @@
 #include "Rendering/SwapChainGC.h"
 #include "Rendering/RenderManager.h"
 #include "VkRenderer/VkRenderer.h"
+#include "Rendering/DescriptorPool.h"
 
 SwapChainGC::~SwapChainGC()
 {
 	for (auto& deleteable : _deleteables)
-		Delete(deleteable);
+		Delete(deleteable, true);
 }
 
 void SwapChainGC::Update()
@@ -21,7 +22,7 @@ void SwapChainGC::Update()
 	{
 		auto& deleteable = _deleteables[i];
 		if (deleteable.index == index)
-			Delete(deleteable);
+			Delete(deleteable, false);
 	}
 }
 
@@ -49,6 +50,14 @@ void SwapChainGC::Enqueue(const VkDeviceMemory memory)
 	Enqueue(deleteable);
 }
 
+void SwapChainGC::Enqueue(const VkDescriptorSet descriptor, DescriptorPool& pool)
+{
+	Deleteable deleteable{};
+	deleteable.descriptor = {descriptor, &pool};
+	deleteable.type = Deleteable::Type::descriptor;
+	Enqueue(deleteable);
+}
+
 void SwapChainGC::Enqueue(Deleteable& deleteable)
 {
 	auto& renderManager = RenderManager::Get();
@@ -60,7 +69,7 @@ void SwapChainGC::Enqueue(Deleteable& deleteable)
 	_deleteables.Add(deleteable);
 }
 
-void SwapChainGC::Delete(Deleteable& deleteable)
+void SwapChainGC::Delete(Deleteable& deleteable, const bool calledByDetructor)
 {
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
@@ -75,6 +84,10 @@ void SwapChainGC::Delete(Deleteable& deleteable)
 		break;
 	case Deleteable::Type::memory:
 		renderer.FreeMemory(deleteable.memory);
+		break;
+	case Deleteable::Type::descriptor:
+		if(!calledByDetructor)
+			deleteable.descriptor.pool->Add(deleteable.descriptor.set);
 		break;
 	default:
 		break;

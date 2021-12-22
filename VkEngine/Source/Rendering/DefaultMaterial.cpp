@@ -8,6 +8,7 @@
 #include "Transform.h"
 #include "Rendering/Mesh.h"
 #include "Rendering/Texture.h"
+#include "Rendering/SwapChainGC.h"
 
 DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial>(size)
 {
@@ -107,13 +108,17 @@ void DefaultMaterial::System::Update()
 		const auto& mesh = meshSystem.GetData(meshSystem[sparseId]);
 		const auto& bakedTransform = bakedTransforms[transformSystem.GetDenseId(sparseId)];
 		const auto& diffuseTexture = textureManager.GetData(material.textureHandle);
-		sets[1] = material._descriptor;
+
+		const auto& descriptor = material._descriptors[imageIndex];
+		const auto& diffuseSampler = material._diffuseSamplers[imageIndex];
+
+		sets[1] = descriptor;
 
 		renderer.BindVertexBuffer(mesh.vertexBuffer);
 		renderer.BindIndicesBuffer(mesh.indexBuffer);
 
 		renderer.BindDescriptorSets(sets, 2);
-		renderer.BindSampler(material._descriptor, diffuseTexture.imageView, diffuseTexture.layout, material.diffuseSampler, 0, 0);
+		renderer.BindSampler(descriptor, diffuseTexture.imageView, diffuseTexture.layout, diffuseSampler, 0, 0);
 		renderer.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, bakedTransform);
 		renderer.Draw(mesh.indexCount);
 	}
@@ -123,10 +128,16 @@ DefaultMaterial& DefaultMaterial::System::Insert(const uint32_t sparseId)
 {
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
 
+	const uint32_t imageCount = swapChain.GetImageCount();
 	auto& defaultMaterial = SparseSet<DefaultMaterial>::Insert(sparseId);
-	defaultMaterial.diffuseSampler = renderer.CreateSampler();
-	defaultMaterial._descriptor = _descriptorPool.Get();
+	
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+		defaultMaterial._diffuseSamplers[i] = renderer.CreateSampler();
+		defaultMaterial._descriptors[i] = _descriptorPool.Get();
+	}
 	return defaultMaterial;
 }
 
@@ -140,8 +151,16 @@ void DefaultMaterial::System::OnErase(const uint32_t sparseId)
 {
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
 
+	const uint32_t imageCount = swapChain.GetImageCount();
 	auto& defaultMaterial = operator[](sparseId);
-	renderer.DestroySampler(defaultMaterial.diffuseSampler);
-	_descriptorPool.Add(defaultMaterial._descriptor);
+
+	auto& gc = SwapChainGC::Get();
+
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+		gc.Enqueue(defaultMaterial._diffuseSamplers[i]);
+		gc.Enqueue(defaultMaterial._descriptors[i], _descriptorPool);
+	}
 }

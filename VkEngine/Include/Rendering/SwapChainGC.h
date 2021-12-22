@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "UVector.h"
 
+class DescriptorPool;
+
 class SwapChainGC final : public Singleton<SwapChainGC>
 {
 public:
@@ -11,6 +13,7 @@ public:
 	void Enqueue(VkBuffer buffer);
 	void Enqueue(VkSampler sampler);
 	void Enqueue(VkDeviceMemory memory);
+	void Enqueue(VkDescriptorSet descriptor, DescriptorPool& pool);
 
 private:
 	struct Deleteable final
@@ -19,7 +22,8 @@ private:
 		{
 			buffer,
 			sampler,
-			memory
+			memory,
+			descriptor
 		};
 
 		union
@@ -27,6 +31,11 @@ private:
 			VkBuffer buffer;
 			VkSampler sampler;
 			VkDeviceMemory memory;
+			struct Descriptor final
+			{
+				VkDescriptorSet set;
+				DescriptorPool* pool;
+			} descriptor;
 		};
 
 		Type type;
@@ -36,5 +45,5 @@ private:
 	UVector<Deleteable> _deleteables;
 
 	void Enqueue(Deleteable& deleteable);
-	void Delete(Deleteable& deleteable);
+	void Delete(Deleteable& deleteable, bool calledByDetructor);
 };

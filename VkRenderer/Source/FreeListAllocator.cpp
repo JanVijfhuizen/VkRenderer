@@ -3,9 +3,8 @@
 
 namespace vi
 {
-	FreeListAllocator::FreeListAllocator(size_t capacity) : _capacity(capacity)
+	FreeListAllocator::FreeListAllocator(const size_t capacity) : _capacity(capacity)
 	{
-		capacity /= sizeof(size_t);
 		_block = new Block(capacity);
 	}
 
@@ -35,7 +34,7 @@ namespace vi
 			current = current->child;
 		}
 
-		const auto block = new Block(_capacity / sizeof(size_t));
+		const auto block = new Block(_capacity);
 		previous->child = block;
 		return block->TryAllocate(size);
 	}
@@ -57,8 +56,9 @@ namespace vi
 		return _capacity;
 	}
 
-	FreeListAllocator::Block::Block(const size_t capacity)
+	FreeListAllocator::Block::Block(size_t capacity)
 	{
+		capacity = ToChunkSize(capacity);
 		data = new size_t[capacity];
 		next = data;
 
@@ -73,8 +73,7 @@ namespace vi
 
 	void* FreeListAllocator::Block::TryAllocate(size_t size)
 	{
-		size = size / 4 + 2 + (size % sizeof(size_t) != 0);
-
+		size = ToChunkSize(size);
 		size_t* current = next;
 
 		while (current)
@@ -150,5 +149,10 @@ namespace vi
 		}
 
 		return false;
+	}
+
+	size_t FreeListAllocator::Block::ToChunkSize(const size_t size)
+	{
+		return size / 4 + 2 + (size % sizeof(size_t) != 0);
 	}
 }
