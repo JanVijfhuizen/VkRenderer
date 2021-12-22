@@ -78,7 +78,7 @@ KeyValuePair<unsigned, Camera>& Camera::System::Add(const KeyValuePair<unsigned,
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
 		camera._descriptors[i] = _descriptorPool.Get();
-		renderer.BindBuffer(camera._descriptors[i], camera._buffer, sizeof(Ubo) * imageCount, sizeof(Ubo), 0, 0);
+		renderer.BindBuffer(camera._descriptors[i], camera._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
 	}
 
 	return t;
