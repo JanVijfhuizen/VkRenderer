@@ -13,6 +13,8 @@ public:
 	void Enqueue(VkBuffer buffer);
 	void Enqueue(VkSampler sampler);
 	void Enqueue(VkDeviceMemory memory);
+	void Enqueue(VkImage image);
+	void Enqueue(VkImageView imageView);
 	void Enqueue(VkDescriptorSet descriptor, DescriptorPool& pool);
 
 private:
@@ -23,6 +25,8 @@ private:
 			buffer,
 			sampler,
 			memory,
+			image,
+			imageView,
 			descriptor
 		};
 
@@ -31,6 +35,8 @@ private:
 			VkBuffer buffer;
 			VkSampler sampler;
 			VkDeviceMemory memory;
+			VkImage image;
+			VkImageView imageView;
 			struct Descriptor final
 			{
 				VkDescriptorSet set;

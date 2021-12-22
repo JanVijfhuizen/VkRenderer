@@ -103,7 +103,7 @@ void DefaultMaterial::System::Update()
 
 	renderer.BindPipeline(_pipeline, _pipelineLayout);
 
-	for (const auto [material, sparseId] : *this)
+	for (const auto& [material, sparseId] : *this)
 	{
 		const auto& mesh = meshSystem.GetData(meshSystem[sparseId]);
 		const auto& bakedTransform = bakedTransforms[transformSystem.GetDenseId(sparseId)];

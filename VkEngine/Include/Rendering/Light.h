@@ -14,11 +14,18 @@ struct Light final
 
 		explicit System(const Info& info = {});
 		~System();
-		
+
+		void Update();
+
+		KeyValuePair<unsigned, Light>& Add(const KeyValuePair<unsigned, Light>& keyPair) override;
+		void EraseAt(size_t index) override;
+
+		static void CreateDepthBuffer(glm::ivec2 resolution, VkImage& outImage, VkDeviceMemory& outMemory, VkImageView& outImageView);
+
 	private:
-		struct Ubo final
+		struct alignas(256) Ubo final
 		{
-			
+			glm::mat4 lightSpaceMatrix{1};
 		};
 
 		Info _info;
@@ -32,4 +39,13 @@ struct Light final
 		VkDescriptorSetLayout _depthLayout;
 		DescriptorPool _descriptorPool;
 	};
+
+private:
+	VkBuffer _buffer;
+	VkDeviceMemory _memory;
+	VkDescriptorSet _descriptors[SWAPCHAIN_MAX_FRAMES];
+	VkImage _depthImages[SWAPCHAIN_MAX_FRAMES];
+	VkDeviceMemory _depthMemories[SWAPCHAIN_MAX_FRAMES];
+	VkImageView _depthImageViews[SWAPCHAIN_MAX_FRAMES];
+	VkFramebuffer _frameBuffers[SWAPCHAIN_MAX_FRAMES];
 };

@@ -124,9 +124,10 @@ namespace vi
 		CreateBuffers();
 	}
 
-	void SwapChain::BeginFrame()
+	void SwapChain::BeginFrame(const bool callWaitForImage)
 	{
-		WaitForImage();
+		if(callWaitForImage)
+			WaitForImage();
 
 		auto& renderer = _info.renderer;
 		auto& image = _images[_imageIndex];

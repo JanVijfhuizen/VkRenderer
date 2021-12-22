@@ -50,6 +50,22 @@ void SwapChainGC::Enqueue(const VkDeviceMemory memory)
 	Enqueue(deleteable);
 }
 
+void SwapChainGC::Enqueue(const VkImage image)
+{
+	Deleteable deleteable{};
+	deleteable.image = image;
+	deleteable.type = Deleteable::Type::memory;
+	Enqueue(deleteable);
+}
+
+void SwapChainGC::Enqueue(const VkImageView imageView)
+{
+	Deleteable deleteable{};
+	deleteable.imageView = imageView;
+	deleteable.type = Deleteable::Type::memory;
+	Enqueue(deleteable);
+}
+
 void SwapChainGC::Enqueue(const VkDescriptorSet descriptor, DescriptorPool& pool)
 {
 	Deleteable deleteable{};
@@ -84,6 +100,12 @@ void SwapChainGC::Delete(Deleteable& deleteable, const bool calledByDetructor)
 		break;
 	case Deleteable::Type::memory:
 		renderer.FreeMemory(deleteable.memory);
+		break;
+	case Deleteable::Type::image:
+		renderer.DestroyImage(deleteable.image);
+		break;
+	case Deleteable::Type::imageView:
+		renderer.DestroyImageView(deleteable.imageView);
 		break;
 	case Deleteable::Type::descriptor:
 		if(!calledByDetructor)

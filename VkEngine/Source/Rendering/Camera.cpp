@@ -48,7 +48,7 @@ void Camera::System::Update()
 	const float aspectRatio = static_cast<float>(resolution.x) / resolution.y;
 	const uint32_t imageIndex = swapChain.GetCurrentImageIndex();
 
-	for (auto& [index, camera] : *this)
+	for (const auto& [index, camera] : *this)
 	{
 		auto& transform = transformSystem[index];
 

@@ -27,6 +27,7 @@ int main()
 		auto& cameraSystem = Camera::System::Get();
 		auto& defaultMaterialSystem = DefaultMaterial::System::Get();
 		auto& shadowCasterSystem = ShadowCaster::System::Get();
+		auto& lightSystem = Light::System::Get();
 
 		const auto vertData = Vertex::Load("Cube.obj");
 		const uint32_t handle = meshSystem.Create(vertData);
@@ -50,6 +51,11 @@ int main()
 		cameraSystem.Insert(camera.index);
 		auto& camTransform = transformSystem.Insert(camera.index);
 		camTransform.position = { 0, 0, -10 };
+
+		const auto light = cecsar.AddEntity();
+		lightSystem.Insert(light.index);
+		auto& lightTransform = transformSystem.Insert(light.index);
+		lightTransform.position = { 20, 10, 5 };
 	};
 
 	info.update = [](bool& outQuit)
@@ -60,6 +66,11 @@ int main()
 		static float f = 0;
 		f += 0.001f;
 		transformSystem[2].position = { sin(f) * 25, -5.f, cos(f) * 25 };
+	};
+
+	info.preRenderUpdate = [](bool& outQuit)
+	{
+		Light::System::Get().Update();
 	};
 
 	info.cleanup = []()

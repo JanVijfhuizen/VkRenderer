@@ -13,8 +13,8 @@ public:
 	RenderManager();
 	~RenderManager();
 
-	void BeginFrame(bool& quit);
-	void EndFrame();
+	void BeginFrame(bool& quit, bool callSwapChainBeginFrame = true);
+	void EndFrame() const;
 
 	[[nodiscard]] vi::WindowHandlerGLFW& GetWindowHandler() const;
 	[[nodiscard]] vi::VkRenderer& GetVkRenderer() const;

@@ -6,6 +6,9 @@
 #include "Rendering/Vertex.h"
 #include "Transform.h"
 #include "Rendering/DescriptorPool.h"
+#include "Rendering/Mesh.h"
+#include "Rendering/ShadowCaster.h"
+#include "Rendering/SwapChainGC.h"
 
 Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
 {
@@ -72,4 +75,143 @@ Light::System::~System()
 	renderer.DestroyPipeline(_pipeline, _pipelineLayout);
 	renderer.DestroyRenderPass(_renderPass);
 	renderer.DestroyShaderModule(_vertModule);
+}
+
+void Light::System::Update()
+{
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
+
+	auto& shadowCasters = ShadowCaster::System::Get();
+	auto& meshes = Mesh::System::Get();
+	auto& transforms = Transform::System::Get();
+
+	const auto bakedTransforms = transforms.GetBakedTransforms();
+	const uint32_t imageIndex = swapChain.GetImageCount();
+
+	VkClearValue clearValue{};
+	clearValue.depthStencil = { 1, 0 };
+
+	renderer.BeginCommandBufferRecording(_commandBuffer);
+	renderer.BindPipeline(_pipeline, _pipelineLayout);
+
+	for (auto& [sparseId, light] : *this)
+	{
+		const auto& transform = transforms[sparseId];
+
+		renderer.BeginRenderPass(light._frameBuffers[imageIndex], _renderPass, {}, _info.shadowResolution, &clearValue, 1);
+
+		// Temp testing stuff.
+		glm::mat4 view = glm::lookAt(transform.position, {0, 0, 0}, glm::vec3(0, 1, 0));
+		glm::mat4 projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, .1f, 1000.f);
+
+		Ubo ubo{};
+		ubo.lightSpaceMatrix = projection * view;
+		renderer.MapMemory(light._memory, &ubo, sizeof(Ubo) * imageIndex, sizeof(Ubo));
+		renderer.BindDescriptorSets(&light._descriptors[imageIndex], 1);
+
+		for (const auto& [shadowCaster, shadowCasterSparseId] : shadowCasters)
+		{
+			auto& mesh = meshes[shadowCasterSparseId];
+			const auto& meshData = meshes.GetData(mesh);
+			const auto& bakedTransform = bakedTransforms[transforms.GetDenseId(shadowCasterSparseId)];
+
+			renderer.BindVertexBuffer(meshData.vertexBuffer);
+			renderer.BindIndicesBuffer(meshData.indexBuffer);
+
+			renderer.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, bakedTransform);
+			renderer.Draw(meshData.indexCount);
+		}
+
+		renderer.EndRenderPass();
+	}
+
+	renderer.EndCommandBufferRecording();
+	renderer.Submit(&_commandBuffer, 1, nullptr, nullptr, _fence);
+	renderer.WaitForFence(_fence);
+}
+
+KeyValuePair<unsigned, Light>& Light::System::Add(const KeyValuePair<unsigned, Light>& keyPair)
+{
+	auto& t = MapSet<Light>::Add(keyPair);
+	auto& light = t.value;
+
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
+
+	const uint32_t imageCount = swapChain.GetImageCount();
+
+	light._buffer = renderer.CreateBuffer(sizeof(Ubo) * imageCount, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+	light._memory = renderer.AllocateMemory(light._buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	renderer.BindMemory(light._buffer, light._memory, 0);
+
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+		light._descriptors[i] = _descriptorPool.Get();
+		renderer.BindBuffer(light._descriptors[i], light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
+
+		CreateDepthBuffer(_info.shadowResolution, light._depthImages[i], light._depthMemories[i], light._depthImageViews[i]);
+		light._frameBuffers[i] = renderer.CreateFrameBuffer(&light._depthImageViews[i], 1, _renderPass,
+			{
+				static_cast<uint32_t>(_info.shadowResolution.x),
+				static_cast<uint32_t>(_info.shadowResolution.y)
+			});
+	}
+
+	return t;
+}
+
+void Light::System::EraseAt(const size_t index)
+{
+	auto& light = operator[](index).value;
+
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
+
+	const uint32_t imageCount = swapChain.GetImageCount();
+
+	auto& gc = SwapChainGC::Get();
+
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+		gc.Enqueue(light._descriptors[i], _descriptorPool);
+		gc.Enqueue(light._depthImageViews[i]);
+		gc.Enqueue(light._depthImages[i]);
+		gc.Enqueue(light._depthMemories[i]);
+	}
+	gc.Enqueue(light._buffer);
+	gc.Enqueue(light._memory);
+
+	MapSet<Light>::EraseAt(index);
+}
+
+void Light::System::CreateDepthBuffer(const glm::ivec2 resolution, 
+	VkImage& outImage, VkDeviceMemory& outMemory, VkImageView& outImageView)
+{
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
+
+	const auto format = renderer.GetDepthBufferFormat();
+
+	outImage = renderer.CreateImage(resolution, format, VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	outMemory = renderer.AllocateMemory(outImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	renderer.BindMemory(outImage, outMemory);
+	outImageView = renderer.CreateImageView(outImage, format, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+	auto cmdBuffer = renderer.CreateCommandBuffer();
+	const auto fence = renderer.CreateFence();
+
+	renderer.BeginCommandBufferRecording(cmdBuffer);
+	renderer.TransitionImageLayout(outImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+	renderer.EndCommandBufferRecording();
+	renderer.Submit(&cmdBuffer, 1, nullptr, nullptr, fence);
+	renderer.WaitForFence(fence);
+
+	renderer.DestroyCommandBuffer(cmdBuffer);
+	renderer.DestroyFence(fence);
 }
