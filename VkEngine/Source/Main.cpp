@@ -32,6 +32,14 @@ int main()
 		auto& mesh = meshSystem.Insert(cube.index);
 		mesh.handle = handle;
 
+		const auto ground = cecsar.AddEntity();
+		auto& groundTransform = transformSystem.Insert(ground.index);
+		groundTransform.position.y = 5;
+		groundTransform.scale = { 5, 1, 5 };
+		defaultMaterialSystem.Insert(ground.index);
+		auto& mesh2 = meshSystem.Insert(ground.index);
+		mesh2.handle = handle;
+
 		const auto camera = cecsar.AddEntity();
 		cameraSystem.Insert(camera.index);
 		auto& camTransform = transformSystem.Insert(camera.index);
@@ -41,6 +49,11 @@ int main()
 	info.update = [](bool& outQuit)
 	{
 		DefaultMaterial::System::Get().Update();
+		auto& transformSystem = Transform::System::Get();
+
+		static float f = 0;
+		f += 0.001f;
+		transformSystem[2].position = { sin(f) * 25, -5.f, cos(f) * 25 };
 	};
 
 	info.cleanup = []()
