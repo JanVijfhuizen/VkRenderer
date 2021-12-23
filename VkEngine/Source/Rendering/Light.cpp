@@ -29,6 +29,7 @@ Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
 	renderPassInfo.useColorAttachment = false;
 	renderPassInfo.useDepthAttachment = true;
 	renderPassInfo.depthStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+	renderPassInfo.depthFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	_renderPass = renderer.CreateRenderPass(renderPassInfo);
 
 	vi::VkRenderer::PipelineInfo pipelineInfo{};
@@ -62,6 +63,18 @@ Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
 	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	uint32_t size = 8;
 	_descriptorPool = DescriptorPool(_layout, &uboType, &size, 1, 8);
+
+	vi::VkRenderer::LayoutInfo layoutInfoExt{};
+	layoutInfoExt.bindings.push_back(lsm);
+	vi::VkRenderer::LayoutInfo::Binding depthBuffer{};
+	depthBuffer.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	depthBuffer.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	layoutInfoExt.bindings.push_back(depthBuffer);
+	_layoutExt = renderer.CreateLayout(layoutInfoExt);
+
+	VkDescriptorType uboTypesExt[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+	uint32_t sizeExt[] = {8, 8};
+	_descriptorPoolExt = DescriptorPool(_layoutExt, uboTypesExt, sizeExt, 2, 8);
 }
 
 Light::System::~System()
@@ -78,6 +91,8 @@ Light::System::~System()
 	renderer.DestroyPipeline(_pipeline, _pipelineLayout);
 	renderer.DestroyRenderPass(_renderPass);
 	renderer.DestroyShaderModule(_vertModule);
+
+	renderer.DestroyLayout(_layoutExt);
 }
 
 void Light::System::Update()
@@ -164,6 +179,12 @@ KeyValuePair<unsigned, Light>& Light::System::Add(const KeyValuePair<unsigned, L
 				static_cast<uint32_t>(_info.shadowResolution.x),
 				static_cast<uint32_t>(_info.shadowResolution.y)
 			});
+
+		light._descriptorsExt[i] = _descriptorPoolExt.Get();
+		frame.samplerExt = renderer.CreateSampler();
+		renderer.BindBuffer(frame.descriptor, light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
+		renderer.BindSampler(light._descriptorsExt[i], frame.imageView,
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, frame.samplerExt, 1, 0);
 	}
 
 	return t;
@@ -190,6 +211,9 @@ void Light::System::EraseAt(const size_t index)
 		gc.Enqueue(frame.image);
 		gc.Enqueue(frame.imageMemory);
 		gc.Enqueue(frame.framebuffer);
+
+		gc.Enqueue(light._descriptorsExt[i], _descriptorPoolExt);
+		gc.Enqueue(frame.samplerExt);
 	}
 	gc.Enqueue(light._buffer);
 	gc.Enqueue(light._memory);
@@ -206,7 +230,7 @@ void Light::System::CreateDepthBuffer(const glm::ivec2 resolution,
 	const auto format = renderer.GetDepthBufferFormat();
 
 	outImage = renderer.CreateImage(resolution, format, VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 	outMemory = renderer.AllocateMemory(outImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	renderer.BindMemory(outImage, outMemory);
 	outImageView = renderer.CreateImageView(outImage, format, VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -215,7 +239,7 @@ void Light::System::CreateDepthBuffer(const glm::ivec2 resolution,
 	const auto fence = renderer.CreateFence();
 
 	renderer.BeginCommandBufferRecording(cmdBuffer);
-	renderer.TransitionImageLayout(outImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	renderer.TransitionImageLayout(outImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	renderer.EndCommandBufferRecording();
 	renderer.Submit(&cmdBuffer, 1, nullptr, nullptr, fence);
@@ -223,4 +247,9 @@ void Light::System::CreateDepthBuffer(const glm::ivec2 resolution,
 
 	renderer.DestroyCommandBuffer(cmdBuffer);
 	renderer.DestroyFence(fence);
+}
+
+const VkDescriptorSet* Light::GetDescriptors() const
+{
+	return _descriptorsExt;
 }

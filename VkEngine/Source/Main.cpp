@@ -29,14 +29,10 @@ int main()
 		auto& shadowCasterSystem = ShadowCaster::System::Get();
 		auto& lightSystem = Light::System::Get();
 
-		const auto vertData = Vertex::Load("Cube.obj");
-		const uint32_t handle = meshSystem.Create(vertData);
-
 		const auto cube = cecsar.AddEntity();
 		transformSystem.Insert(cube.index);
 		defaultMaterialSystem.Insert(cube.index);
-		auto& mesh = meshSystem.Insert(cube.index);
-		mesh.handle = handle;
+		meshSystem.Insert(cube.index);
 		shadowCasterSystem.Insert(cube.index);
 
 		const auto ground = cecsar.AddEntity();
@@ -44,8 +40,7 @@ int main()
 		groundTransform.position.y = 5;
 		groundTransform.scale = { 5, 1, 5 };
 		defaultMaterialSystem.Insert(ground.index);
-		auto& mesh2 = meshSystem.Insert(ground.index);
-		mesh2.handle = handle;
+		meshSystem.Insert(ground.index);
 
 		const auto camera = cecsar.AddEntity();
 		cameraSystem.Insert(camera.index);

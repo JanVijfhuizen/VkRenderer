@@ -400,7 +400,7 @@ namespace vi
 			depthDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			depthDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			depthDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			depthDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			depthDescription.finalLayout = info.depthFinalLayout;
 			descriptions.push_back(depthDescription);
 
 			dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -526,7 +526,7 @@ namespace vi
 	}
 
 	void VkRenderer::TransitionImageLayout(const VkImage image, 
-		const VkImageLayout oldLayout, const VkImageLayout newLayout) const
+		const VkImageLayout oldLayout, const VkImageLayout newLayout, const VkImageAspectFlags aspectFlags) const
 	{
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -535,7 +535,7 @@ namespace vi
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.image = image;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.aspectMask = aspectFlags;
 		barrier.subresourceRange.baseMipLevel = 0;
 		barrier.subresourceRange.levelCount = 1;
 		barrier.subresourceRange.baseArrayLayer = 0;
@@ -544,6 +544,7 @@ namespace vi
 		VkPipelineStageFlags srcStage = 0;
 		VkPipelineStageFlags dstStage = 0;
 
+		/*
 		if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 		{
 			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -552,6 +553,7 @@ namespace vi
 			if (format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT)
 				barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
+		*/
 
 		GetLayoutMasks(oldLayout, barrier.srcAccessMask, srcStage);
 		GetLayoutMasks(newLayout, barrier.dstAccessMask, dstStage);

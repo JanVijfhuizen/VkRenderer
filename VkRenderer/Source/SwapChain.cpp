@@ -140,7 +140,7 @@ namespace vi
 
 		renderer->BeginRenderPass(image.frameBuffer, _renderPass, {}, 
 			{ _extent.width, _extent.height }, clearColors, 2);
-	}
+		}
 
 	void SwapChain::EndFrame(bool& shouldRecreateAssets)
 	{
@@ -290,7 +290,7 @@ namespace vi
 			const auto fence = renderer->CreateFence();
 
 			renderer->BeginCommandBufferRecording(cmdBuffer);
-			renderer->TransitionImageLayout(image.depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+			renderer->TransitionImageLayout(image.depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
 			renderer->EndCommandBufferRecording();
 			renderer->Submit(&cmdBuffer, 1, nullptr, nullptr, fence);
 			renderer->WaitForFence(fence);
