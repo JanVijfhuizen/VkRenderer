@@ -114,7 +114,8 @@ namespace vi
 			VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, 
 			VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL, 
 			VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT) const;
-		void TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout) const;
+		void TransitionImageLayout(VkImage image, VkImageLayout oldLayout, 
+			VkImageLayout newLayout, VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT) const;
 		void DestroyImage(VkImage image) const;
 
 		[[nodiscard]] VkImageView CreateImageView(VkImage image, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB,

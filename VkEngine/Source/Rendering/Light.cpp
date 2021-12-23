@@ -183,7 +183,7 @@ KeyValuePair<unsigned, Light>& Light::System::Add(const KeyValuePair<unsigned, L
 		frame.samplerExt = renderer.CreateSampler();
 		renderer.BindBuffer(frame.descriptor, light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
 		renderer.BindSampler(frame.descriptorExt, frame.imageView, 
-			VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, frame.samplerExt, 1, 0);
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, frame.samplerExt, 1, 0);
 	}
 
 	return t;
@@ -238,7 +238,7 @@ void Light::System::CreateDepthBuffer(const glm::ivec2 resolution,
 	const auto fence = renderer.CreateFence();
 
 	renderer.BeginCommandBufferRecording(cmdBuffer);
-	renderer.TransitionImageLayout(outImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
+	renderer.TransitionImageLayout(outImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	renderer.EndCommandBufferRecording();
 	renderer.Submit(&cmdBuffer, 1, nullptr, nullptr, fence);

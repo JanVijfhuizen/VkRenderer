@@ -140,7 +140,7 @@ namespace vi
 
 		renderer->BeginRenderPass(image.frameBuffer, _renderPass, {}, 
 			{ _extent.width, _extent.height }, clearColors, 2);
-	}
+		}
 
 	void SwapChain::EndFrame(bool& shouldRecreateAssets)
 	{
@@ -281,7 +281,7 @@ namespace vi
 			auto& image = _images[i];
 
 			image.depthImage = renderer->CreateImage({ extent.width, extent.height }, format,
-				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 			image.depthImageMemory = renderer->AllocateMemory(image.depthImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 			renderer->BindMemory(image.depthImage, image.depthImageMemory);
 			image.depthImageView = renderer->CreateImageView(image.depthImage, format, VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -290,7 +290,7 @@ namespace vi
 			const auto fence = renderer->CreateFence();
 
 			renderer->BeginCommandBufferRecording(cmdBuffer);
-			renderer->TransitionImageLayout(image.depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+			renderer->TransitionImageLayout(image.depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
 			renderer->EndCommandBufferRecording();
 			renderer->Submit(&cmdBuffer, 1, nullptr, nullptr, fence);
 			renderer->WaitForFence(fence);
