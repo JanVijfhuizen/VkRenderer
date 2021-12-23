@@ -20,6 +20,7 @@ struct Light final
 		KeyValuePair<unsigned, Light>& Add(const KeyValuePair<unsigned, Light>& keyPair) override;
 		void EraseAt(size_t index) override;
 
+		[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
 		static void CreateDepthBuffer(glm::ivec2 resolution, VkImage& outImage, VkDeviceMemory& outMemory, VkImageView& outImageView);
 
 	private:

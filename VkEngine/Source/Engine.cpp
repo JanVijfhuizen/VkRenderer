@@ -34,8 +34,9 @@ void Engine::Run(const Info& info)
 			{
 				bool quit = false;
 
-				swapChain.WaitForImage();
 				transformSystem.Update();
+				swapChain.WaitForImage();
+				cameraSystem.Update();
 
 				if(info.preRenderUpdate)
 				{
@@ -46,11 +47,17 @@ void Engine::Run(const Info& info)
 
 				renderManager.BeginFrame(quit, false);
 				swapChain.BeginFrame(false);
-
 				if (quit)
 					break;
 
-				cameraSystem.Update();
+				if(info.renderUpdate)
+				{
+					info.renderUpdate(quit);
+					if (quit)
+						break;
+				}
+
+				renderManager.EndFrame();
 
 				if (info.update)
 				{
@@ -58,8 +65,6 @@ void Engine::Run(const Info& info)
 					if (quit)
 						break;
 				}
-
-				renderManager.EndFrame();
 			}
 
 			renderManager.GetVkRenderer().DeviceWaitIdle();

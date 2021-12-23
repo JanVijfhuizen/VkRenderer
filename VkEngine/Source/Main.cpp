@@ -14,9 +14,9 @@ int main()
 	info.awake = []()
 	{
 		const uint32_t size = ce::Cecsar::Get().GetSize();
-		GMEM.New<DefaultMaterial::System>(size);
 		GMEM.New<ShadowCaster::System>(size);
 		GMEM.New<Light::System>();
+		GMEM.New<DefaultMaterial::System>(size);
 	};
 
 	info.start = []()
@@ -53,19 +53,23 @@ int main()
 		lightTransform.position = { 20, 10, 5 };
 	};
 
-	info.update = [](bool& outQuit)
+	info.preRenderUpdate = [](bool& outQuit)
+	{
+		Light::System::Get().Update();
+	};
+
+	info.renderUpdate = [](bool& outQuit)
 	{
 		DefaultMaterial::System::Get().Update();
+	};
+
+	info.update = [](bool& outQuit)
+	{
 		auto& transformSystem = Transform::System::Get();
 
 		static float f = 0;
 		f += 0.001f;
 		transformSystem[2].position = { sin(f) * 25, -5.f, cos(f) * 25 };
-	};
-
-	info.preRenderUpdate = [](bool& outQuit)
-	{
-		Light::System::Get().Update();
 	};
 
 	info.cleanup = []()

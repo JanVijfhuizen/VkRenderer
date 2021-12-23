@@ -182,7 +182,7 @@ KeyValuePair<unsigned, Light>& Light::System::Add(const KeyValuePair<unsigned, L
 
 		light._descriptorsExt[i] = _descriptorPoolExt.Get();
 		frame.samplerExt = renderer.CreateSampler();
-		renderer.BindBuffer(frame.descriptor, light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
+		renderer.BindBuffer(light._descriptorsExt[i], light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
 		renderer.BindSampler(light._descriptorsExt[i], frame.imageView,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, frame.samplerExt, 1, 0);
 	}
@@ -219,6 +219,11 @@ void Light::System::EraseAt(const size_t index)
 	gc.Enqueue(light._memory);
 
 	MapSet<Light>::EraseAt(index);
+}
+
+VkDescriptorSetLayout Light::System::GetLayout() const
+{
+	return _layoutExt;
 }
 
 void Light::System::CreateDepthBuffer(const glm::ivec2 resolution, 
