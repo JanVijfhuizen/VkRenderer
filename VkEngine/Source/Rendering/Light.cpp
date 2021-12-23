@@ -101,9 +101,10 @@ void Light::System::Update()
 
 	for (auto& [sparseId, light] : *this)
 	{
+		auto& frame = light._frames[imageIndex];
 		const auto& transform = transforms[sparseId];
 
-		renderer.BeginRenderPass(light._frameBuffers[imageIndex], _renderPass, {}, _info.shadowResolution, &clearValue, 1);
+		renderer.BeginRenderPass(frame.framebuffer, _renderPass, {}, _info.shadowResolution, &clearValue, 1);
 
 		// Temp testing stuff.
 		glm::mat4 view = glm::lookAt(transform.position, {0, 0, 0}, glm::vec3(0, 1, 0));
@@ -112,7 +113,7 @@ void Light::System::Update()
 		Ubo ubo{};
 		ubo.lightSpaceMatrix = projection * view;
 		renderer.MapMemory(light._memory, &ubo, sizeof(Ubo) * imageIndex, sizeof(Ubo));
-		renderer.BindDescriptorSets(&light._descriptors[imageIndex], 1);
+		renderer.BindDescriptorSets(&frame.descriptor, 1);
 
 		for (const auto& [shadowCaster, shadowCasterSparseId] : shadowCasters)
 		{
@@ -152,11 +153,13 @@ KeyValuePair<unsigned, Light>& Light::System::Add(const KeyValuePair<unsigned, L
 
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
-		light._descriptors[i] = _descriptorPool.Get();
-		renderer.BindBuffer(light._descriptors[i], light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
+		auto& frame = light._frames[i];
 
-		CreateDepthBuffer(_info.shadowResolution, light._depthImages[i], light._depthMemories[i], light._depthImageViews[i]);
-		light._frameBuffers[i] = renderer.CreateFrameBuffer(&light._depthImageViews[i], 1, _renderPass,
+		frame.descriptor = _descriptorPool.Get();
+		renderer.BindBuffer(frame.descriptor, light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
+
+		CreateDepthBuffer(_info.shadowResolution, frame.image, frame.imageMemory, frame.imageView);
+		frame.framebuffer = renderer.CreateFrameBuffer(&frame.imageView, 1, _renderPass,
 			{
 				static_cast<uint32_t>(_info.shadowResolution.x),
 				static_cast<uint32_t>(_info.shadowResolution.y)
@@ -180,11 +183,13 @@ void Light::System::EraseAt(const size_t index)
 
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
-		gc.Enqueue(light._descriptors[i], _descriptorPool);
-		gc.Enqueue(light._depthImageViews[i]);
-		gc.Enqueue(light._depthImages[i]);
-		gc.Enqueue(light._depthMemories[i]);
-		gc.Enqueue(light._frameBuffers[i]);
+		auto& frame = light._frames[i];
+
+		gc.Enqueue(frame.descriptor, _descriptorPool);
+		gc.Enqueue(frame.imageView);
+		gc.Enqueue(frame.image);
+		gc.Enqueue(frame.imageMemory);
+		gc.Enqueue(frame.framebuffer);
 	}
 	gc.Enqueue(light._buffer);
 	gc.Enqueue(light._memory);
