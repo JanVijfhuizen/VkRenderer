@@ -42,6 +42,8 @@ struct Light final
 		DescriptorPool _descriptorPoolExt;
 	};
 
+	[[nodiscard]] const VkDescriptorSet* GetDescriptors() const;
+
 private:
 	struct Frame final
 	{
@@ -51,11 +53,11 @@ private:
 		VkDeviceMemory imageMemory;
 		VkFramebuffer framebuffer;
 
-		VkDescriptorSet descriptorExt;
 		VkSampler samplerExt;
 	};
 
 	VkBuffer _buffer;
 	VkDeviceMemory _memory;
 	Frame _frames[SWAPCHAIN_MAX_FRAMES];
+	VkDescriptorSet _descriptorsExt[SWAPCHAIN_MAX_FRAMES];
 };
