@@ -859,7 +859,7 @@ namespace vi
 		vkBindBufferMemory(_device, buffer, memory, offset);
 	}
 
-	void VkRenderer::FreeMemory(VkDeviceMemory memory) const
+	void VkRenderer::FreeMemory(const VkDeviceMemory memory) const
 	{
 		vkFreeMemory(_device, memory, nullptr);
 	}

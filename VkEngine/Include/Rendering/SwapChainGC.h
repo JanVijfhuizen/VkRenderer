@@ -15,6 +15,7 @@ public:
 	void Enqueue(VkDeviceMemory memory);
 	void Enqueue(VkImage image);
 	void Enqueue(VkImageView imageView);
+	void Enqueue(VkFramebuffer framebuffer);
 	void Enqueue(VkDescriptorSet descriptor, DescriptorPool& pool);
 
 private:
@@ -27,6 +28,7 @@ private:
 			memory,
 			image,
 			imageView,
+			framebuffer,
 			descriptor
 		};
 
@@ -37,6 +39,7 @@ private:
 			VkDeviceMemory memory;
 			VkImage image;
 			VkImageView imageView;
+			VkFramebuffer framebuffer;
 			struct Descriptor final
 			{
 				VkDescriptorSet set;

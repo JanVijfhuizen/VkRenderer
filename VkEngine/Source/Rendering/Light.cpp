@@ -69,6 +69,9 @@ Light::System::~System()
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
 
+	for (int32_t i = GetCount() - 1; i >= 0; --i)
+		EraseAt(i);
+
 	renderer.DestroyCommandBuffer(_commandBuffer);
 	renderer.DestroyFence(_fence);
 	renderer.DestroyLayout(_layout);
@@ -88,7 +91,7 @@ void Light::System::Update()
 	auto& transforms = Transform::System::Get();
 
 	const auto bakedTransforms = transforms.GetBakedTransforms();
-	const uint32_t imageIndex = swapChain.GetImageCount();
+	const uint32_t imageIndex = swapChain.GetCurrentImageIndex();
 
 	VkClearValue clearValue{};
 	clearValue.depthStencil = { 1, 0 };
@@ -181,6 +184,7 @@ void Light::System::EraseAt(const size_t index)
 		gc.Enqueue(light._depthImageViews[i]);
 		gc.Enqueue(light._depthImages[i]);
 		gc.Enqueue(light._depthMemories[i]);
+		gc.Enqueue(light._frameBuffers[i]);
 	}
 	gc.Enqueue(light._buffer);
 	gc.Enqueue(light._memory);
