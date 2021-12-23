@@ -41,11 +41,16 @@ struct Light final
 	};
 
 private:
+	struct Frame final
+	{
+		VkDescriptorSet descriptor;
+		VkImage image;
+		VkImageView imageView;
+		VkDeviceMemory imageMemory;
+		VkFramebuffer framebuffer;
+	};
+
 	VkBuffer _buffer;
 	VkDeviceMemory _memory;
-	VkDescriptorSet _descriptors[SWAPCHAIN_MAX_FRAMES];
-	VkImage _depthImages[SWAPCHAIN_MAX_FRAMES];
-	VkDeviceMemory _depthMemories[SWAPCHAIN_MAX_FRAMES];
-	VkImageView _depthImageViews[SWAPCHAIN_MAX_FRAMES];
-	VkFramebuffer _frameBuffers[SWAPCHAIN_MAX_FRAMES];
+	Frame _frames[SWAPCHAIN_MAX_FRAMES];
 };
