@@ -29,6 +29,7 @@ Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
 	renderPassInfo.useColorAttachment = false;
 	renderPassInfo.useDepthAttachment = true;
 	renderPassInfo.depthStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+	renderPassInfo.depthFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	_renderPass = renderer.CreateRenderPass(renderPassInfo);
 
 	vi::VkRenderer::PipelineInfo pipelineInfo{};

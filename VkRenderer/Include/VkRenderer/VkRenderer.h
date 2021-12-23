@@ -34,6 +34,7 @@ namespace vi
 
 			bool useDepthAttachment = true;
 			VkAttachmentStoreOp depthStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			VkImageLayout depthFinalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		};
 
 		struct LayoutInfo final

@@ -400,7 +400,7 @@ namespace vi
 			depthDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			depthDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			depthDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			depthDescription.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			depthDescription.finalLayout = info.depthFinalLayout;
 			descriptions.push_back(depthDescription);
 
 			dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
