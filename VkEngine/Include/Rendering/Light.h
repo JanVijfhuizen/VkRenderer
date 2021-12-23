@@ -31,6 +31,7 @@ struct Light final
 		Info _info;
 		VkShaderModule _vertModule;
 		VkDescriptorSetLayout _layout;
+		VkDescriptorSetLayout _layoutExt;
 		VkRenderPass _renderPass;
 		VkPipeline _pipeline;
 		VkPipelineLayout _pipelineLayout;
@@ -38,6 +39,7 @@ struct Light final
 		VkFence _fence;
 		VkDescriptorSetLayout _depthLayout;
 		DescriptorPool _descriptorPool;
+		DescriptorPool _descriptorPoolExt;
 	};
 
 private:
@@ -48,6 +50,9 @@ private:
 		VkImageView imageView;
 		VkDeviceMemory imageMemory;
 		VkFramebuffer framebuffer;
+
+		VkDescriptorSet descriptorExt;
+		VkSampler samplerExt;
 	};
 
 	VkBuffer _buffer;

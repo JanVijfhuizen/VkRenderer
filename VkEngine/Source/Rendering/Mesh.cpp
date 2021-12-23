@@ -5,7 +5,9 @@
 
 Mesh::System::System(const uint32_t size) : SparseSet<Mesh>(size)
 {
-
+	const auto vertData = Vertex::Load("Cube.obj");
+	// ReSharper disable once CppNoDiscardExpression
+	Create(vertData);
 }
 
 Mesh::System::~System()
