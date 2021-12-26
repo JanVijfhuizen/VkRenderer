@@ -4,12 +4,34 @@
 
 struct Light final
 {
+	enum class Type
+	{
+		directional,
+		point
+	};
+
+	union
+	{
+		struct
+		{
+			
+		} directional;
+		struct
+		{
+			
+		} point;
+	};
+
+	Type type = Type::directional;
+
 	class System final : public MapSet<Light>, public Singleton<System>
 	{
 	public:
 		struct Info final
 		{
 			glm::ivec2 shadowResolution{ 800, 600 };
+			float near = 0.1f;
+			float far = 1000;
 		};
 
 		explicit System(const Info& info = {});

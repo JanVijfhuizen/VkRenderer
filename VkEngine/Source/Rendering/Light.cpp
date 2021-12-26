@@ -115,6 +115,12 @@ void Light::System::Update()
 	renderer.BeginCommandBufferRecording(_commandBuffer);
 	renderer.BindPipeline(_pipeline, _pipelineLayout);
 
+	const glm::vec2 shape = {10, 10};
+	const glm::mat4 projection = glm::ortho(
+		-shape.x, shape.x, 
+		-shape.y, shape.y, 
+		_info.near, _info.far);
+
 	for (auto& [sparseId, light] : *this)
 	{
 		auto& frame = light._frames[imageIndex];
@@ -123,8 +129,7 @@ void Light::System::Update()
 		renderer.BeginRenderPass(frame.framebuffer, _renderPass, {}, _info.shadowResolution, &clearValue, 1);
 
 		// Temp testing stuff.
-		glm::mat4 view = glm::lookAt(transform.position, {0, 0, 0}, glm::vec3(0, 1, 0));
-		glm::mat4 projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, .1f, 1000.f);
+		const glm::mat4 view = glm::lookAt(transform.position, {0, 0, 0}, glm::vec3(0, 1, 0));
 
 		Ubo ubo{};
 		ubo.lightSpaceMatrix = projection * view;
