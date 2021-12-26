@@ -14,6 +14,7 @@ layout (set = 0, binding = 0) uniform Camera
 layout (set = 1, binding = 0) uniform Light
 {
     mat4 spaceMatrix;
+    vec3 dir;
 } light;
 
 layout (push_constant) uniform PushConstants
@@ -21,15 +22,20 @@ layout (push_constant) uniform PushConstants
     mat4 model;
 } pushConstants;
 
-layout(location = 0) out vec3 outNormal;
-layout(location = 1) out vec2 outFragTexCoord;
-layout(location = 2) out vec4 lightSpace;
+layout(location = 0) out OutData
+{
+    vec3 normal;
+    vec2 fragTexCoord;
+    vec4 lightSpace;
+    vec3 lightDir;
+} outData;
 
 void main() 
 {
     gl_Position = camera.projection * camera.view * pushConstants.model * vec4(inPosition, 1);
-    lightSpace = light.spaceMatrix * pushConstants.model * vec4(inPosition, 1);
 
-    outNormal = inNormal;
-    outFragTexCoord = inTexCoords;
+    outData. normal = inNormal;
+    outData.fragTexCoord = inTexCoords;
+    outData.lightSpace = light.spaceMatrix * pushConstants.model * vec4(inPosition, 1);
+    outData.lightDir = light.dir;
 }

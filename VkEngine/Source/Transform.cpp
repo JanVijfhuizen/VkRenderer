@@ -44,6 +44,15 @@ void Transform::System::Swap(const uint32_t aDenseId, const uint32_t bDenseId)
 	_bakedArr[bDenseId] = mat4;
 }
 
+glm::vec3 Transform::System::GetForwardVector(const glm::vec3 eulerAngles)
+{
+	const float sinX = sin(eulerAngles.x);
+	const float sinY = sin(eulerAngles.y);
+	const float cosY = cos(eulerAngles.y);
+
+	return { sinY, sinX, cosY };
+}
+
 Transform::Baked* Transform::System::GetBakedTransforms() const
 {
 	return _bakedArr;

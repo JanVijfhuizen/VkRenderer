@@ -31,7 +31,7 @@ struct Light final
 		{
 			glm::ivec2 shadowResolution{ 800, 600 };
 			float near = 0.1f;
-			float far = 1000;
+			float far = 50;
 		};
 
 		explicit System(const Info& info = {});
@@ -49,6 +49,7 @@ struct Light final
 		struct alignas(256) Ubo final
 		{
 			glm::mat4 lightSpaceMatrix{1};
+			glm::vec3 lightDir{0, 0, 1};
 		};
 
 		Info _info;

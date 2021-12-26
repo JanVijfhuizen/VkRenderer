@@ -29,10 +29,10 @@ Camera::System::~System()
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
 
-	renderer.DestroyLayout(_layout);
-
 	for (int32_t i = GetCount() - 1; i >= 0; --i)
 		EraseAt(i);
+
+	renderer.DestroyLayout(_layout);
 }
 
 void Camera::System::Update()

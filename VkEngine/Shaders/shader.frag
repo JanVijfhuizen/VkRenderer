@@ -1,9 +1,13 @@
 #version 450
 #extension GL_KHR_vulkan_glsl : enable
 
-layout(location = 0) in vec3 inNormal;
-layout(location = 1) in vec2 inFragTexCoord;
-layout(location = 2) in vec4 lightSpace;
+layout(location = 0) in InData
+{
+    vec3 normal;
+    vec2 fragTexCoord;
+    vec4 lightSpace;
+    vec3 lightDir;
+} inData;
 
 layout (set = 1, binding = 1) uniform sampler2D shadowMap;
 layout (set = 2, binding = 0) uniform sampler2D diffuseSampler;
@@ -31,8 +35,8 @@ float CalcPCF(vec3 projCoords, float currentDepth)
 
 float CalculateShadow()
 {
-    float bias = 0.0002;
-    vec3 projCoords = lightSpace.xyz / lightSpace.w;
+    float bias = 0.005;
+    vec3 projCoords = inData.lightSpace.xyz / inData.lightSpace.w;
     float currentDepth = projCoords.z - bias;
     if(currentDepth <= 0.0 || currentDepth >= 1.0)
         return 1;
@@ -43,5 +47,5 @@ float CalculateShadow()
 
 void main() 
 {
-    outColor = texture(diffuseSampler, inFragTexCoord) * CalculateShadow();
+    outColor = texture(diffuseSampler, inData.fragTexCoord) * CalculateShadow();
 }

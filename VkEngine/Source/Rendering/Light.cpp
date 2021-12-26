@@ -129,10 +129,23 @@ void Light::System::Update()
 		renderer.BeginRenderPass(frame.framebuffer, _renderPass, {}, _info.shadowResolution, &clearValue, 1);
 
 		// Temp testing stuff.
-		const glm::mat4 view = glm::lookAt(transform.position, {0, 0, 0}, glm::vec3(0, 1, 0));
+		const glm::vec3 forward = Transform::System::GetForwardVector(transform.rotation);
+		const glm::mat4 view = glm::lookAt(transform.position, forward, glm::vec3(0, 1, 0));
 
 		Ubo ubo{};
 		ubo.lightSpaceMatrix = projection * view;
+
+		switch (light.type)
+		{
+		case Type::directional:
+			ubo.lightDir = forward;
+			break;
+		case Type::point: 
+			break;
+		default: 
+			;
+		}
+
 		renderer.MapMemory(light._memory, &ubo, sizeof(Ubo) * imageIndex, sizeof(Ubo));
 		renderer.BindDescriptorSets(&frame.descriptor, 1);
 
