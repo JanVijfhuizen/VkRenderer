@@ -55,6 +55,7 @@ Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
 		static_cast<uint32_t>(info.shadowResolution.x),
 		static_cast<uint32_t>(info.shadowResolution.y)
 	};
+	pipelineInfo.depthBufferCompareOp = VK_COMPARE_OP_GREATER;
 
 	renderer.CreatePipeline(pipelineInfo, _pipeline, _pipelineLayout);
 	_commandBuffer = renderer.CreateCommandBuffer();
@@ -109,7 +110,7 @@ void Light::System::Update()
 	const uint32_t imageIndex = swapChain.GetCurrentImageIndex();
 
 	VkClearValue clearValue{};
-	clearValue.depthStencil = { 1, 0 };
+	clearValue.depthStencil = { 0, 0 };
 
 	renderer.BeginCommandBufferRecording(_commandBuffer);
 	renderer.BindPipeline(_pipeline, _pipelineLayout);
@@ -181,7 +182,8 @@ KeyValuePair<unsigned, Light>& Light::System::Add(const KeyValuePair<unsigned, L
 			});
 
 		light._descriptorsExt[i] = _descriptorPoolExt.Get();
-		frame.samplerExt = renderer.CreateSampler();
+		frame.samplerExt = renderer.CreateSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 
+			VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER);
 		renderer.BindBuffer(light._descriptorsExt[i], light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
 		renderer.BindSampler(light._descriptorsExt[i], frame.imageView,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, frame.samplerExt, 1, 0);

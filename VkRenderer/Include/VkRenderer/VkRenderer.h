@@ -81,6 +81,7 @@ namespace vi
 			VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT;
 			VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			bool depthBufferEnabled = true;
+			VkCompareOp depthBufferCompareOp = VK_COMPARE_OP_LESS;
 
 			VkPipeline basePipeline = VK_NULL_HANDLE;
 			int32_t basePipelineIndex = -1;
@@ -104,7 +105,7 @@ namespace vi
 		void BindDescriptorSets(VkDescriptorSet* sets, uint32_t setCount) const;
 		void DestroyDescriptorPool(VkDescriptorPool pool) const;
 
-		void CreatePipeline(const PipelineInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout);
+		void CreatePipeline(const PipelineInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout) const;
 		void BindPipeline(VkPipeline pipeline, VkPipelineLayout layout);
 		void DestroyPipeline(VkPipeline pipeline, VkPipelineLayout layout) const;
 
@@ -123,7 +124,9 @@ namespace vi
 			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT) const;
 		void DestroyImageView(VkImageView imageView) const;
 
-		[[nodiscard]] VkSampler CreateSampler(VkFilter magFilter = VK_FILTER_LINEAR, VkFilter minFilter = VK_FILTER_LINEAR) const;
+		[[nodiscard]] VkSampler CreateSampler(VkFilter magFilter = VK_FILTER_LINEAR, 
+			VkFilter minFilter = VK_FILTER_LINEAR, VkBorderColor borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+			VkSamplerAddressMode adressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT) const;
 		void BindSampler(VkDescriptorSet set, VkImageView imageView, VkImageLayout layout, VkSampler sampler, uint32_t bindingIndex, uint32_t arrayIndex) const;
 		void DestroySampler(VkSampler sampler) const;
 

@@ -38,7 +38,7 @@ int main()
 		const auto ground = cecsar.AddEntity();
 		auto& groundTransform = transformSystem.Insert(ground.index);
 		groundTransform.position.y = 5;
-		groundTransform.scale = { 5, 1, 5 };
+		groundTransform.scale = { 25, 1, 25 };
 		defaultMaterialSystem.Insert(ground.index);
 		meshSystem.Insert(ground.index);
 
@@ -51,6 +51,13 @@ int main()
 		lightSystem.Insert(light.index);
 		auto& lightTransform = transformSystem.Insert(light.index);
 		lightTransform.position = { 20, 10, 5 };
+
+		const auto cube2 = cecsar.AddEntity();
+		auto& t = transformSystem.Insert(cube2.index);
+		t.position = { 5, 2, 2.5 };
+		defaultMaterialSystem.Insert(cube2.index);
+		meshSystem.Insert(cube2.index);
+		shadowCasterSystem.Insert(cube2.index);
 	};
 
 	info.preRenderUpdate = [](bool& outQuit)
@@ -70,6 +77,7 @@ int main()
 		static float f = 0;
 		f += 0.001f;
 		transformSystem[2].position = { sin(f) * 25, -5.f, cos(f) * 25 };
+		transformSystem[3].position = { sin(-f) * 15, -5.f, cos(-f) * 15 };
 	};
 
 	info.cleanup = []()

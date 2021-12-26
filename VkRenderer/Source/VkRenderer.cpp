@@ -177,7 +177,7 @@ namespace vi
 		vkDestroyDescriptorPool(_device, pool, nullptr);
 	}
 
-	void VkRenderer::CreatePipeline(const PipelineInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout)
+	void VkRenderer::CreatePipeline(const PipelineInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout) const
 	{
 		std::vector<VkPipelineShaderStageCreateInfo> modules{};
 
@@ -272,7 +272,7 @@ namespace vi
 		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		depthStencil.depthTestEnable = VK_TRUE;
 		depthStencil.depthWriteEnable = VK_TRUE;
-		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+		depthStencil.depthCompareOp = info.depthBufferCompareOp;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
 
@@ -604,7 +604,8 @@ namespace vi
 		vkDestroyImageView(_device, imageView, nullptr);
 	}
 
-	VkSampler VkRenderer::CreateSampler(const VkFilter magFilter, const VkFilter minFilter) const
+	VkSampler VkRenderer::CreateSampler(const VkFilter magFilter, const VkFilter minFilter, 
+		const VkBorderColor borderColor, const VkSamplerAddressMode adressMode) const
 	{
 		VkPhysicalDeviceProperties properties{};
 		vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
@@ -613,12 +614,12 @@ namespace vi
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = magFilter;
 		samplerInfo.minFilter = minFilter;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeU = adressMode;
+		samplerInfo.addressModeV = adressMode;
+		samplerInfo.addressModeW = adressMode;
 		samplerInfo.anisotropyEnable = VK_TRUE;
 		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.borderColor = borderColor;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
 		samplerInfo.compareEnable = VK_FALSE;
 		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;

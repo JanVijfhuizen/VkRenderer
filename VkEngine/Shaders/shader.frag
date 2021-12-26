@@ -12,17 +12,19 @@ layout(location = 0) out vec4 outColor;
 
 float CalculateShadow()
 {
+    float bias = 0.0001;
     vec3 projCoords = lightSpace.xyz / lightSpace.w;
+    float currentDepth = projCoords.z;
+    if(currentDepth <= bias || currentDepth >= 1.0 - bias)
+        return 1;
+
     projCoords = projCoords * 0.5 + 0.5;
     float closestDepth = texture(shadowMap, projCoords.xy).r; 
-    return closestDepth;
-    float currentDepth = projCoords.z;
-    float shadow = currentDepth > closestDepth ? 1 : 0;
+    float shadow = currentDepth - bias > closestDepth ? 1 : 0;
     return shadow;
 }
 
 void main() 
 {
     outColor = texture(diffuseSampler, inFragTexCoord) * CalculateShadow();
-    //outColor = texture(diffuseSampler, inFragTexCoord);
 }
