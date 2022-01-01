@@ -1,11 +1,10 @@
 #version 450
 #extension GL_KHR_vulkan_glsl : enable
+#include "shader.glsl"
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec2 inTexCoords;
-
-const int LIGHT_MAX_COUNT = 8;
 
 layout (set = 0, binding = 0) uniform Camera
 {
@@ -24,24 +23,29 @@ layout (push_constant) uniform PushConstants
     mat4 model;
 } pushConstants;
 
-layout(location = 0) out OutData
+layout(location = 0) out VertData
 {
     vec3 normal;
     vec2 fragTexCoord;
-    vec4 lightSpaces[LIGHT_MAX_COUNT];
-    vec3 lightDirs[LIGHT_MAX_COUNT];
-} outData;
+} outVertData;
+
+layout(location = 2) out LightingData
+{
+    int count;
+    vec4 spaces[LIGHT_MAX_COUNT];
+    vec3 dirs[LIGHT_MAX_COUNT];
+} outLightingData;
 
 void main() 
 {
     gl_Position = camera.projection * camera.view * pushConstants.model * vec4(inPosition, 1);
 
-    outData. normal = inNormal;
-    outData.fragTexCoord = inTexCoords;
+    outVertData. normal = inNormal;
+    outVertData.fragTexCoord = inTexCoords;
    
     for(int i = 0; i < 1; i++)
     {
-        outData.lightSpaces[i] = lights[i].spaceMatrix * pushConstants.model * vec4(inPosition, 1);
-        outData.lightDirs[i] = lights[i].dir;
+        outLightingData.spaces[i] = lights[i].spaceMatrix * pushConstants.model * vec4(inPosition, 1);
+        outLightingData.dirs[i] = lights[i].dir;
     }
 }

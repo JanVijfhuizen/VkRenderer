@@ -1,15 +1,19 @@
 #version 450
 #extension GL_KHR_vulkan_glsl : enable
+#include "shader.glsl"
 
-const int LIGHT_MAX_COUNT = 8;
-
-layout(location = 0) in InData
+layout(location = 0) in VertData
 {
     vec3 normal;
     vec2 fragTexCoord;
-    vec4 lightSpaces[LIGHT_MAX_COUNT];
-    vec3 lightDirs[LIGHT_MAX_COUNT];
-} inData;
+} inVertData;
+
+layout(location = 2) in LightingData
+{
+    int count;
+    vec4 spaces[LIGHT_MAX_COUNT];
+    vec3 dirs[LIGHT_MAX_COUNT];
+} inLightingData;
 
 layout (set = 1, binding = 1) uniform sampler2D shadowMaps[LIGHT_MAX_COUNT];
 layout (set = 2, binding = 0) uniform sampler2D diffuseSampler;
@@ -38,7 +42,7 @@ float CalcPCF(vec3 projCoords, float currentDepth)
 float CalculateShadow()
 {
     float bias = 0.005;
-    vec3 projCoords = inData.lightSpaces[0].xyz / inData.lightSpaces[0].w;
+    vec3 projCoords = inLightingData.spaces[0].xyz / inLightingData.spaces[0].w;
     float currentDepth = projCoords.z - bias;
     if(currentDepth <= 0.0 || currentDepth >= 1.0)
         return 1;
@@ -49,5 +53,5 @@ float CalculateShadow()
 
 void main() 
 {
-    outColor = texture(diffuseSampler, inData.fragTexCoord) * CalculateShadow();
+    outColor = texture(diffuseSampler, inVertData.fragTexCoord) * CalculateShadow();
 }
