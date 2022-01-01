@@ -32,6 +32,15 @@ struct Light final
 			glm::ivec2 shadowResolution{ 800, 600 };
 			float near = 0.1f;
 			float far = 50;
+			uint32_t maxLights = 8;
+		};
+
+		struct DepthBuffer final
+		{
+			VkImage image;
+			VkImageView imageView;
+			VkDeviceMemory imageMemory;
+			VkFramebuffer framebuffer;
 		};
 
 		explicit System(const Info& info = {});
@@ -43,13 +52,28 @@ struct Light final
 		void EraseAt(size_t index) override;
 
 		[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
-		static void CreateDepthBuffer(glm::ivec2 resolution, VkImage& outImage, VkDeviceMemory& outMemory, VkImageView& outImageView);
+		[[nodiscard]] VkDescriptorSet GetDescriptor() const;
+
+		static void CreateDepthBuffer(glm::ivec2 resolution, DepthBuffer& outDepthBuffer);
+		static void DestroyDepthBuffer(DepthBuffer& depthBuffer);
 
 	private:
 		struct alignas(256) Ubo final
 		{
 			glm::mat4 lightSpaceMatrix{1};
 			glm::vec3 lightDir{0, 0, 1};
+		};
+
+		struct Frame final
+		{
+			VkDescriptorSet descriptor;
+		};
+
+		struct Instance final
+		{
+			VkSampler sampler;
+			VkFramebuffer frameBuffer;
+			DepthBuffer depthBuffer;
 		};
 
 		Info _info;
@@ -64,24 +88,20 @@ struct Light final
 		VkDescriptorSetLayout _depthLayout;
 		DescriptorPool _descriptorPool;
 		DescriptorPool _descriptorPoolExt;
-	};
 
-	[[nodiscard]] const VkDescriptorSet* GetDescriptors() const;
+		VkBuffer _uboBuffer;
+		VkDeviceMemory _uboMemory;
+		Instance* _instances;
+		Frame* _frames;
+	};
 
 private:
 	struct Frame final
 	{
 		VkDescriptorSet descriptor;
-		VkImage image;
-		VkImageView imageView;
-		VkDeviceMemory imageMemory;
-		VkFramebuffer framebuffer;
-
-		VkSampler samplerExt;
 	};
 
 	VkBuffer _buffer;
 	VkDeviceMemory _memory;
 	Frame _frames[SWAPCHAIN_MAX_FRAMES];
-	VkDescriptorSet _descriptorsExt[SWAPCHAIN_MAX_FRAMES];
 };
