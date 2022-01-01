@@ -20,12 +20,15 @@ struct Transform final
 
 		void Update();
 		void Swap(uint32_t aDenseId, uint32_t bDenseId) override;
-
-		[[nodiscard]] static glm::vec3 GetForwardVector(glm::vec3 eulerAngles);
+		void Bake(uint32_t sparseId);
 
 		[[nodiscard]] Baked* GetBakedTransforms() const;
 
 	private:
 		Baked* _bakedArr;
+
+		void Bake(Transform& transform, Baked& baked) const;
 	};
+
+	[[nodiscard]] glm::vec3 GetForwardVector() const;
 };

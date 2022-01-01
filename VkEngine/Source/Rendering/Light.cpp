@@ -129,8 +129,7 @@ void Light::System::Update()
 
 		renderer.BeginRenderPass(frame.framebuffer, _renderPass, {}, _info.shadowResolution, &clearValue, 1);
 
-		// Temp testing stuff.
-		const glm::vec3 forward = Transform::System::GetForwardVector(transform.rotation);
+		const glm::vec3 forward = transform.GetForwardVector();
 		const glm::mat4 view = glm::lookAt(transform.position, forward, glm::vec3(0, 1, 0));
 
 		Ubo ubo{};
