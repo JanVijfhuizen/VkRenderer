@@ -112,9 +112,10 @@ Light::System::System(const Info& info) : MapSet<Light>(info.maxLights), _info(i
 
 		for (uint32_t j = 0; j < info.maxLights; ++j)
 		{
-			auto& instance = _instances[startIndex + j];
+			const uint32_t index = startIndex + j;
+			auto& instance = _instances[index];
 
-			renderer.BindBuffer(frame.descriptor, _uboBuffer, sizeof(Ubo) * j, sizeof(Ubo), 0, j);
+			renderer.BindBuffer(frame.descriptor, _uboBuffer, sizeof(Ubo) * index, sizeof(Ubo), 0, j);
 			renderer.BindSampler(frame.descriptor, instance.depthBuffer.imageView,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, instance.sampler, 1, j);
 		}
@@ -190,10 +191,12 @@ void Light::System::Update()
 		if (i >= _info.maxLights)
 			break;
 
+		const uint32_t instanceIndex = i + startIndex;
+
+		auto& instance = _instances[instanceIndex];
 		auto& frame = light._frames[imageIndex];
 		const auto& transform = transforms[sparseId];
-
-		auto& instance = _instances[startIndex + i];
+		
 		renderer.BeginRenderPass(instance.frameBuffer, _renderPass, {}, _info.shadowResolution, &clearValue, 1);
 
 		const glm::vec3 forward = transform.GetForwardVector();
@@ -213,7 +216,9 @@ void Light::System::Update()
 			;
 		}
 
-		renderer.MapMemory(light._memory, &ubo, sizeof(Ubo) * imageIndex, sizeof(Ubo));
+		renderer.BindBuffer(frame.descriptor, _uboBuffer, sizeof(Ubo) * instanceIndex, sizeof(Ubo), 0, 0);
+
+		renderer.MapMemory(_uboMemory, &ubo, sizeof(Ubo) * instanceIndex, sizeof(Ubo));
 		renderer.BindDescriptorSets(&frame.descriptor, 1);
 
 		for (const auto& [shadowCaster, shadowCasterSparseId] : shadowCasters)
@@ -248,16 +253,10 @@ KeyValuePair<unsigned, Light>& Light::System::Add(const KeyValuePair<unsigned, L
 
 	const uint32_t imageCount = swapChain.GetImageCount();
 
-	light._buffer = renderer.CreateBuffer(sizeof(Ubo) * imageCount, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-	light._memory = renderer.AllocateMemory(light._buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	renderer.BindMemory(light._buffer, light._memory, 0);
-
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
 		auto& frame = light._frames[i];
-
 		frame.descriptor = _descriptorPool.Get();
-		renderer.BindBuffer(frame.descriptor, light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
 	}
 
 	return t;
@@ -280,8 +279,6 @@ void Light::System::EraseAt(const size_t index)
 		auto& frame = light._frames[i];
 		gc.Enqueue(frame.descriptor, _descriptorPool);
 	}
-	gc.Enqueue(light._buffer);
-	gc.Enqueue(light._memory);
 
 	MapSet<Light>::EraseAt(index);
 }
@@ -335,5 +332,4 @@ void Light::System::DestroyDepthBuffer(DepthBuffer& depthBuffer)
 	renderer.DestroyImageView(depthBuffer.imageView);
 	renderer.DestroyImage(depthBuffer.image);
 	renderer.FreeMemory(depthBuffer.imageMemory);
-	renderer.DestroyFrameBuffer(depthBuffer.framebuffer);
 }

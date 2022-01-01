@@ -40,7 +40,6 @@ struct Light final
 			VkImage image;
 			VkImageView imageView;
 			VkDeviceMemory imageMemory;
-			VkFramebuffer framebuffer;
 		};
 
 		explicit System(const Info& info = {});
@@ -101,7 +100,5 @@ private:
 		VkDescriptorSet descriptor;
 	};
 
-	VkBuffer _buffer;
-	VkDeviceMemory _memory;
 	Frame _frames[SWAPCHAIN_MAX_FRAMES];
 };
