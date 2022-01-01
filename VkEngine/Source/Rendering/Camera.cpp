@@ -19,9 +19,9 @@ Camera::System::System() : MapSet<Camera>(1)
 	_layout = renderer.CreateLayout(camLayoutInfo);
 
 	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uint32_t sizes = 1;
+	uint32_t sizes = SWAPCHAIN_MAX_FRAMES;
 
-	_descriptorPool = DescriptorPool(_layout, &types, &sizes, 1, 1);
+	_descriptorPool = DescriptorPool(_layout, &types, &sizes, 1, SWAPCHAIN_MAX_FRAMES);
 }
 
 Camera::System::~System()

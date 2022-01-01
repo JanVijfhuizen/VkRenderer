@@ -62,8 +62,9 @@ DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial
 
 	renderer.CreatePipeline(pipelineInfo, _pipeline, _pipelineLayout);
 	VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	uint32_t sizes[] = { 32, 32 };
-	_descriptorPool = DescriptorPool(_layout, uboTypes, sizes, 2, 32);
+	const uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
+	uint32_t sizes[] = { blockSize, blockSize };
+	_descriptorPool = DescriptorPool(_layout, uboTypes, sizes, 2, blockSize);
 }
 
 DefaultMaterial::System::~System()

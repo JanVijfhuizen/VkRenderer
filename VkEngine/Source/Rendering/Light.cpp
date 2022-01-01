@@ -62,8 +62,8 @@ Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
 	_fence = renderer.CreateFence();
 
 	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uint32_t size = 8;
-	_descriptorPool = DescriptorPool(_layout, &uboType, &size, 1, 8);
+	uint32_t size = 8 * SWAPCHAIN_MAX_FRAMES;
+	_descriptorPool = DescriptorPool(_layout, &uboType, &size, 1, size);
 
 	vi::VkRenderer::LayoutInfo layoutInfoExt{};
 	layoutInfoExt.bindings.push_back(lsm);
@@ -74,8 +74,9 @@ Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
 	_layoutExt = renderer.CreateLayout(layoutInfoExt);
 
 	VkDescriptorType uboTypesExt[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	uint32_t sizeExt[] = {8, 8};
-	_descriptorPoolExt = DescriptorPool(_layoutExt, uboTypesExt, sizeExt, 2, 8);
+
+	uint32_t sizeExt[] = {size, size};
+	_descriptorPoolExt = DescriptorPool(_layoutExt, uboTypesExt, sizeExt, 2, size);
 }
 
 Light::System::~System()
