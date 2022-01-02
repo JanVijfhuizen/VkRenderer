@@ -153,6 +153,8 @@ namespace vi
 	ArrayPtr<T>::ArrayPtr(const size_t size, FreeListAllocator& allocator) : _size(size), _allocator(&allocator)
 	{
 		_data = reinterpret_cast<T*>(allocator.MAlloc(sizeof(T) * size));
+		for (uint32_t i = 0; i < size; ++i)
+			_data[i] = {};
 	}
 
 	template <typename T>

@@ -112,8 +112,7 @@ namespace vi
 	VkDescriptorSetLayout VkRenderer::CreateLayout(const LayoutInfo& info) const
 	{
 		const uint32_t bindingsCount = info.bindings.size();
-		std::vector<VkDescriptorSetLayoutBinding> layoutBindings{};
-		layoutBindings.resize(bindingsCount);
+		const ArrayPtr<VkDescriptorSetLayoutBinding> layoutBindings(bindingsCount, GMEM_TEMP);
 
 		for (uint32_t i = 0; i < bindingsCount; ++i)
 		{
@@ -131,7 +130,7 @@ namespace vi
 		layoutInfo.pNext = nullptr;
 		layoutInfo.flags = 0;
 		layoutInfo.bindingCount = bindingsCount;
-		layoutInfo.pBindings = layoutBindings.data();
+		layoutInfo.pBindings = layoutBindings.GetData();
 
 		VkDescriptorSetLayout layout;
 		const auto result = vkCreateDescriptorSetLayout(_device, &layoutInfo, nullptr, &layout);
@@ -146,9 +145,7 @@ namespace vi
 
 	VkDescriptorPool VkRenderer::CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, const uint32_t typeCount) const
 	{
-		std::vector<VkDescriptorPoolSize> sizes{};
-		sizes.resize(typeCount);
-
+		const ArrayPtr<VkDescriptorPoolSize> sizes(typeCount, GMEM_TEMP);
 		uint32_t maxSets = 0;
 
 		for (uint32_t i = 0; i < typeCount; ++i)
@@ -162,7 +159,7 @@ namespace vi
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = typeCount;
-		poolInfo.pPoolSizes = sizes.data();
+		poolInfo.pPoolSizes = sizes.GetData();
 		poolInfo.maxSets = maxSets;
 
 		VkDescriptorPool pool;
