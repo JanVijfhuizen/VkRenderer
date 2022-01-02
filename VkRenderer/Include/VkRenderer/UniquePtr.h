@@ -7,7 +7,8 @@ namespace vi
 	{
 	public:
 		// ReSharper disable once CppNonExplicitConvertingConstructor
-		UniquePtr(FreeListAllocator& allocator);
+		template <typename ...Args>
+		UniquePtr(FreeListAllocator& allocator, Args... args);
 		UniquePtr(UniquePtr<T>& other);
 		UniquePtr(UniquePtr<T>&& other) noexcept;
 		UniquePtr<T>& operator=(UniquePtr<T> const& other);
@@ -25,9 +26,10 @@ namespace vi
 	};
 
 	template <typename T>
-	UniquePtr<T>::UniquePtr(FreeListAllocator& allocator) : _allocator(&allocator)
+	template <typename ... Args>
+	UniquePtr<T>::UniquePtr(FreeListAllocator& allocator, Args... args) : _allocator(&allocator)
 	{
-		_ptr = allocator.New<T>();
+		_ptr = allocator.New<T>(args);
 	}
 
 	template <typename T>
