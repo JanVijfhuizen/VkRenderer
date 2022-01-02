@@ -1,5 +1,4 @@
 #pragma once
-#include "ArrayPtr.h"
 #include <cstdint>
 
 namespace vi
@@ -12,8 +11,6 @@ namespace vi
 
 		template <typename T, typename ...Args>
 		[[nodiscard]] T* New(Args... args);
-		template <typename T, typename ...Args>
-		[[nodiscard]] ArrayPtr<T> NewArr(size_t size, const T& value = {});
 		template <typename T>
 		void Delete(T* ptr);
 
@@ -48,15 +45,6 @@ namespace vi
 		const auto ptr = reinterpret_cast<T*>(MAlloc(sizeof(T)));
 		new (ptr) T(args...);
 		return ptr;
-	}
-
-	template <typename T, typename ... Args>
-	ArrayPtr<T> FreeListAllocator::NewArr(const size_t size, const T& value)
-	{
-		const auto ptr = reinterpret_cast<T*>(MAlloc(sizeof(T) * size));
-		for (uint32_t i = 0; i < size; ++i)
-			ptr[i] = value;
-		return ArrayPtr<T>(ptr, size);
 	}
 
 	template <typename T>

@@ -17,8 +17,6 @@ namespace vi
 			ArrayPtr<VkSurfaceFormatKHR> formats;
 			ArrayPtr<VkPresentModeKHR> presentModes;
 
-			void Free() const;
-
 			[[nodiscard]] explicit operator bool() const;
 			[[nodiscard]] uint32_t GetRecommendedImageCount() const;
 		};
@@ -97,9 +95,9 @@ namespace vi
 		void Construct(const Info& info);
 		void Cleanup();
 
-		void CreateImages();
+		void CreateImages() const;
 		void CreateSyncObjects();
-		void CreateBuffers();
+		void CreateBuffers() const;
 		void CleanupBuffers();
 
 		[[nodiscard]] VkResult Present();

@@ -37,7 +37,8 @@ namespace vi
 		}
 
 		ArrayPtr();
-		explicit ArrayPtr(void* begin, size_t size, bool hasOwnership = false);
+		explicit ArrayPtr(size_t size, FreeListAllocator& allocator);
+		explicit ArrayPtr(void* begin, size_t size);
 		ArrayPtr(ArrayPtr<T>& other);
 		ArrayPtr(ArrayPtr<T>&& other) noexcept;
 		ArrayPtr<T>& operator=(ArrayPtr<T> const& other);
@@ -56,7 +57,7 @@ namespace vi
 	private:
 		T* _data = nullptr;
 		size_t _size = 0;
-		bool _hasOwnership = false;
+		FreeListAllocator* _allocator = nullptr;
 
 		ArrayPtr<T>& Move(ArrayPtr<T>& other);
 	};
@@ -104,7 +105,7 @@ namespace vi
 	template <typename T>
 	bool ArrayPtr<T>::GetHasOwnership() const
 	{
-		return _hasOwnership;
+		return _allocator;
 	}
 
 	template <typename T>
@@ -112,9 +113,9 @@ namespace vi
 	{
 		_data = other._data;
 		_size = other._size;
-		_hasOwnership = other._hasOwnership;
+		_allocator = other._allocator;
 		other._data = nullptr;
-		other._hasOwnership = false;
+		other._allocator = nullptr;
 		return *this;
 	}
 
@@ -149,8 +150,14 @@ namespace vi
 	ArrayPtr<T>::ArrayPtr() = default;
 
 	template <typename T>
-	ArrayPtr<T>::ArrayPtr(void* begin, const size_t size, const bool hasOwnership) :
-		_data(reinterpret_cast<T*>(begin)), _size(size), _hasOwnership(hasOwnership)
+	ArrayPtr<T>::ArrayPtr(const size_t size, FreeListAllocator& allocator) : _size(size), _allocator(&allocator)
+	{
+		_data = reinterpret_cast<T*>(allocator.MAlloc(sizeof(T) * size));
+	}
+
+	template <typename T>
+	ArrayPtr<T>::ArrayPtr(void* begin, const size_t size) :
+		_data(reinterpret_cast<T*>(begin)), _size(size)
 	{
 
 	}
@@ -182,10 +189,7 @@ namespace vi
 	template <typename T>
 	ArrayPtr<T>::~ArrayPtr()
 	{
-		if (_hasOwnership)
-		{
-			//GMEM.MFree(_data);
-			//GMEM_TEMP.MFree(_data);
-		}
+		if (_allocator)
+			_allocator->MFree(_data);
 	}
 }

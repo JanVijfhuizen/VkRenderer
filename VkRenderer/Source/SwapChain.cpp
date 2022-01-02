@@ -7,12 +7,6 @@
 
 namespace vi
 {
-	void SwapChain::SupportDetails::Free() const
-	{
-		GMEM_TEMP.MFree(formats.GetData());
-		GMEM_TEMP.MFree(presentModes.GetData());
-	}
-
 	SwapChain::SupportDetails::operator bool() const
 	{
 		return !formats.IsNull() && !presentModes.IsNull();
@@ -79,16 +73,14 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(info.device, &createInfo, nullptr, &_swapChain);
 		assert(!result);
 
-		_images = GMEM.NewArr<Image>(imageCount);
-		_frames = GMEM.NewArr<Frame>(_MAX_FRAMES_IN_FLIGHT);
-		_imagesInFlight = GMEM.NewArr<VkFence>(imageCount);
+		_images = ArrayPtr<Image>(imageCount, GMEM);
+		_frames = ArrayPtr<Frame>(_MAX_FRAMES_IN_FLIGHT, GMEM);
+		_imagesInFlight = ArrayPtr<VkFence>(imageCount, GMEM);
 		for (auto& fence : _imagesInFlight)
 			fence = VK_NULL_HANDLE;
 
 		CreateImages();
 		CreateSyncObjects();
-
-		support.Free();
 	}
 
 	void SwapChain::Cleanup()
@@ -214,7 +206,7 @@ namespace vi
 		if (formatCount != 0)
 		{
 			auto& formats = details.formats;
-			formats = GMEM_TEMP.NewArr<VkSurfaceFormatKHR>(formatCount);
+			formats = ArrayPtr<VkSurfaceFormatKHR>(formatCount, GMEM_TEMP);
 			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.GetData());
 		}
 
@@ -224,7 +216,7 @@ namespace vi
 		if (presentModeCount != 0)
 		{
 			auto& presentModes = details.presentModes;
-			presentModes = GMEM_TEMP.NewArr<VkPresentModeKHR>(presentModeCount);
+			presentModes = ArrayPtr<VkPresentModeKHR>(presentModeCount, GMEM_TEMP);
 
 			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
 				&presentModeCount, details.presentModes.GetData());
@@ -233,12 +225,12 @@ namespace vi
 		return details;
 	}
 
-	void SwapChain::CreateImages()
+	void SwapChain::CreateImages() const
 	{
 		const auto renderer = _info.renderer;
 		uint32_t count = _images.GetSize();
 
-		auto vkImages = GMEM_TEMP.NewArr<VkImage>(count);
+		const auto vkImages = ArrayPtr<VkImage>(count, GMEM_TEMP);
 		vkGetSwapchainImagesKHR(_info.device, _swapChain, &count, vkImages.GetData());
 
 		for (uint32_t i = 0; i < count; ++i)
@@ -247,8 +239,6 @@ namespace vi
 			image.image = vkImages[i];
 			image.imageView = renderer->CreateImageView(image.image, _format);
 		}
-
-		GMEM_TEMP.MFree(vkImages.GetData());
 	}
 
 	void SwapChain::CreateSyncObjects()
@@ -263,12 +253,12 @@ namespace vi
 		}
 	}
 
-	void SwapChain::CreateBuffers()
+	void SwapChain::CreateBuffers() const
 	{
 		auto renderer = _info.renderer;
 		const uint32_t count = _images.GetSize();
 
-		auto commandBuffers = GMEM_TEMP.NewArr<VkCommandBuffer>(count);
+		const auto commandBuffers = ArrayPtr<VkCommandBuffer>(count, GMEM_TEMP);
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -307,8 +297,6 @@ namespace vi
 			image.frameBuffer = renderer->CreateFrameBuffer(image.imageViews, 2, _renderPass, _extent);
 			image.commandBuffer = commandBuffers[i];
 		}
-
-		GMEM_TEMP.MFree(commandBuffers.GetData());
 	}
 
 	void SwapChain::CleanupBuffers()
