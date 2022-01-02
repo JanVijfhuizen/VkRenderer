@@ -7,7 +7,7 @@ namespace vi
 	{
 	public:
 		// ReSharper disable once CppNonExplicitConvertingConstructor
-		UniquePtr(void* ptr);
+		UniquePtr(FreeListAllocator& allocator);
 		UniquePtr(UniquePtr<T>& other);
 		UniquePtr(UniquePtr<T>&& other) noexcept;
 		UniquePtr<T>& operator=(UniquePtr<T> const& other);
@@ -19,13 +19,15 @@ namespace vi
 		operator bool() const;
 	private:
 		T* _ptr = nullptr;
+		FreeListAllocator* _allocator = nullptr;
 
 		UniquePtr<T>& Move(UniquePtr<T>& other);
 	};
 
 	template <typename T>
-	UniquePtr<T>::UniquePtr(void* ptr) : _ptr(reinterpret_cast<T*>(ptr))
+	UniquePtr<T>::UniquePtr(FreeListAllocator& allocator) : _allocator(&allocator)
 	{
+		_ptr = allocator.New<T>();
 	}
 
 	template <typename T>
@@ -55,8 +57,8 @@ namespace vi
 	template <typename T>
 	UniquePtr<T>::~UniquePtr()
 	{
-		GMEM.Delete(_ptr);
-		GMEM_TEMP.Delete(_ptr);
+		if(_allocator)
+			_allocator->Delete(_ptr);
 	}
 
 	template <typename T>
@@ -75,6 +77,7 @@ namespace vi
 	UniquePtr<T>& UniquePtr<T>::Move(UniquePtr<T>& other)
 	{
 		_ptr = other._ptr;
+		_allocator = other._allocator;
 		other._ptr = nullptr;
 		return *this;
 	}
