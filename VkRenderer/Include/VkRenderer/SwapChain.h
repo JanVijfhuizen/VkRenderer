@@ -47,7 +47,6 @@ namespace vi
 			VkCommandPool commandPool;
 
 			class WindowHandler* windowHandler;
-			class FreeListAllocator* allocator;
 			VkRenderer* renderer;
 		};
 

@@ -73,13 +73,13 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(info.device, &createInfo, nullptr, &_swapChain);
 		assert(!result);
 
-		const auto memImage = _info.allocator->MAlloc(sizeof(Image) * imageCount);
-		const auto memFrames = _info.allocator->MAlloc(sizeof(Frame) * _MAX_FRAMES_IN_FLIGHT);
-		const auto memImagesInFlight = _info.allocator->MAlloc(sizeof(VkFence) * imageCount);
+		const auto memImage = GMEM.MAlloc(sizeof(Image) * imageCount);
+		const auto memFrames = GMEM.MAlloc(sizeof(Frame) * _MAX_FRAMES_IN_FLIGHT);
+		const auto memImagesInFlight = GMEM.MAlloc(sizeof(VkFence) * imageCount);
 
-		_images = ArrayPtr<Image>(reinterpret_cast<Image*>(memImage), imageCount);
-		_frames = ArrayPtr<Frame>(reinterpret_cast<Frame*>(memFrames), _MAX_FRAMES_IN_FLIGHT);
-		_imagesInFlight = ArrayPtr<VkFence>(reinterpret_cast<VkFence*>(memImagesInFlight), imageCount);
+		_images = ArrayPtr<Image>(memImage, imageCount);
+		_frames = ArrayPtr<Frame>(memFrames, _MAX_FRAMES_IN_FLIGHT);
+		_imagesInFlight = ArrayPtr<VkFence>(memImagesInFlight, imageCount);
 		for (auto& fence : _imagesInFlight)
 			fence = VK_NULL_HANDLE;
 
@@ -109,9 +109,9 @@ namespace vi
 			renderer->DestroyFence(frame.inFlightFence);
 		}
 
-		_info.allocator->Delete(_images.GetData());
-		_info.allocator->Delete(_frames.GetData());
-		_info.allocator->Delete(_imagesInFlight.GetData());
+		GMEM.Delete(_images.GetData());
+		GMEM.Delete(_frames.GetData());
+		GMEM.Delete(_imagesInFlight.GetData());
 
 		vkDestroySwapchainKHR(device, _swapChain, nullptr);
 	}

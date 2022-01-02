@@ -11,15 +11,14 @@ RenderManager::RenderManager()
 	vi::VkRenderer::Settings settings;
 	settings.windowHandler = _windowHandler;
 	settings.debugger.validationLayers.push_back("VK_LAYER_RENDERDOC_Capture");
-	settings.allocator = &GMEM;
 	_vkRenderer = GMEM.New<vi::VkRenderer>(settings);
 	_swapChain = &_vkRenderer->GetSwapChain();
 }
 
 RenderManager::~RenderManager()
 {
-	_windowHandler->~WindowHandlerGLFW();
-	_vkRenderer->~VkRenderer();
+	GMEM.Delete(_windowHandler);
+	GMEM.Delete(_vkRenderer);
 }
 
 void RenderManager::BeginFrame(bool& quit, const bool callSwapChainBeginFrame)

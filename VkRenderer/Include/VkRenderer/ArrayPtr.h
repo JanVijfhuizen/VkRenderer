@@ -32,7 +32,7 @@ public:
 	[[nodiscard]] constexpr T& operator[](uint32_t index);
 
 	ArrayPtr();
-	explicit ArrayPtr(T* begin, size_t size);
+	explicit ArrayPtr(void* begin, size_t size);
 
 	[[nodiscard]] constexpr Iterator begin();
 	[[nodiscard]] Iterator end();
@@ -116,7 +116,7 @@ template <typename T>
 ArrayPtr<T>::ArrayPtr() = default;
 
 template <typename T>
-ArrayPtr<T>::ArrayPtr(T* begin, const size_t size) : _data(begin), _size(size)
+ArrayPtr<T>::ArrayPtr(void* begin, const size_t size) : _data(reinterpret_cast<T*>(begin)), _size(size)
 {
 
 }
