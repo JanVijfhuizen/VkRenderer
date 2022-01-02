@@ -73,13 +73,9 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(info.device, &createInfo, nullptr, &_swapChain);
 		assert(!result);
 
-		const auto memImage = GMEM.MAlloc(sizeof(Image) * imageCount);
-		const auto memFrames = GMEM.MAlloc(sizeof(Frame) * _MAX_FRAMES_IN_FLIGHT);
-		const auto memImagesInFlight = GMEM.MAlloc(sizeof(VkFence) * imageCount);
-
-		_images = ArrayPtr<Image>(memImage, imageCount);
-		_frames = ArrayPtr<Frame>(memFrames, _MAX_FRAMES_IN_FLIGHT);
-		_imagesInFlight = ArrayPtr<VkFence>(memImagesInFlight, imageCount);
+		_images = GMEM.NewArr<Image>(imageCount);
+		_frames = GMEM.NewArr<Frame>(_MAX_FRAMES_IN_FLIGHT);
+		_imagesInFlight = GMEM.NewArr<VkFence>(imageCount);
 		for (auto& fence : _imagesInFlight)
 			fence = VK_NULL_HANDLE;
 
@@ -231,10 +227,8 @@ namespace vi
 		const auto renderer = _info.renderer;
 		uint32_t count = _images.GetSize();
 
-		std::vector<VkImage> vkImages{};
-		vkImages.resize(count);
-
-		vkGetSwapchainImagesKHR(_info.device, _swapChain, &count, vkImages.data());
+		auto vkImages = GMEM_TEMP.NewArr<VkImage>(count);
+		vkGetSwapchainImagesKHR(_info.device, _swapChain, &count, vkImages.GetData());
 
 		for (uint32_t i = 0; i < count; ++i)
 		{
@@ -242,6 +236,8 @@ namespace vi
 			image.image = vkImages[i];
 			image.imageView = renderer->CreateImageView(image.image, _format);
 		}
+
+		GMEM_TEMP.MFree(vkImages.GetData());
 	}
 
 	void SwapChain::CreateSyncObjects()
@@ -261,16 +257,15 @@ namespace vi
 		auto renderer = _info.renderer;
 		const uint32_t count = _images.GetSize();
 
-		std::vector<VkCommandBuffer> commandBuffers{};
-		commandBuffers.resize(count);
+		auto commandBuffers = GMEM_TEMP.NewArr<VkCommandBuffer>(count);
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.commandPool = _info.commandPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+		allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.GetSize());
 
-		const auto result = vkAllocateCommandBuffers(_info.device, &allocInfo, commandBuffers.data());
+		const auto result = vkAllocateCommandBuffers(_info.device, &allocInfo, commandBuffers.GetData());
 		assert(!result);
 
 		const auto format = renderer->GetDepthBufferFormat();
@@ -301,6 +296,8 @@ namespace vi
 			image.frameBuffer = renderer->CreateFrameBuffer(image.imageViews, 2, _renderPass, _extent);
 			image.commandBuffer = commandBuffers[i];
 		}
+
+		GMEM_TEMP.MFree(commandBuffers.GetData());
 	}
 
 	void SwapChain::CleanupBuffers()
@@ -350,7 +347,7 @@ namespace vi
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 
-	VkExtent2D SwapChain::ChooseExtent(const Info& info, const VkSurfaceCapabilitiesKHR& capabilities) const
+	VkExtent2D SwapChain::ChooseExtent(const Info& info, const VkSurfaceCapabilitiesKHR& capabilities)
 	{
 		if (capabilities.currentExtent.width != UINT32_MAX)
 			return capabilities.currentExtent;
@@ -366,10 +363,8 @@ namespace vi
 		const auto& minExtent = capabilities.minImageExtent;
 		const auto& maxExtent = capabilities.maxImageExtent;
 
-		const uint32_t actualWidth = std::max(minExtent.width, std::min(actualExtent.width, maxExtent.width));
-		const uint32_t actualHeight = std::max(minExtent.height, std::min(actualExtent.height, maxExtent.height));
-		actualExtent.width = actualWidth;
-		actualExtent.height = actualHeight;
+		actualExtent.width = Ut::Clamp(actualExtent.width, minExtent.width, maxExtent.width);
+		actualExtent.height = Ut::Clamp(actualExtent.height, minExtent.height, maxExtent.height);
 
 		return actualExtent;
 	}

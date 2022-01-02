@@ -29,6 +29,7 @@
     <ClInclude Include="Include\VkRenderer\InstanceFactory.h" />
     <ClInclude Include="Include\VkRenderer\Debugger.h" />
     <ClInclude Include="Include\VkRenderer\pch.h" />
+    <ClInclude Include="Include\VkRenderer\Utilities.h" />
     <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />

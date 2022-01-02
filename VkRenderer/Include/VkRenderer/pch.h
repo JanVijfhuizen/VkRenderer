@@ -4,6 +4,7 @@ constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 #define GLFW_INCLUDE_VULKAN
 #include "vulkan/vulkan.h"
 #include <GLFW/glfw3.h>
+#include "Utilities.h"
 #include "FreeListAllocator.h"
 
 #define GLM_FORCE_RADIANS
