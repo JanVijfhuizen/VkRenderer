@@ -57,8 +57,8 @@ UniquePtr<T>& UniquePtr<T>::operator=(UniquePtr<T>&& other) noexcept
 template <typename T>
 UniquePtr<T>::~UniquePtr()
 {
-	GMEM.MFree(_ptr);
-	GMEM_TEMP.MFree(_ptr);	
+	GMEM.Delete(_ptr);
+	GMEM_TEMP.Delete(_ptr);	
 }
 
 template <typename T>
