@@ -19,9 +19,9 @@ Camera::System::System() : MapSet<Camera>(1)
 	_layout = renderer.CreateLayout(camLayoutInfo);
 
 	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uint32_t sizes = 1;
+	uint32_t sizes = SWAPCHAIN_MAX_FRAMES;
 
-	_descriptorPool = DescriptorPool(_layout, &types, &sizes, 1, 1);
+	_descriptorPool = DescriptorPool(_layout, &types, &sizes, 1, SWAPCHAIN_MAX_FRAMES);
 }
 
 Camera::System::~System()
@@ -29,10 +29,10 @@ Camera::System::~System()
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
 
-	renderer.DestroyLayout(_layout);
-
 	for (int32_t i = GetCount() - 1; i >= 0; --i)
 		EraseAt(i);
+
+	renderer.DestroyLayout(_layout);
 }
 
 void Camera::System::Update()
@@ -48,7 +48,7 @@ void Camera::System::Update()
 	const float aspectRatio = static_cast<float>(resolution.x) / resolution.y;
 	const uint32_t imageIndex = swapChain.GetCurrentImageIndex();
 
-	for (auto& [index, camera] : *this)
+	for (const auto& [index, camera] : *this)
 	{
 		auto& transform = transformSystem[index];
 

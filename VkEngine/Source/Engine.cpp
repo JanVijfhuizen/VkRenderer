@@ -23,6 +23,8 @@ void Engine::Run(const Info& info)
 			Mesh::System meshSystem(info.capacity);
 			Camera::System cameraSystem{};
 
+			auto& swapChain = renderManager.GetVkRenderer().GetSwapChain();
+
 			if(info.awake)
 				info.awake();
 			if(info.start)
@@ -30,14 +32,32 @@ void Engine::Run(const Info& info)
 
 			while (true)
 			{
-				bool quit;
+				bool quit = false;
 
-				renderManager.BeginFrame(quit);
+				transformSystem.Update();
+				swapChain.WaitForImage();
+				cameraSystem.Update();
+
+				if(info.preRenderUpdate)
+				{
+					info.preRenderUpdate(quit);
+					if (quit)
+						break;
+				}
+
+				renderManager.BeginFrame(quit, false);
+				swapChain.BeginFrame(false);
 				if (quit)
 					break;
 
-				transformSystem.Update();
-				cameraSystem.Update();
+				if(info.renderUpdate)
+				{
+					info.renderUpdate(quit);
+					if (quit)
+						break;
+				}
+
+				renderManager.EndFrame();
 
 				if (info.update)
 				{
@@ -45,8 +65,6 @@ void Engine::Run(const Info& info)
 					if (quit)
 						break;
 				}
-
-				renderManager.EndFrame();
 			}
 
 			renderManager.GetVkRenderer().DeviceWaitIdle();

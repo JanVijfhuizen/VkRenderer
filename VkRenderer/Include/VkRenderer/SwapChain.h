@@ -22,8 +22,10 @@ namespace vi
 		};
 
 		void SetRenderPass(VkRenderPass renderPass);
-		void BeginFrame();
+		void BeginFrame(bool callWaitForImage = true);
 		void EndFrame(bool& shouldRecreateAssets);
+
+		void WaitForImage();
 
 		[[nodiscard]] VkFormat GetFormat() const;
 		[[nodiscard]] VkExtent2D GetExtent() const;
@@ -98,7 +100,6 @@ namespace vi
 		void CreateSyncObjects();
 		void CreateBuffers();
 		void CleanupBuffers();
-		void WaitForImage();
 
 		[[nodiscard]] VkResult Present();
 

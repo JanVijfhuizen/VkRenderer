@@ -153,6 +153,6 @@ namespace vi
 
 	size_t FreeListAllocator::Block::ToChunkSize(const size_t size)
 	{
-		return size / 4 + 2 + (size % sizeof(size_t) != 0);
+		return size / sizeof(size_t) + 2 + (size % sizeof(size_t) != 0);
 	}
 }

@@ -9,6 +9,7 @@
 #include "Rendering/Mesh.h"
 #include "Rendering/Texture.h"
 #include "Rendering/SwapChainGC.h"
+#include "Rendering/Light.h"
 
 DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial>(size)
 {
@@ -17,6 +18,7 @@ DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial
 	auto& swapChain = renderer.GetSwapChain();
 
 	auto& cameraSystem = Camera::System::Get();
+	auto& lightSystem = Light::System::Get();
 
 	const auto vertCode = FileReader::Read("Shaders/vert.spv");
 	const auto fragCode = FileReader::Read("Shaders/frag.spv");
@@ -35,6 +37,7 @@ DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.setLayouts.push_back(cameraSystem.GetLayout());
+	pipelineInfo.setLayouts.push_back(lightSystem.GetLayout());
 	pipelineInfo.setLayouts.push_back(_layout);
 
 	pipelineInfo.modules.push_back(
@@ -59,8 +62,9 @@ DefaultMaterial::System::System(const uint32_t size) : SparseSet<DefaultMaterial
 
 	renderer.CreatePipeline(pipelineInfo, _pipeline, _pipelineLayout);
 	VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	uint32_t sizes[] = { 32, 32 };
-	_descriptorPool = DescriptorPool(_layout, uboTypes, sizes, 2, 32);
+	const uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
+	uint32_t sizes[] = { blockSize, blockSize };
+	_descriptorPool = DescriptorPool(_layout, uboTypes, sizes, 2, blockSize);
 }
 
 DefaultMaterial::System::~System()
@@ -88,6 +92,7 @@ void DefaultMaterial::System::Update()
 	auto& cameraSystem = Camera::System::Get();
 	auto& transformSystem = Transform::System::Get();
 	auto& meshSystem = Mesh::System::Get();
+	auto& lightSystem = Light::System::Get();
 
 	if (cameraSystem.GetSize() == 0)
 		return;
@@ -96,14 +101,15 @@ void DefaultMaterial::System::Update()
 	const auto bakedTransforms = transformSystem.GetBakedTransforms();
 	auto& mainCamera = cameraSystem.GetMainCamera();
 
-	VkDescriptorSet sets[2]
+	VkDescriptorSet sets[3]
 	{
-		mainCamera.GetDescriptors()[imageIndex]
+		mainCamera.GetDescriptors()[imageIndex],
+		lightSystem.GetDescriptor()
 	};
 
 	renderer.BindPipeline(_pipeline, _pipelineLayout);
 
-	for (const auto [material, sparseId] : *this)
+	for (const auto& [material, sparseId] : *this)
 	{
 		const auto& mesh = meshSystem.GetData(meshSystem[sparseId]);
 		const auto& bakedTransform = bakedTransforms[transformSystem.GetDenseId(sparseId)];
@@ -112,12 +118,12 @@ void DefaultMaterial::System::Update()
 		const auto& descriptor = material._descriptors[imageIndex];
 		const auto& diffuseSampler = material._diffuseSamplers[imageIndex];
 
-		sets[1] = descriptor;
+		sets[2] = descriptor;
 
 		renderer.BindVertexBuffer(mesh.vertexBuffer);
 		renderer.BindIndicesBuffer(mesh.indexBuffer);
 
-		renderer.BindDescriptorSets(sets, 2);
+		renderer.BindDescriptorSets(sets, sizeof sets / sizeof(VkDescriptorSet));
 		renderer.BindSampler(descriptor, diffuseTexture.imageView, diffuseTexture.layout, diffuseSampler, 0, 0);
 		renderer.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, bakedTransform);
 		renderer.Draw(mesh.indexCount);

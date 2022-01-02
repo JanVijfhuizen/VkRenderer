@@ -22,16 +22,17 @@ RenderManager::~RenderManager()
 	_vkRenderer->~VkRenderer();
 }
 
-void RenderManager::BeginFrame(bool& quit)
+void RenderManager::BeginFrame(bool& quit, const bool callSwapChainBeginFrame)
 {
 	_windowHandler->BeginFrame(quit);
 	if (quit)
 		return;
 
-	_swapChain->BeginFrame();
+	if(callSwapChainBeginFrame)
+		_swapChain->BeginFrame();
 }
 
-void RenderManager::EndFrame()
+void RenderManager::EndFrame() const
 {
 	bool shouldRecreateAssets;
 	_swapChain->EndFrame(shouldRecreateAssets);

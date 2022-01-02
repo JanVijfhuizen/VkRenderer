@@ -15,6 +15,8 @@ public:
 		Awake awake = nullptr;
 		Start start = nullptr;
 		Update update = nullptr;
+		Update preRenderUpdate = nullptr;
+		Update renderUpdate = nullptr;
 		Cleanup cleanup = nullptr;
 	};
 
