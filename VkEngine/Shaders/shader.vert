@@ -28,31 +28,26 @@ layout (push_constant) uniform PushConstants
     mat4 model;
 } pushConstants;
 
-layout(location = 0) out VertData
+layout(location = 0) out Data
 {
     vec3 normal;
     vec2 fragTexCoord;
-} outVertData;
-
-layout(location = 2) out LightingData
-{
     int count;
     vec4 spaces[LIGHT_MAX_COUNT];
     vec3 dirs[LIGHT_MAX_COUNT];
-} outLightingData;
+} outData;
 
 void main() 
 {
     gl_Position = camera.projection * camera.view * pushConstants.model * vec4(inPosition, 1);
 
-    outVertData. normal = inNormal;
-    outVertData.fragTexCoord = inTexCoords;
+    outData.normal = inNormal;
+    outData.fragTexCoord = inTexCoords;
    
+    outData.count = lightInfo.count;
     for(int i = 0; i < lightInfo.count; i++)
     {
-        outLightingData.spaces[i] = lights[i].spaceMatrix * pushConstants.model * vec4(inPosition, 1);
-        outLightingData.dirs[i] = lights[i].dir;
+        outData.spaces[i] = lights[i].spaceMatrix * pushConstants.model * vec4(inPosition, 1);
+        outData.dirs[i] = lights[i].dir;
     }
-
-    outLightingData.count = lightInfo.count;
 }

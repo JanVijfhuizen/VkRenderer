@@ -93,8 +93,11 @@ struct Light final
 		DescriptorPool _descriptorPool;
 		DescriptorPool _descriptorPoolExt;
 
-		VkBuffer _uboBuffer;
-		VkDeviceMemory _uboMemory;
+		VkBuffer _uboLightsBuffer;
+		VkDeviceMemory _uboLightsMemory;
+		VkBuffer _uboLightInfoBuffer;
+		VkDeviceMemory _uboLightInfoMemory;
+
 		Instance* _instances;
 		Frame* _frames;
 	};
