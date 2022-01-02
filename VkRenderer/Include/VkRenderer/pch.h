@@ -9,9 +9,6 @@ inline vi::FreeListAllocator GMEM_TEMP{ 4096 };
 #define GLFW_INCLUDE_VULKAN
 #include "vulkan/vulkan.h"
 #include <GLFW/glfw3.h>
-#include "Utilities.h"
-
-#include "UniquePtr.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -26,3 +23,8 @@ inline vi::FreeListAllocator GMEM_TEMP{ 4096 };
 #include <cassert>
 #include <map>
 #include <set>
+#include <cstdint>
+
+#include "Utilities.h"
+#include "UniquePtr.h"
+#include "ArrayPtr.h"

@@ -1,5 +1,6 @@
 #pragma once
 #include "ArrayPtr.h"
+#include <cstdint>
 
 namespace vi
 {
