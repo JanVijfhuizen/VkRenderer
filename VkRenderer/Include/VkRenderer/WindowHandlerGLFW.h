@@ -21,7 +21,7 @@ namespace vi
 		bool _resized = false;
 
 		[[nodiscard]] VkSurfaceKHR CreateSurface(VkInstance instance) override;
-		void GetRequiredExtensions(std::vector<const char*>& extensions) override;
+		[[nodiscard]] ArrayPtr<const char*>  GetRequiredExtensions() override;
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
 	};
 }

@@ -21,6 +21,6 @@ namespace vi
 
 	private:
 		[[nodiscard]] static VkApplicationInfo CreateApplicationInfo(const Info& info);
-		[[nodiscard]] static std::vector<const char*> GetExtensions(const Info& info);
+		[[nodiscard]] static ArrayPtr<const char*> GetExtensions(const Info& info);
 	};
 }

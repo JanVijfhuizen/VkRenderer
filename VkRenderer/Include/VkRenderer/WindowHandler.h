@@ -19,6 +19,6 @@ namespace vi
 
 	protected:
 		virtual VkSurfaceKHR CreateSurface(VkInstance instance) = 0;
-		virtual void GetRequiredExtensions(std::vector<const char*>& extensions) = 0;
+		[[nodiscard]] virtual ArrayPtr<const char*> GetRequiredExtensions() = 0;
 	};
 }

@@ -8,13 +8,13 @@ namespace vi
 	VkInstance InstanceFactory::Construct(const Info& info)
 	{
 		auto appInfo = CreateApplicationInfo(info);
-		auto extensions = GetExtensions(info);
+		const auto extensions = GetExtensions(info);
 
 		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-		createInfo.ppEnabledExtensionNames = extensions.data();
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.GetSize());
+		createInfo.ppEnabledExtensionNames = extensions.GetData();
 
 		auto validationCreateInfo = info.debugger->CreateInfo();
 		info.debugger->EnableValidationLayers(validationCreateInfo, createInfo);
@@ -42,15 +42,22 @@ namespace vi
 		return appInfo;
 	}
 
-	std::vector<const char*> InstanceFactory::GetExtensions(const Info& info)
+	ArrayPtr<const char*> InstanceFactory::GetExtensions(const Info& info)
 	{
-		std::vector<const char*> extensions;
-		info.windowHandler->GetRequiredExtensions(extensions);
-		for (const auto& extension : info.settings.additionalExtensions)
-			extensions.push_back(extension);
+		const auto requiredExtensions = info.windowHandler->GetRequiredExtensions();
+
+		uint32_t debugExtensions = 0;
 		#ifdef _DEBUG
-		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		debugExtensions = 1;
 		#endif
+
+		ArrayPtr<const char*> extensions(requiredExtensions.GetSize() + info.settings.additionalExtensions.size() + debugExtensions, GMEM_TEMP);
+		memcpy(extensions.GetData(), requiredExtensions.GetData(), requiredExtensions.GetSize() * sizeof(const char*));
+
+		#ifdef _DEBUG
+		extensions[extensions.GetSize() - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+		#endif
+
 		return extensions;
 	}
 }
