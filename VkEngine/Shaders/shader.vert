@@ -18,6 +18,11 @@ layout (set = 1, binding = 0) uniform Light
     vec3 dir;
 } lights[LIGHT_MAX_COUNT];
 
+layout (set = 1, binding = 2) uniform LightInfo
+{
+    int count;
+} lightInfo;
+
 layout (push_constant) uniform PushConstants
 {
     mat4 model;
@@ -43,9 +48,11 @@ void main()
     outVertData. normal = inNormal;
     outVertData.fragTexCoord = inTexCoords;
    
-    for(int i = 0; i < 1; i++)
+    for(int i = 0; i < lightInfo.count; i++)
     {
         outLightingData.spaces[i] = lights[i].spaceMatrix * pushConstants.model * vec4(inPosition, 1);
         outLightingData.dirs[i] = lights[i].dir;
     }
+
+    outLightingData.count = lightInfo.count;
 }

@@ -55,7 +55,7 @@ int main()
 		const auto light2 = cecsar.AddEntity();
 		lightSystem.Insert(light2.index);
 		auto& light2Transform = transformSystem.Insert(light2.index);
-		light2Transform.position = { 15, -10, -5 };
+		light2Transform.position = { 5, 5, 0 };
 
 		const auto cube2 = cecsar.AddEntity();
 		auto& t = transformSystem.Insert(cube2.index);

@@ -57,10 +57,15 @@ struct Light final
 		static void DestroyDepthBuffer(DepthBuffer& depthBuffer);
 
 	private:
-		struct alignas(256) Ubo final
+		struct alignas(256) UboLight final
 		{
 			glm::mat4 lightSpaceMatrix{1};
 			glm::vec3 lightDir{0, 0, 1};
+		};
+
+		struct alignas(256) UboLightInfo final
+		{
+			uint32_t count;
 		};
 
 		struct Frame final

@@ -21,7 +21,7 @@ Light::System::System(const Info& info) : MapSet<Light>(info.maxLights), _info(i
 
 	vi::VkRenderer::LayoutInfo layoutInfo{};
 	vi::VkRenderer::LayoutInfo::Binding lsm{};
-	lsm.size = sizeof(Ubo);
+	lsm.size = sizeof(UboLight);
 	lsm.flag = VK_SHADER_STAGE_VERTEX_BIT;
 	layoutInfo.bindings.push_back(lsm);
 	_layout = renderer.CreateLayout(layoutInfo);
@@ -74,6 +74,10 @@ Light::System::System(const Info& info) : MapSet<Light>(info.maxLights), _info(i
 	depthBuffer.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	depthBuffer.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	layoutInfoExt.bindings.push_back(depthBuffer);
+	vi::VkRenderer::LayoutInfo::Binding infoBuffer{};
+	infoBuffer.flag = VK_SHADER_STAGE_VERTEX_BIT;
+	infoBuffer.size = sizeof(UboLightInfo);
+	layoutInfoExt.bindings.push_back(infoBuffer);
 	_layoutExt = renderer.CreateLayout(layoutInfoExt);
 
 	VkDescriptorType uboTypesExt[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
@@ -82,7 +86,10 @@ Light::System::System(const Info& info) : MapSet<Light>(info.maxLights), _info(i
 	_descriptorPoolExt = DescriptorPool(_layoutExt, uboTypesExt, sizeExt, 2, SWAPCHAIN_MAX_FRAMES);
 
 	const uint32_t imageCount = swapChain.GetImageCount();
-	_uboBuffer = renderer.CreateBuffer(sizeof(Ubo) * imageCount * _info.maxLights, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+	const size_t lightSize = sizeof(UboLight) * _info.maxLights;
+	const size_t infoSize = sizeof(UboLightInfo);
+
+	_uboBuffer = renderer.CreateBuffer((lightSize + infoSize) * imageCount, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 	_uboMemory = renderer.AllocateMemory(_uboBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	renderer.BindMemory(_uboBuffer, _uboMemory);
 
@@ -115,10 +122,12 @@ Light::System::System(const Info& info) : MapSet<Light>(info.maxLights), _info(i
 			const uint32_t index = startIndex + j;
 			auto& instance = _instances[index];
 
-			renderer.BindBuffer(frame.descriptor, _uboBuffer, sizeof(Ubo) * index, sizeof(Ubo), 0, j);
+			renderer.BindBuffer(frame.descriptor, _uboBuffer, sizeof(UboLight) * index, sizeof(UboLight), 0, j);
 			renderer.BindSampler(frame.descriptor, instance.depthBuffer.imageView,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, instance.sampler, 1, j);
 		}
+
+		renderer.BindBuffer(frame.descriptor, _uboBuffer, lightSize * imageCount + i * infoSize, infoSize, 2, 0);
 	}
 }
 
@@ -185,6 +194,12 @@ void Light::System::Update()
 	uint32_t i = -1;
 	const uint32_t startIndex = swapChain.GetCurrentImageIndex() * _info.maxLights;
 
+	UboLightInfo uboInfo{};
+	uboInfo.count = GetCount();
+	if (uboInfo.count > _info.maxLights)
+		uboInfo.count = _info.maxLights;
+	renderer.MapMemory(_uboMemory, &uboInfo, sizeof(UboLight) * swapChain.GetImageCount() + imageIndex * sizeof(UboLightInfo), sizeof(UboLightInfo));
+
 	for (auto& [sparseId, light] : *this)
 	{
 		i++;
@@ -202,7 +217,7 @@ void Light::System::Update()
 		const glm::vec3 forward = transform.GetForwardVector();
 		const glm::mat4 view = glm::lookAt(transform.position, forward, glm::vec3(0, 1, 0));
 
-		Ubo ubo{};
+		UboLight ubo{};
 		ubo.lightSpaceMatrix = projection * view;
 
 		switch (light.type)
@@ -216,9 +231,9 @@ void Light::System::Update()
 			;
 		}
 
-		renderer.BindBuffer(frame.descriptor, _uboBuffer, sizeof(Ubo) * instanceIndex, sizeof(Ubo), 0, 0);
+		renderer.BindBuffer(frame.descriptor, _uboBuffer, sizeof(UboLight) * instanceIndex, sizeof(UboLight), 0, 0);
 
-		renderer.MapMemory(_uboMemory, &ubo, sizeof(Ubo) * instanceIndex, sizeof(Ubo));
+		renderer.MapMemory(_uboMemory, &ubo, sizeof(UboLight) * instanceIndex, sizeof(UboLight));
 		renderer.BindDescriptorSets(&frame.descriptor, 1);
 
 		for (const auto& [shadowCaster, shadowCasterSparseId] : shadowCasters)
