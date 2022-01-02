@@ -92,6 +92,7 @@ void DefaultMaterial::System::Update()
 	auto& cameraSystem = Camera::System::Get();
 	auto& transformSystem = Transform::System::Get();
 	auto& meshSystem = Mesh::System::Get();
+	auto& lightSystem = Light::System::Get();
 
 	if (cameraSystem.GetSize() == 0)
 		return;
@@ -102,12 +103,9 @@ void DefaultMaterial::System::Update()
 
 	VkDescriptorSet sets[3]
 	{
-		mainCamera.GetDescriptors()[imageIndex]
+		mainCamera.GetDescriptors()[imageIndex],
+		lightSystem.GetDescriptor()
 	};
-
-	// temp single light.
-	auto& light = Light::System::Get()[0];
-	sets[1] = light.value.GetDescriptors()[imageIndex];
 
 	renderer.BindPipeline(_pipeline, _pipelineLayout);
 

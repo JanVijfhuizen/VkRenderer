@@ -10,17 +10,18 @@
 #include "Rendering/ShadowCaster.h"
 #include "Rendering/SwapChainGC.h"
 
-Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
+Light::System::System(const Info& info) : MapSet<Light>(info.maxLights), _info(info)
 {
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
 
 	const auto vertCode = FileReader::Read("Shaders/shadowMapper.spv");
 	_vertModule = renderer.CreateShaderModule(vertCode);
 
 	vi::VkRenderer::LayoutInfo layoutInfo{};
 	vi::VkRenderer::LayoutInfo::Binding lsm{};
-	lsm.size = sizeof(Ubo);
+	lsm.size = sizeof(UboLight);
 	lsm.flag = VK_SHADER_STAGE_VERTEX_BIT;
 	layoutInfo.bindings.push_back(lsm);
 	_layout = renderer.CreateLayout(layoutInfo);
@@ -62,27 +63,83 @@ Light::System::System(const Info& info) : MapSet<Light>(8), _info(info)
 	_fence = renderer.CreateFence();
 
 	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uint32_t size = 8 * SWAPCHAIN_MAX_FRAMES;
+	uint32_t size = _info.maxLights * SWAPCHAIN_MAX_FRAMES;
 	_descriptorPool = DescriptorPool(_layout, &uboType, &size, 1, size);
 
 	vi::VkRenderer::LayoutInfo layoutInfoExt{};
+	lsm.count = _info.maxLights;
 	layoutInfoExt.bindings.push_back(lsm);
 	vi::VkRenderer::LayoutInfo::Binding depthBuffer{};
+	depthBuffer.count = _info.maxLights;
 	depthBuffer.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	depthBuffer.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	layoutInfoExt.bindings.push_back(depthBuffer);
+	vi::VkRenderer::LayoutInfo::Binding infoBuffer{};
+	infoBuffer.flag = VK_SHADER_STAGE_VERTEX_BIT;
+	infoBuffer.size = sizeof(UboLightInfo);
+	layoutInfoExt.bindings.push_back(infoBuffer);
 	_layoutExt = renderer.CreateLayout(layoutInfoExt);
 
 	VkDescriptorType uboTypesExt[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
 
-	uint32_t sizeExt[] = {size, size};
-	_descriptorPoolExt = DescriptorPool(_layoutExt, uboTypesExt, sizeExt, 2, size);
+	uint32_t sizeExt[] = {SWAPCHAIN_MAX_FRAMES, SWAPCHAIN_MAX_FRAMES };
+	_descriptorPoolExt = DescriptorPool(_layoutExt, uboTypesExt, sizeExt, 2, SWAPCHAIN_MAX_FRAMES);
+
+	const uint32_t imageCount = swapChain.GetImageCount();
+	const size_t lightSize = sizeof(UboLight) * _info.maxLights;
+	const size_t infoSize = sizeof(UboLightInfo);
+
+	_uboLightsBuffer = renderer.CreateBuffer(lightSize * imageCount, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+	_uboLightsMemory = renderer.AllocateMemory(_uboLightsBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	renderer.BindMemory(_uboLightsBuffer, _uboLightsMemory);
+
+	_uboLightInfoBuffer = renderer.CreateBuffer(infoSize * imageCount, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+	_uboLightInfoMemory = renderer.AllocateMemory(_uboLightInfoBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	renderer.BindMemory(_uboLightInfoBuffer, _uboLightInfoMemory);
+
+	_instances = reinterpret_cast<Instance*>(GMEM.MAlloc(sizeof(Instance) * size));
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		auto& instance = _instances[i];
+
+		instance.sampler = renderer.CreateSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR,
+			VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER);
+		CreateDepthBuffer(info.shadowResolution, instance.depthBuffer);
+
+		instance.frameBuffer = renderer.CreateFrameBuffer(&instance.depthBuffer.imageView, 1, _renderPass,
+			{
+				static_cast<uint32_t>(_info.shadowResolution.x),
+				static_cast<uint32_t>(_info.shadowResolution.y)
+			});
+	}
+
+	_frames = reinterpret_cast<Frame*>(GMEM.MAlloc(sizeof(Frame) * imageCount));
+	for (uint32_t i = 0; i < SWAPCHAIN_MAX_FRAMES; ++i)
+	{
+		auto& frame = _frames[i];
+		frame.descriptor = _descriptorPoolExt.Get();
+
+		const uint32_t startIndex = i * _info.maxLights;
+
+		for (uint32_t j = 0; j < info.maxLights; ++j)
+		{
+			const uint32_t index = startIndex + j;
+			auto& instance = _instances[index];
+
+			renderer.BindBuffer(frame.descriptor, _uboLightsBuffer, sizeof(UboLight) * index, sizeof(UboLight), 0, j);
+			renderer.BindSampler(frame.descriptor, instance.depthBuffer.imageView,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, instance.sampler, 1, j);
+		}
+
+		renderer.BindBuffer(frame.descriptor, _uboLightInfoBuffer, i * infoSize, infoSize, 2, 0);
+	}
 }
 
 Light::System::~System()
 {
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
 
 	for (int32_t i = GetCount() - 1; i >= 0; --i)
 		EraseAt(i);
@@ -95,6 +152,24 @@ Light::System::~System()
 	renderer.DestroyShaderModule(_vertModule);
 
 	renderer.DestroyLayout(_layoutExt);
+
+	renderer.DestroyBuffer(_uboLightsBuffer);
+	renderer.FreeMemory(_uboLightsMemory);
+	renderer.DestroyBuffer(_uboLightInfoBuffer);
+	renderer.FreeMemory(_uboLightInfoMemory);
+
+	const uint32_t imageCount = _info.maxLights * swapChain.GetImageCount();
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+		auto& instance = _instances[i];
+
+		renderer.DestroySampler(instance.sampler);
+		renderer.DestroyFrameBuffer(instance.frameBuffer);
+		DestroyDepthBuffer(instance.depthBuffer);
+	}
+
+	GMEM.MFree(_instances);
+	GMEM.MFree(_frames);
 }
 
 void Light::System::Update()
@@ -122,17 +197,33 @@ void Light::System::Update()
 		-shape.y, shape.y, 
 		_info.near, _info.far);
 
+	uint32_t i = -1;
+	const uint32_t startIndex = swapChain.GetCurrentImageIndex() * _info.maxLights;
+
+	UboLightInfo uboInfo{};
+	uboInfo.count = GetCount();
+	if (uboInfo.count > _info.maxLights)
+		uboInfo.count = _info.maxLights;
+	renderer.MapMemory(_uboLightInfoMemory, &uboInfo, imageIndex * sizeof(UboLightInfo), sizeof(UboLightInfo));
+
 	for (auto& [sparseId, light] : *this)
 	{
+		i++;
+		if (i >= _info.maxLights)
+			break;
+
+		const uint32_t instanceIndex = i + startIndex;
+
+		auto& instance = _instances[instanceIndex];
 		auto& frame = light._frames[imageIndex];
 		const auto& transform = transforms[sparseId];
-
-		renderer.BeginRenderPass(frame.framebuffer, _renderPass, {}, _info.shadowResolution, &clearValue, 1);
+		
+		renderer.BeginRenderPass(instance.frameBuffer, _renderPass, {}, _info.shadowResolution, &clearValue, 1);
 
 		const glm::vec3 forward = transform.GetForwardVector();
 		const glm::mat4 view = glm::lookAt(transform.position, forward, glm::vec3(0, 1, 0));
 
-		Ubo ubo{};
+		UboLight ubo{};
 		ubo.lightSpaceMatrix = projection * view;
 
 		switch (light.type)
@@ -146,7 +237,9 @@ void Light::System::Update()
 			;
 		}
 
-		renderer.MapMemory(light._memory, &ubo, sizeof(Ubo) * imageIndex, sizeof(Ubo));
+		renderer.BindBuffer(frame.descriptor, _uboLightsBuffer, sizeof(UboLight) * instanceIndex, sizeof(UboLight), 0, 0);
+
+		renderer.MapMemory(_uboLightsMemory, &ubo, sizeof(UboLight) * instanceIndex, sizeof(UboLight));
 		renderer.BindDescriptorSets(&frame.descriptor, 1);
 
 		for (const auto& [shadowCaster, shadowCasterSparseId] : shadowCasters)
@@ -181,30 +274,10 @@ KeyValuePair<unsigned, Light>& Light::System::Add(const KeyValuePair<unsigned, L
 
 	const uint32_t imageCount = swapChain.GetImageCount();
 
-	light._buffer = renderer.CreateBuffer(sizeof(Ubo) * imageCount, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-	light._memory = renderer.AllocateMemory(light._buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	renderer.BindMemory(light._buffer, light._memory, 0);
-
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
 		auto& frame = light._frames[i];
-
 		frame.descriptor = _descriptorPool.Get();
-		renderer.BindBuffer(frame.descriptor, light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
-
-		CreateDepthBuffer(_info.shadowResolution, frame.image, frame.imageMemory, frame.imageView);
-		frame.framebuffer = renderer.CreateFrameBuffer(&frame.imageView, 1, _renderPass,
-			{
-				static_cast<uint32_t>(_info.shadowResolution.x),
-				static_cast<uint32_t>(_info.shadowResolution.y)
-			});
-
-		light._descriptorsExt[i] = _descriptorPoolExt.Get();
-		frame.samplerExt = renderer.CreateSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 
-			VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER);
-		renderer.BindBuffer(light._descriptorsExt[i], light._buffer, sizeof(Ubo) * i, sizeof(Ubo), 0, 0);
-		renderer.BindSampler(light._descriptorsExt[i], frame.imageView,
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, frame.samplerExt, 1, 0);
 	}
 
 	return t;
@@ -225,18 +298,8 @@ void Light::System::EraseAt(const size_t index)
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
 		auto& frame = light._frames[i];
-
 		gc.Enqueue(frame.descriptor, _descriptorPool);
-		gc.Enqueue(frame.imageView);
-		gc.Enqueue(frame.image);
-		gc.Enqueue(frame.imageMemory);
-		gc.Enqueue(frame.framebuffer);
-
-		gc.Enqueue(light._descriptorsExt[i], _descriptorPoolExt);
-		gc.Enqueue(frame.samplerExt);
 	}
-	gc.Enqueue(light._buffer);
-	gc.Enqueue(light._memory);
 
 	MapSet<Light>::EraseAt(index);
 }
@@ -246,25 +309,33 @@ VkDescriptorSetLayout Light::System::GetLayout() const
 	return _layoutExt;
 }
 
-void Light::System::CreateDepthBuffer(const glm::ivec2 resolution, 
-	VkImage& outImage, VkDeviceMemory& outMemory, VkImageView& outImageView)
+VkDescriptorSet Light::System::GetDescriptor() const
+{
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
+	auto& swapChain = renderer.GetSwapChain();
+
+	return _frames[swapChain.GetCurrentImageIndex()].descriptor;
+}
+
+void Light::System::CreateDepthBuffer(const glm::ivec2 resolution, DepthBuffer& outDepthBuffer)
 {
 	auto& renderManager = RenderManager::Get();
 	auto& renderer = renderManager.GetVkRenderer();
 
 	const auto format = renderer.GetDepthBufferFormat();
 
-	outImage = renderer.CreateImage(resolution, format, VK_IMAGE_TILING_OPTIMAL,
+	outDepthBuffer.image = renderer.CreateImage(resolution, format, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-	outMemory = renderer.AllocateMemory(outImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-	renderer.BindMemory(outImage, outMemory);
-	outImageView = renderer.CreateImageView(outImage, format, VK_IMAGE_ASPECT_DEPTH_BIT);
+	outDepthBuffer.imageMemory = renderer.AllocateMemory(outDepthBuffer.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	renderer.BindMemory(outDepthBuffer.image, outDepthBuffer.imageMemory);
+	outDepthBuffer.imageView = renderer.CreateImageView(outDepthBuffer.image, format, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	auto cmdBuffer = renderer.CreateCommandBuffer();
 	const auto fence = renderer.CreateFence();
 
 	renderer.BeginCommandBufferRecording(cmdBuffer);
-	renderer.TransitionImageLayout(outImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
+	renderer.TransitionImageLayout(outDepthBuffer.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	renderer.EndCommandBufferRecording();
 	renderer.Submit(&cmdBuffer, 1, nullptr, nullptr, fence);
@@ -274,7 +345,12 @@ void Light::System::CreateDepthBuffer(const glm::ivec2 resolution,
 	renderer.DestroyFence(fence);
 }
 
-const VkDescriptorSet* Light::GetDescriptors() const
+void Light::System::DestroyDepthBuffer(DepthBuffer& depthBuffer)
 {
-	return _descriptorsExt;
+	auto& renderManager = RenderManager::Get();
+	auto& renderer = renderManager.GetVkRenderer();
+
+	renderer.DestroyImageView(depthBuffer.imageView);
+	renderer.DestroyImage(depthBuffer.image);
+	renderer.FreeMemory(depthBuffer.imageMemory);
 }
