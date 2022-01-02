@@ -1,11 +1,17 @@
 #pragma once
 constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 
+#include "FreeListAllocator.h"
+
+inline vi::FreeListAllocator GMEM{ 4096 };
+inline vi::FreeListAllocator GMEM_TEMP{ 4096 };
+
 #define GLFW_INCLUDE_VULKAN
 #include "vulkan/vulkan.h"
 #include <GLFW/glfw3.h>
 #include "Utilities.h"
-#include "FreeListAllocator.h"
+
+#include "UniquePtr.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -20,6 +26,3 @@ constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 #include <cassert>
 #include <map>
 #include <set>
-
-inline vi::FreeListAllocator GMEM{ 4096 };
-inline vi::FreeListAllocator GMEM_TEMP{ 4096 };

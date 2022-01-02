@@ -7,9 +7,15 @@
 
 namespace vi
 {
+	void SwapChain::SupportDetails::Free() const
+	{
+		GMEM_TEMP.MFree(formats.GetData());
+		GMEM_TEMP.MFree(presentModes.GetData());
+	}
+
 	SwapChain::SupportDetails::operator bool() const
 	{
-		return !formats.empty() && !presentModes.empty();
+		return !formats.IsNull() && !presentModes.IsNull();
 	}
 
 	uint32_t SwapChain::SupportDetails::GetRecommendedImageCount() const
@@ -81,6 +87,8 @@ namespace vi
 
 		CreateImages();
 		CreateSyncObjects();
+
+		support.Free();
 	}
 
 	void SwapChain::Cleanup()
@@ -205,8 +213,9 @@ namespace vi
 
 		if (formatCount != 0)
 		{
-			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+			auto& formats = details.formats;
+			formats = GMEM_TEMP.NewArr<VkSurfaceFormatKHR>(formatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.GetData());
 		}
 
 		uint32_t presentModeCount;
@@ -214,9 +223,11 @@ namespace vi
 
 		if (presentModeCount != 0)
 		{
-			details.presentModes.resize(presentModeCount);
+			auto& presentModes = details.presentModes;
+			presentModes = GMEM_TEMP.NewArr<VkPresentModeKHR>(presentModeCount);
+
 			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
-				&presentModeCount, details.presentModes.data());
+				&presentModeCount, details.presentModes.GetData());
 		}
 
 		return details;
@@ -330,16 +341,16 @@ namespace vi
 		imageInFlight = frame.inFlightFence;
 	}
 
-	VkSurfaceFormatKHR SwapChain::ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+	VkSurfaceFormatKHR SwapChain::ChooseSurfaceFormat(const ArrayPtr<VkSurfaceFormatKHR>& availableFormats)
 	{
 		for (const auto& availableFormat : availableFormats)
 			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
 				availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 				return availableFormat;
-		return availableFormats.front();
+		return availableFormats[0];
 	}
 
-	VkPresentModeKHR SwapChain::ChoosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+	VkPresentModeKHR SwapChain::ChoosePresentMode(const ArrayPtr<VkPresentModeKHR>& availablePresentModes)
 	{
 		for (const auto& availablePresentMode : availablePresentModes)
 			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)

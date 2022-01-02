@@ -18,7 +18,7 @@ public:
 		const Iterator& operator++();
 		Iterator operator++(int);
 
-		friend auto operator==(const Iterator& a, const Iterator& b) -> bool
+		friend bool operator==(const Iterator& a, const Iterator& b)
 		{
 			return a.index == b.index;
 		};
@@ -29,30 +29,31 @@ public:
 		}
 	};
 
-	[[nodiscard]] constexpr T& operator[](uint32_t index);
+	[[nodiscard]] constexpr T& operator[](uint32_t index) const;
 
 	ArrayPtr();
 	explicit ArrayPtr(void* begin, size_t size);
 
-	[[nodiscard]] constexpr Iterator begin();
-	[[nodiscard]] Iterator end();
+	[[nodiscard]] constexpr Iterator begin() const;
+	[[nodiscard]] Iterator end() const;
 
+	[[nodiscard]] constexpr bool IsNull() const;
 	[[nodiscard]] constexpr size_t GetSize() const;
 	[[nodiscard]] constexpr T* GetData() const;
 
 private:
-	T* _data;
-	size_t _size;
+	T* _data = nullptr;
+	size_t _size = 0;
 };
 
 template <typename T>
-constexpr T& ArrayPtr<T>::operator[](const uint32_t index)
+constexpr T& ArrayPtr<T>::operator[](const uint32_t index) const
 {
 	return _data[index];
 }
 
 template <typename T>
-constexpr typename ArrayPtr<T>::Iterator ArrayPtr<T>::begin()
+constexpr typename ArrayPtr<T>::Iterator ArrayPtr<T>::begin() const
 {
 	Iterator it{};
 	it.begin = _data;
@@ -60,6 +61,12 @@ constexpr typename ArrayPtr<T>::Iterator ArrayPtr<T>::begin()
 	it.index = 0;
 
 	return it;
+}
+
+template <typename T>
+constexpr bool ArrayPtr<T>::IsNull() const
+{
+	return GetSize() == 0;
 }
 
 template <typename T>
@@ -75,7 +82,7 @@ constexpr T* ArrayPtr<T>::GetData() const
 }
 
 template <typename T>
-typename ArrayPtr<T>::Iterator ArrayPtr<T>::end()
+typename ArrayPtr<T>::Iterator ArrayPtr<T>::end() const
 {
 	Iterator it{};
 	it.begin = _data;
