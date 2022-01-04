@@ -14,8 +14,8 @@ namespace vi
 		struct SupportDetails final
 		{
 			VkSurfaceCapabilitiesKHR capabilities;
-			std::vector<VkSurfaceFormatKHR> formats{};
-			std::vector<VkPresentModeKHR> presentModes{};
+			ArrayPtr<VkSurfaceFormatKHR> formats;
+			ArrayPtr<VkPresentModeKHR> presentModes;
 
 			[[nodiscard]] explicit operator bool() const;
 			[[nodiscard]] uint32_t GetRecommendedImageCount() const;
@@ -47,7 +47,6 @@ namespace vi
 			VkCommandPool commandPool;
 
 			class WindowHandler* windowHandler;
-			class FreeListAllocator* allocator;
 			VkRenderer* renderer;
 		};
 
@@ -96,15 +95,15 @@ namespace vi
 		void Construct(const Info& info);
 		void Cleanup();
 
-		void CreateImages();
+		void CreateImages() const;
 		void CreateSyncObjects();
-		void CreateBuffers();
+		void CreateBuffers() const;
 		void CleanupBuffers();
 
 		[[nodiscard]] VkResult Present();
 
-		[[nodiscard]] static VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-		[[nodiscard]] static VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-		[[nodiscard]] VkExtent2D ChooseExtent(const Info& info, const VkSurfaceCapabilitiesKHR& capabilities) const;
+		[[nodiscard]] static VkSurfaceFormatKHR ChooseSurfaceFormat(const ArrayPtr<VkSurfaceFormatKHR>& availableFormats);
+		[[nodiscard]] static VkPresentModeKHR ChoosePresentMode(const ArrayPtr<VkPresentModeKHR>& availablePresentModes);
+		[[nodiscard]] static VkExtent2D ChooseExtent(const Info& info, const VkSurfaceCapabilitiesKHR& capabilities);
 	};
 }

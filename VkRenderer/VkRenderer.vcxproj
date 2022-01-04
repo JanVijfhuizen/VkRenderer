@@ -22,13 +22,14 @@
     <ClInclude Include="Include\VkRenderer\ArrayPtr.h" />
     <ClInclude Include="Include\VkRenderer\FreeListAllocator.h" />
     <ClInclude Include="Include\VkRenderer\LogicalDeviceFactory.h" />
-    <ClInclude Include="Include\VkRenderer\PoolAllocator.h" />
     <ClInclude Include="Include\VkRenderer\Queues.h" />
     <ClInclude Include="Include\VkRenderer\SwapChain.h" />
     <ClInclude Include="Include\VkRenderer\PhysicalDeviceFactory.h" />
     <ClInclude Include="Include\VkRenderer\InstanceFactory.h" />
     <ClInclude Include="Include\VkRenderer\Debugger.h" />
     <ClInclude Include="Include\VkRenderer\pch.h" />
+    <ClInclude Include="Include\VkRenderer\UniquePtr.h" />
+    <ClInclude Include="Include\VkRenderer\Utilities.h" />
     <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
@@ -36,7 +37,6 @@
   <ItemGroup>
     <ClCompile Include="Source\FreeListAllocator.cpp" />
     <ClCompile Include="Source\LogicalDeviceFactory.cpp" />
-    <ClCompile Include="Source\PoolAllocator.cpp" />
     <ClCompile Include="Source\SwapChain.cpp" />
     <ClCompile Include="Source\PhysicalDeviceFactory.cpp" />
     <ClCompile Include="Source\InstanceFactory.cpp" />
@@ -156,6 +156,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)Include/VkRenderer;$(SolutionDir)Ext/glfw-3.3.4\glfw-3.3.4.bin.WIN64\include;$(SolutionDir)Ext/vulkan-1.2.189.0/Include;$(SolutionDir)Ext;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -174,6 +175,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)Include/VkRenderer;$(SolutionDir)Ext/glfw-3.3.4\glfw-3.3.4.bin.WIN64\include;$(SolutionDir)Ext/vulkan-1.2.189.0/Include;$(SolutionDir)Ext;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

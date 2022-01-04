@@ -58,7 +58,6 @@ namespace vi
 		swapChainInfo.queues = _queues;
 		swapChainInfo.commandPool = _commandPool;
 		swapChainInfo.windowHandler = _windowHandler;
-		swapChainInfo.allocator = settings.allocator;
 		swapChainInfo.renderer = this;
 		_swapChain.Construct(swapChainInfo);
 
@@ -113,8 +112,7 @@ namespace vi
 	VkDescriptorSetLayout VkRenderer::CreateLayout(const LayoutInfo& info) const
 	{
 		const uint32_t bindingsCount = info.bindings.size();
-		std::vector<VkDescriptorSetLayoutBinding> layoutBindings{};
-		layoutBindings.resize(bindingsCount);
+		const ArrayPtr<VkDescriptorSetLayoutBinding> layoutBindings(bindingsCount, GMEM_TEMP);
 
 		for (uint32_t i = 0; i < bindingsCount; ++i)
 		{
@@ -132,7 +130,7 @@ namespace vi
 		layoutInfo.pNext = nullptr;
 		layoutInfo.flags = 0;
 		layoutInfo.bindingCount = bindingsCount;
-		layoutInfo.pBindings = layoutBindings.data();
+		layoutInfo.pBindings = layoutBindings.GetData();
 
 		VkDescriptorSetLayout layout;
 		const auto result = vkCreateDescriptorSetLayout(_device, &layoutInfo, nullptr, &layout);
@@ -147,9 +145,7 @@ namespace vi
 
 	VkDescriptorPool VkRenderer::CreateDescriptorPool(const VkDescriptorType* types, const uint32_t* capacities, const uint32_t typeCount) const
 	{
-		std::vector<VkDescriptorPoolSize> sizes{};
-		sizes.resize(typeCount);
-
+		const ArrayPtr<VkDescriptorPoolSize> sizes(typeCount, GMEM_TEMP);
 		uint32_t maxSets = 0;
 
 		for (uint32_t i = 0; i < typeCount; ++i)
@@ -163,7 +159,7 @@ namespace vi
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = typeCount;
-		poolInfo.pPoolSizes = sizes.data();
+		poolInfo.pPoolSizes = sizes.GetData();
 		poolInfo.maxSets = maxSets;
 
 		VkDescriptorPool pool;
@@ -179,10 +175,8 @@ namespace vi
 
 	void VkRenderer::CreatePipeline(const PipelineInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout) const
 	{
-		std::vector<VkPipelineShaderStageCreateInfo> modules{};
-
 		const uint32_t modulesCount = info.modules.size();
-		modules.resize(modulesCount);
+		const ArrayPtr<VkPipelineShaderStageCreateInfo> modules{ modulesCount, GMEM_TEMP};
 
 		for (uint32_t i = 0; i < modulesCount; ++i)
 		{
@@ -258,14 +252,17 @@ namespace vi
 		dynamicState.dynamicStateCount = 0;
 		dynamicState.pDynamicStates = nullptr;
 
-		std::vector<VkPushConstantRange> pushConstantRanges{};
-		for (const auto& pushConstant : info.pushConstants)
+		const uint32_t pushConstantRangeCount = info.pushConstants.size();
+		const ArrayPtr<VkPushConstantRange> pushConstantRanges{ pushConstantRangeCount, GMEM_TEMP };
+
+		for (uint32_t i = 0; i < pushConstantRangeCount; ++i)
 		{
-			VkPushConstantRange pushConstantRange;
+			auto& original = info.pushConstants[i];
+			auto& pushConstantRange = pushConstantRanges[i];
+
 			pushConstantRange.offset = 0;
-			pushConstantRange.size = pushConstant.size;
-			pushConstantRange.stageFlags = pushConstant.flag;
-			pushConstantRanges.push_back(pushConstantRange);
+			pushConstantRange.size = original.size;
+			pushConstantRange.stageFlags = original.flag;
 		}
 
 		VkPipelineDepthStencilStateCreateInfo depthStencil{};
@@ -281,7 +278,7 @@ namespace vi
 		pipelineLayoutInfo.setLayoutCount = info.setLayouts.size();
 		pipelineLayoutInfo.pSetLayouts = info.setLayouts.data();
 		pipelineLayoutInfo.pushConstantRangeCount = info.pushConstants.size();
-		pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
+		pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.GetData();
 
 		auto result = vkCreatePipelineLayout(_device, &pipelineLayoutInfo, nullptr, &outLayout);
 		assert(!result);
@@ -289,7 +286,7 @@ namespace vi
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineInfo.stageCount = modulesCount;
-		pipelineInfo.pStages = modules.data();
+		pipelineInfo.pStages = modules.GetData();
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 		pipelineInfo.pInputAssemblyState = &inputAssembly;
 		pipelineInfo.pViewportState = &viewportState;
@@ -325,13 +322,13 @@ namespace vi
 		const VkDescriptorSetLayout layout, const uint32_t setCount,
 		VkDescriptorSet* outSets) const
 	{
-		std::vector<VkDescriptorSetLayout> layouts(setCount, layout);
+		const ArrayPtr<VkDescriptorSetLayout> layouts{setCount, GMEM_TEMP, layout};
 
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocInfo.descriptorPool = pool;
 		allocInfo.descriptorSetCount = setCount;
-		allocInfo.pSetLayouts = layouts.data();
+		allocInfo.pSetLayouts = layouts.GetData();
 
 		const auto result = vkAllocateDescriptorSets(_device, &allocInfo, outSets);
 		assert(!result);
@@ -368,13 +365,14 @@ namespace vi
 		dependency.dstStageMask = 0;
 		dependency.dstAccessMask = 0;
 
-		std::vector<VkAttachmentDescription> descriptions{};
+		const ArrayPtr<VkAttachmentDescription> descriptions{ 2, GMEM_TEMP };
+		uint32_t descriptionsCount = 0;
 
 		if(info.useColorAttachment)
 		{
 			const auto format = _swapChain.GetFormat();
 
-			VkAttachmentDescription colorDescription{};
+			auto& colorDescription = descriptions[descriptionsCount++];
 			colorDescription.format = format;
 			colorDescription.samples = VK_SAMPLE_COUNT_1_BIT;
 			colorDescription.loadOp = info.colorLoadOp;
@@ -383,7 +381,6 @@ namespace vi
 			colorDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			colorDescription.initialLayout = info.colorInitialLayout;
 			colorDescription.finalLayout = info.colorFinalLayout;
-			descriptions.push_back(colorDescription);
 
 			dependency.srcStageMask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			dependency.dstStageMask |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -392,7 +389,7 @@ namespace vi
 
 		if(info.useDepthAttachment)
 		{
-			VkAttachmentDescription depthDescription{};
+			auto& depthDescription = descriptions[descriptionsCount++];
 			depthDescription.format = GetDepthBufferFormat();
 			depthDescription.samples = VK_SAMPLE_COUNT_1_BIT;
 			depthDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -401,7 +398,6 @@ namespace vi
 			depthDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			depthDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			depthDescription.finalLayout = info.depthFinalLayout;
-			descriptions.push_back(depthDescription);
 
 			dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 			dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -410,8 +406,8 @@ namespace vi
 
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfo.attachmentCount = descriptions.size();
-		renderPassInfo.pAttachments = descriptions.data();
+		renderPassInfo.attachmentCount = descriptionsCount;
+		renderPassInfo.pAttachments = descriptions.GetData();
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
 		renderPassInfo.dependencyCount = 1;
