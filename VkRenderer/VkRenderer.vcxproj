@@ -32,11 +32,13 @@
     <ClInclude Include="Include\VkRenderer\UniquePtr.h" />
     <ClInclude Include="Include\VkRenderer\Utilities.h" />
     <ClInclude Include="Include\VkRenderer\ViVector.h" />
+    <ClInclude Include="Include\VkRenderer\VkCore.h" />
     <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\VkCore.cpp" />
     <ClCompile Include="Source\ViString.cpp" />
     <ClCompile Include="Source\FreeListAllocator.cpp" />
     <ClCompile Include="Source\LogicalDeviceFactory.cpp" />

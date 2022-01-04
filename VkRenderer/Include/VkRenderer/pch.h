@@ -1,7 +1,20 @@
 #pragma once
 constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 
+#include <string>
+#include <vector>
+#include <iostream>
+#include <cassert>
+#include <map>
+#include <set>
+#include <cstdint>
+
 #include "FreeListAllocator.h"
+#include "Utilities.h"
+#include "UniquePtr.h"
+#include "ArrayPtr.h"
+#include "ViVector.h"
+#include "ViString.h"
 
 /// <summary>
 /// Memory allocator used for long term allocations.
@@ -22,15 +35,3 @@ inline vi::FreeListAllocator GMEM_TEMP{ 4096 };
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
 #include "glm/gtx/euler_angles.hpp"
-
-#include <string>
-#include <vector>
-#include <iostream>
-#include <cassert>
-#include <map>
-#include <set>
-#include <cstdint>
-
-#include "Utilities.h"
-#include "UniquePtr.h"
-#include "ArrayPtr.h"

@@ -3,15 +3,19 @@
 
 namespace vi
 {
-	WindowHandlerGLFW::WindowHandlerGLFW(const VkInfo& info) : _info(info)
+	WindowHandlerGLFW::WindowHandlerGLFW(const Info& info) : WindowHandler(info)
 	{
+		// Initialize GLFW for Vulkan.
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
+		// Create window.
 		const auto& resolution = info.resolution;
-		_window = glfwCreateWindow(resolution.x, resolution.y, info.name.c_str(), nullptr, nullptr);
+		_window = glfwCreateWindow(resolution.x, resolution.y, info.name.GetData(), nullptr, nullptr);
 		assert(_window);
 		glfwSetWindowUserPointer(_window, this);
+
+		// Set callback for resize.
 		glfwSetFramebufferSizeCallback(_window, FramebufferResizeCallback);
 	}
 
@@ -23,10 +27,12 @@ namespace vi
 
 	void WindowHandlerGLFW::BeginFrame(bool& outQuit) const
 	{
+		// Check if the user pressed the close button.
 		outQuit = glfwWindowShouldClose(_window);
 		if (outQuit)
 			return;
 
+		// Check for events.
 		glfwPollEvents();
 
 		int32_t width = 0, height = 0;
@@ -49,16 +55,12 @@ namespace vi
 	ArrayPtr<const char*> WindowHandlerGLFW::GetRequiredExtensions()
 	{
 		uint32_t glfwExtensionCount = 0;
-		const auto glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		const auto buffer = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
+		// Copy data from buffer into the array.
 		ArrayPtr<const char*> extensions(glfwExtensionCount, GMEM_TEMP);
-		memcpy(extensions.GetData(), glfwExtensions, sizeof(const char*) * glfwExtensionCount);
+		memcpy(extensions.GetData(), buffer, sizeof(const char*) * glfwExtensionCount);
 		return extensions;
-	}
-
-	const WindowHandler::VkInfo& WindowHandlerGLFW::GetVkInfo() const
-	{
-		return _info;
 	}
 
 	bool WindowHandlerGLFW::QueryHasResized()
@@ -72,6 +74,6 @@ namespace vi
 	{
 		auto self = reinterpret_cast<WindowHandlerGLFW*>(glfwGetWindowUserPointer(window));
 		self->_resized = true;
-		self->_info.resolution = { width, height };
+		self->info.resolution = { width, height };
 	}
 }

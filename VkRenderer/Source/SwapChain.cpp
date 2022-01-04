@@ -351,7 +351,7 @@ namespace vi
 		if (capabilities.currentExtent.width != UINT32_MAX)
 			return capabilities.currentExtent;
 
-		const auto& resolution = info.windowHandler->GetVkInfo().resolution;
+		const auto& resolution = info.windowHandler->GetInfo().resolution;
 
 		VkExtent2D actualExtent =
 		{
