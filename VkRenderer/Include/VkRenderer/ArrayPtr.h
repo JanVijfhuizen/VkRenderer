@@ -14,11 +14,11 @@ namespace vi
 			size_t size;
 			size_t index;
 
-			T& operator*() const;
-			T& operator->() const;
+			[[nodiscard]] T& operator*() const;
+			[[nodiscard]] T& operator->() const;
 
-			const Iterator& operator++();
-			Iterator operator++(int);
+			[[nodiscard]] const Iterator& operator++();
+			[[nodiscard]] Iterator operator++(int);
 
 			friend bool operator==(const Iterator& a, const Iterator& b)
 			{
@@ -37,12 +37,12 @@ namespace vi
 		}
 
 		ArrayPtr();
-		explicit ArrayPtr(size_t size, FreeListAllocator& allocator);
+		explicit ArrayPtr(size_t size, FreeListAllocator& allocator, const T& initValue = {});
 		explicit ArrayPtr(void* begin, size_t size);
 		ArrayPtr(ArrayPtr<T>& other);
 		ArrayPtr(ArrayPtr<T>&& other) noexcept;
-		ArrayPtr<T>& operator=(ArrayPtr<T> const& other);
-		ArrayPtr<T>& operator=(ArrayPtr<T>&& other) noexcept;
+		[[nodiscard]] ArrayPtr<T>& operator=(ArrayPtr<T> const& other);
+		[[nodiscard]] ArrayPtr<T>& operator=(ArrayPtr<T>&& other) noexcept;
 		~ArrayPtr();
 
 		[[nodiscard]] constexpr Iterator begin() const;
@@ -59,7 +59,7 @@ namespace vi
 		size_t _size = 0;
 		FreeListAllocator* _allocator = nullptr;
 
-		ArrayPtr<T>& Move(ArrayPtr<T>& other);
+		[[nodiscard]] ArrayPtr<T>& Move(ArrayPtr<T>& other);
 	};
 
 	template <typename T>
@@ -150,11 +150,11 @@ namespace vi
 	ArrayPtr<T>::ArrayPtr() = default;
 
 	template <typename T>
-	ArrayPtr<T>::ArrayPtr(const size_t size, FreeListAllocator& allocator) : _size(size), _allocator(&allocator)
+	ArrayPtr<T>::ArrayPtr(const size_t size, FreeListAllocator& allocator, const T& initValue) : _size(size), _allocator(&allocator)
 	{
 		_data = reinterpret_cast<T*>(allocator.MAlloc(sizeof(T) * size));
 		for (uint32_t i = 0; i < size; ++i)
-			_data[i] = {};
+			_data[i] = initValue;
 	}
 
 	template <typename T>

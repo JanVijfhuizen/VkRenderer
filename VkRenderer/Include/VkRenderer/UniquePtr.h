@@ -11,8 +11,8 @@ namespace vi
 		UniquePtr(FreeListAllocator& allocator, Args... args);
 		UniquePtr(UniquePtr<T>& other);
 		UniquePtr(UniquePtr<T>&& other) noexcept;
-		UniquePtr<T>& operator=(UniquePtr<T> const& other);
-		UniquePtr<T>& operator=(UniquePtr<T>&& other) noexcept;
+		[[nodiscard]] UniquePtr<T>& operator=(UniquePtr<T> const& other);
+		[[nodiscard]] UniquePtr<T>& operator=(UniquePtr<T>&& other) noexcept;
 		~UniquePtr();
 
 		// ReSharper disable once CppNonExplicitConversionOperator
@@ -22,7 +22,7 @@ namespace vi
 		T* _ptr = nullptr;
 		FreeListAllocator* _allocator = nullptr;
 
-		UniquePtr<T>& Move(UniquePtr<T>& other);
+		[[nodiscard]] UniquePtr<T>& Move(UniquePtr<T>& other);
 	};
 
 	template <typename T>
