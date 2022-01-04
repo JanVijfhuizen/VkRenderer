@@ -10,6 +10,7 @@ namespace vi
 
 	FreeListAllocator::~FreeListAllocator()
 	{
+		// Delete all the blocks.
 		Block* current = _block;
 		while(current)
 		{
@@ -21,6 +22,9 @@ namespace vi
 
 	void* FreeListAllocator::MAlloc(const size_t size) const
 	{
+		assert(size <= _capacity);
+
+		// Try out all the blocks until allocation is successful.	
 		Block* previous = nullptr;
 		Block* current = _block;
 
@@ -34,21 +38,25 @@ namespace vi
 			current = current->child;
 		}
 
+		// If no block has enough space available, create a new block.
 		const auto block = new Block(_capacity);
 		previous->child = block;
 		return block->TryAllocate(size);
 	}
 
-	void FreeListAllocator::MFree(void* ptr) const
+	bool FreeListAllocator::MFree(void* ptr) const
 	{
+		// Tries to free the pointer.
 		Block* current = _block;
 		while (current)
 		{
 			if (current->TryFree(ptr))
-				return;
+				return true;
 
 			current = current->child;
 		}
+
+		return false;
 	}
 
 	size_t FreeListAllocator::GetCapacity() const
@@ -58,11 +66,14 @@ namespace vi
 
 	FreeListAllocator::Block::Block(size_t capacity)
 	{
+		// Allocates required amount of chunks.
 		capacity = ToChunkSize(capacity);
 		data = new size_t[capacity];
 		next = data;
 
+		// Set next pointer to null, since there is only one range so far.
 		*reinterpret_cast<void**>(data) = nullptr;
+		// Set the size. -2 due to the fact that chunk 1 and 2 are reserved for the next and size values.
 		next[1] = capacity - 2;
 	}
 
@@ -76,11 +87,13 @@ namespace vi
 		size = ToChunkSize(size);
 		size_t* current = next;
 
+		// Iterate over available memory ranges.
 		while (current)
 		{
 			auto& space = current[1];
 			const auto next = reinterpret_cast<size_t*>(*current);
 
+			// If there is not enough space.
 			if (space < size)
 			{
 				current = next;
@@ -89,6 +102,7 @@ namespace vi
 
 			const size_t diff = space - size;
 
+			// If there is still space left over, partition this range into two parts.
 			if (diff > 1)
 			{
 				space = size;
@@ -100,6 +114,7 @@ namespace vi
 				partitioned[1] = diff - 2;
 			}
 
+			// If the first memory range was used.
 			if (this->next == current)
 				this->next = reinterpret_cast<size_t*>(*current);
 			return &current[2];
@@ -114,15 +129,18 @@ namespace vi
 			return true;
 
 		const auto partition = reinterpret_cast<size_t*>(ptr) - 2;
+		// The memory range in front of this range (doesn't matter if it's out of bounds).
 		const auto adjecent = partition + partition[1] + 2;
 
 		size_t* previous = nullptr;
 		size_t* current = next;
 
+		// Iterates over the memory ranges.
 		while (current)
 		{
 			auto& space = current[1];
 
+			// If it's the memory range in front.
 			if (adjecent == current)
 			{
 				*partition = *current;
@@ -135,6 +153,7 @@ namespace vi
 				return true;
 			}
 
+			// If it's the memory range behind.
 			const auto currentAdjecent = current + space + 2;
 
 			if (currentAdjecent == partition)

@@ -3,7 +3,13 @@ constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 
 #include "FreeListAllocator.h"
 
+/// <summary>
+/// Memory allocator used for long term allocations.
+/// </summary>
 inline vi::FreeListAllocator GMEM{ 4096 };
+/// <summary>
+/// Memory allocator used for quick temporary allocations.
+/// </summary>
 inline vi::FreeListAllocator GMEM_TEMP{ 4096 };
 
 #define GLFW_INCLUDE_VULKAN

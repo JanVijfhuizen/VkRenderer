@@ -3,7 +3,9 @@
 
 namespace vi
 {
-	/// <summary>Container class that points to a memory range. If given an allocator, it can own that memory range.</summary>
+	/// <summary>
+	/// Container class that points to a memory range. If given an allocator, it can own that memory range.
+	/// </summary>
 	template <typename T>
 	class ArrayPtr final
 	{

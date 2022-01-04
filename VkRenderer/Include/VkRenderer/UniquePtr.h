@@ -2,7 +2,9 @@
 
 namespace vi
 {
-	/// <summary>Smart pointer that manages the lifetime of an object on the heap.</summary>
+	/// <summary>
+	/// Smart pointer that manages the lifetime of an object on the heap.
+	/// </summary>
 	template <typename T>
 	class UniquePtr final
 	{
