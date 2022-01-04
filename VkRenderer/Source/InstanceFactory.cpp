@@ -13,7 +13,7 @@ namespace vi
 		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.GetSize());
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.GetLength());
 		createInfo.ppEnabledExtensionNames = extensions.GetData();
 
 		auto validationCreateInfo = info.debugger->CreateInfo();
@@ -51,11 +51,11 @@ namespace vi
 		debugExtensions = 1;
 		#endif
 
-		ArrayPtr<const char*> extensions(requiredExtensions.GetSize() + info.settings.additionalExtensions.size() + debugExtensions, GMEM_TEMP);
-		memcpy(extensions.GetData(), requiredExtensions.GetData(), requiredExtensions.GetSize() * sizeof(const char*));
+		ArrayPtr<const char*> extensions(requiredExtensions.GetLength() + info.settings.additionalExtensions.size() + debugExtensions, GMEM_TEMP);
+		memcpy(extensions.GetData(), requiredExtensions.GetData(), requiredExtensions.GetLength() * sizeof(const char*));
 
 		#ifdef _DEBUG
-		extensions[extensions.GetSize() - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+		extensions[extensions.GetLength() - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 		#endif
 
 		return extensions;

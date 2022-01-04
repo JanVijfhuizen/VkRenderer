@@ -165,7 +165,7 @@ namespace vi
 		presentInfo.pImageIndices = &_imageIndex;
 
 		const auto result = vkQueuePresentKHR(_info.queues.present, &presentInfo);
-		_frameIndex = (_frameIndex + 1) % _frames.GetSize();
+		_frameIndex = (_frameIndex + 1) % _frames.GetLength();
 
 		return result;
 	}
@@ -182,7 +182,7 @@ namespace vi
 
 	uint32_t SwapChain::GetImageCount() const
 	{
-		return _images.GetSize();
+		return _images.GetLength();
 	}
 
 	uint32_t SwapChain::GetCurrentImageIndex() const
@@ -228,7 +228,7 @@ namespace vi
 	void SwapChain::CreateImages() const
 	{
 		const auto renderer = _info.renderer;
-		uint32_t count = _images.GetSize();
+		uint32_t count = _images.GetLength();
 
 		const auto vkImages = ArrayPtr<VkImage>(count, GMEM_TEMP);
 		vkGetSwapchainImagesKHR(_info.device, _swapChain, &count, vkImages.GetData());
@@ -256,7 +256,7 @@ namespace vi
 	void SwapChain::CreateBuffers() const
 	{
 		auto renderer = _info.renderer;
-		const uint32_t count = _images.GetSize();
+		const uint32_t count = _images.GetLength();
 
 		const auto commandBuffers = ArrayPtr<VkCommandBuffer>(count, GMEM_TEMP);
 
@@ -264,7 +264,7 @@ namespace vi
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.commandPool = _info.commandPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.GetSize());
+		allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.GetLength());
 
 		const auto result = vkAllocateCommandBuffers(_info.device, &allocInfo, commandBuffers.GetData());
 		assert(!result);
