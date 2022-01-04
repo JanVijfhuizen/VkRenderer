@@ -52,7 +52,7 @@ namespace vi
 		~ArrayPtr();
 
 		[[nodiscard]] constexpr Iterator begin() const;
-		[[nodiscard]] Iterator end() const;
+		[[nodiscard]] virtual Iterator end() const;
 
 		/// <returns>If data is a nullptr.</returns> 
 		[[nodiscard]] constexpr bool IsNull() const;
