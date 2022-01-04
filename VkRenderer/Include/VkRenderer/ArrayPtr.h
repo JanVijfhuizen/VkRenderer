@@ -7,7 +7,7 @@ namespace vi
 	/// Container class that points to a memory range. If given an allocator, it can own that memory range.
 	/// </summary>
 	template <typename T>
-	class ArrayPtr final
+	class ArrayPtr
 	{
 	public:
 		class Iterator final
@@ -62,6 +62,8 @@ namespace vi
 		[[nodiscard]] constexpr T* GetData() const;
 		/// <returns>If the array owns the data.</returns> 
 		[[nodiscard]] bool GetHasOwnership() const;
+		/// <returns>Used allocator, if any.</returns>
+		[[nodiscard]] FreeListAllocator* GetAllocator() const;
 
 		/// <summary>Copy a range of values into this array.</summary>
 		/// <param name="other">Other array from which to copy the values.</param>  
@@ -78,7 +80,7 @@ namespace vi
 		/// <param name="start">Start of the memory range (inclusive).</param>  
 		/// <param name="end">End of the memory range (exclusive).</param>  
 		/// <param name="initValue">The value to reset the everything to.</param>  
-		void ResetValues(uint32_t start, int32_t end, const T& initValue);
+		void ResetValues(uint32_t start, int32_t end, const T& initValue = {});
 
 		/// <summary>If the memory is owned, deallocate it. Then reset all values.</summary>
 		void Free();
@@ -133,6 +135,12 @@ namespace vi
 
 	template <typename T>
 	bool ArrayPtr<T>::GetHasOwnership() const
+	{
+		return _allocator;
+	}
+
+	template <typename T>
+	FreeListAllocator* ArrayPtr<T>::GetAllocator() const
 	{
 		return _allocator;
 	}
