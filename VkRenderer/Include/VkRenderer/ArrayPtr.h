@@ -3,7 +3,7 @@
 
 namespace vi
 {
-	/// <summary> Container class that points to a memory range. If given an allocator, it can own that memory range. </summary>
+	/// <summary>Container class that points to a memory range. If given an allocator, it can own that memory range.</summary>
 	template <typename T>
 	class ArrayPtr final
 	{
@@ -38,9 +38,9 @@ namespace vi
 		}
 
 		ArrayPtr();
-		// Create the array as the owner of a memory range.
+		/// <summary>Create the array as the owner of a memory range.</summary>
 		explicit ArrayPtr(size_t size, FreeListAllocator& allocator, const T& initValue = {});
-		// Create the array as an observer to a memory range owned by something else.
+		/// <summary>Create the array as an observer to a memory range owned by something else.</summary>
 		explicit ArrayPtr(void* begin, size_t size);
 
 		ArrayPtr(ArrayPtr<T>& other);
@@ -70,7 +70,7 @@ namespace vi
 		void CopyData(const ArrayPtr<T>& other, uint32_t begin = 0, int32_t end = -1, uint32_t otherBegin = 0) const;
 		/// <summary>Reallocate the values to a new memory location. If this owns the previous memory range, deallocate it.</summary>
 		/// <param name="length">The new length of the array. If it's smaller than before, only copies the values in that range.</param>  
-		/// <param name="allocator">The object that allocates the new memory range.</param>  
+		/// <param name="allocator">The allocator that holds the new memory range.</param>  
 		void Reallocate(size_t length, FreeListAllocator& allocator);
 		/// <summary>Resets all values in a given range.</summary>
 		/// <param name="start">Start of the memory range (inclusive).</param>  

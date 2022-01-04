@@ -2,11 +2,13 @@
 
 namespace vi
 {
+	/// <summary>Smart pointer that manages the lifetime of an object on the heap.</summary>
 	template <typename T>
 	class UniquePtr final
 	{
 	public:
-		// ReSharper disable once CppNonExplicitConvertingConstructor
+		/// <param name="allocator">The allocator that holds the owned object</summary>
+		/// <param name="args">Variadic arguments which are passed to the object's constructor.</param>
 		template <typename ...Args>
 		UniquePtr(FreeListAllocator& allocator, Args... args);
 		UniquePtr(UniquePtr<T>& other);
