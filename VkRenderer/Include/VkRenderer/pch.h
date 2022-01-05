@@ -12,18 +12,28 @@ constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 #include "FreeListAllocator.h"
 #include "Utilities.h"
 #include "UniquePtr.h"
+#include "Iterator.h"
 #include "ArrayPtr.h"
 #include "ViVector.h"
+#include "BinTree.h";
+#include "HashMap.h"
 #include "ViString.h"
+#include "CStrRef.h"
+
+const size_t GMEM_SIZE = 65536;
 
 /// <summary>
 /// Memory allocator used for long term allocations.
 /// </summary>
-inline vi::FreeListAllocator GMEM{ 4096 };
+inline vi::FreeListAllocator GMEM{ GMEM_SIZE };
+/// <summary>
+/// Memory allocator used for long term volatile allocations.
+/// </summary>
+inline vi::FreeListAllocator GMEM_VOL{ GMEM_SIZE };
 /// <summary>
 /// Memory allocator used for quick temporary allocations.
 /// </summary>
-inline vi::FreeListAllocator GMEM_TEMP{ 4096 };
+inline vi::FreeListAllocator GMEM_TEMP{ GMEM_SIZE };
 
 #define GLFW_INCLUDE_VULKAN
 #include "vulkan/vulkan.h"

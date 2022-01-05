@@ -24,7 +24,17 @@ namespace vi
 		/// </summary>
 		template <typename T>
 		static T Lerp(const T& t, const T& a, const T& b);
+
+		static size_t StrLen(const char* cStr);
 	};
+
+	inline size_t Ut::StrLen(const char* cStr)
+	{
+		size_t result = 0;
+		while (cStr[result++] != '\0')
+			;
+		return result;
+	}
 
 	template <typename T>
 	T Ut::Min(const T& a, const T& b)
