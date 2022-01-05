@@ -230,6 +230,7 @@ namespace vi
 
 		BinTree<VkPhysicalDevice> candidates{ deviceCount, GMEM_TEMP};
 
+		// Add all potential candidates in a sorted way.
 		for (const auto& device : devices)
 		{
 			VkPhysicalDeviceProperties deviceProperties;
@@ -264,7 +265,7 @@ namespace vi
 		value = candidates.Peek();
 	}
 
-	VkCore::PhysicalDevice::operator VkPhysicalDevice_T*() const
+	VkCore::PhysicalDevice::operator VkPhysicalDevice() const
 	{
 		return value;
 	}
@@ -278,9 +279,10 @@ namespace vi
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
+		ArrayPtr<VkQueueFamilyProperties> queueFamilies{queueFamilyCount, GMEM_TEMP};
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.GetData());
 
+		// Check for hardware capabilities.
 		uint32_t i = 0;
 		for (const auto& queueFamily : queueFamilies)
 		{
@@ -316,6 +318,7 @@ namespace vi
 		uint32_t score = 0;
 		auto& properties = deviceInfo.properties;
 
+		// Arbitrary increase in score, not sure what to look for to be honest.
 		if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 			score += 1000;
 		score += properties.limits.maxImageDimension2D;
@@ -332,6 +335,8 @@ namespace vi
 
 		ArrayPtr<VkExtensionProperties> availableExtensions{ extensionCount, GMEM_TEMP };
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.GetData());
+
+		// todo custom set.
 
 		std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
 

@@ -25,9 +25,9 @@ namespace vi
 		ArrayPtr(ArrayPtr<T>&& other) noexcept;
 		ArrayPtr<T>& operator=(ArrayPtr<T> const& other);
 		ArrayPtr<T>& operator=(ArrayPtr<T>&& other) noexcept;
-		~ArrayPtr();
+		virtual ~ArrayPtr();
 
-		[[nodiscard]] constexpr Iterator<T> begin() const;
+		[[nodiscard]] virtual Iterator<T> begin() const;
 		[[nodiscard]] virtual Iterator<T> end() const;
 
 		/// <returns>If data is a nullptr.</returns> 
@@ -70,7 +70,7 @@ namespace vi
 	};
 
 	template <typename T>
-	constexpr Iterator<T> ArrayPtr<T>::begin() const
+	Iterator<T> ArrayPtr<T>::begin() const
 	{
 		Iterator<T> it{};
 		it.begin = _data;
