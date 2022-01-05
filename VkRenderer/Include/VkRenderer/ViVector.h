@@ -35,7 +35,7 @@ namespace vi
 		assert(allocator);
 		const size_t length = ArrayPtr<T>::GetLength();
 		if(++_count >= length)
-			ArrayPtr<T>::Reallocate(length * 2, *allocator);
+			ArrayPtr<T>::Reallocate(Ut::Max<size_t>(1, length * 2), *allocator);
 		ArrayPtr<T>::operator[](_count - 1) = value;
 	}
 

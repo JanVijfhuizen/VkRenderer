@@ -177,7 +177,7 @@ namespace vi
 	template <typename T>
 	void ArrayPtr<T>::ResetValues(const uint32_t start, int32_t end, const T& initValue)
 	{
-		assert(start < end);
+		assert(start <= end);
 		assert(end <= static_cast<int32_t>(_length));
 
 		end = end > -1 ? end : _length;
