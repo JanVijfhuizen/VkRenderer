@@ -11,10 +11,11 @@ namespace vi
 
 		void Add(const T& value = {});
 		void RemoveAt(size_t index);
+		void Clear();
 
 		[[nodiscard]] size_t GetCount() const;
 
-		[[nodiscard]] typename ArrayPtr<T>::Iterator end() const override;
+		[[nodiscard]] Iterator<T> end() const override;
 
 	private:
 		size_t _count = 0;
@@ -35,7 +36,7 @@ namespace vi
 		assert(allocator);
 		const size_t length = ArrayPtr<T>::GetLength();
 		if(++_count >= length)
-			ArrayPtr<T>::Reallocate(length * 2, *allocator);
+			ArrayPtr<T>::Reallocate(Ut::Max<size_t>(1, length * 2), *allocator);
 		ArrayPtr<T>::operator[](_count - 1) = value;
 	}
 
@@ -46,15 +47,21 @@ namespace vi
 	}
 
 	template <typename T>
+	void Vector<T>::Clear()
+	{
+		_count = 0;
+	}
+
+	template <typename T>
 	size_t Vector<T>::GetCount() const
 	{
 		return _count;
 	}
 
 	template <typename T>
-	typename ArrayPtr<T>::Iterator Vector<T>::end() const
+	Iterator<T> Vector<T>::end() const
 	{
-		typename ArrayPtr<T>::Iterator it{};
+		Iterator<T> it{};
 		it.begin = ArrayPtr<T>::GetData();
 		it.length = _count;
 		it.index = _count;

@@ -20,9 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\VkRenderer\ArrayPtr.h" />
+    <ClInclude Include="Include\VkRenderer\BinTree.h" />
     <ClInclude Include="Include\VkRenderer\FreeListAllocator.h" />
+    <ClInclude Include="Include\VkRenderer\HashMap.h" />
+    <ClInclude Include="Include\VkRenderer\Iterator.h" />
+    <ClInclude Include="Include\VkRenderer\KeyValue.h" />
     <ClInclude Include="Include\VkRenderer\LogicalDeviceFactory.h" />
     <ClInclude Include="Include\VkRenderer\Queues.h" />
+    <ClInclude Include="Include\VkRenderer\CStrRef.h" />
     <ClInclude Include="Include\VkRenderer\ViString.h" />
     <ClInclude Include="Include\VkRenderer\SwapChain.h" />
     <ClInclude Include="Include\VkRenderer\PhysicalDeviceFactory.h" />

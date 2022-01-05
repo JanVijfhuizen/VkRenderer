@@ -6,9 +6,21 @@
 #include "Rendering/DefaultMaterial.h"
 #include "Rendering/ShadowCaster.h"
 #include "Rendering/Light.h"
+#include "VkRenderer/VkCore.h"
+#include "VkRenderer/WindowHandlerGLFW.h"
+
 
 int main()
 {
+	{
+		vi::WindowHandlerGLFW windowHandler;
+
+		vi::VkCore::Info info{};
+		info.windowHandler = &windowHandler;
+
+		vi::VkCore core{info};
+	}
+
 	Engine::Info info{};
 
 	info.awake = []()

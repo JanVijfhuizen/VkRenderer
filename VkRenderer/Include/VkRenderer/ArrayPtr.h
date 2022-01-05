@@ -10,30 +10,6 @@ namespace vi
 	class ArrayPtr
 	{
 	public:
-		class Iterator final
-		{
-		public:
-			T* begin;
-			size_t length;
-			size_t index;
-
-			T& operator*() const;
-			T& operator->() const;
-
-			const Iterator& operator++();
-			Iterator operator++(int);
-
-			friend bool operator==(const Iterator& a, const Iterator& b)
-			{
-				return a.index == b.index;
-			};
-
-			friend bool operator!= (const Iterator& a, const Iterator& b)
-			{
-				return !(a == b);
-			}
-		};
-
 		[[nodiscard]] constexpr T& operator[](uint32_t index) const
 		{
 			return _data[index];
@@ -49,10 +25,10 @@ namespace vi
 		ArrayPtr(ArrayPtr<T>&& other) noexcept;
 		ArrayPtr<T>& operator=(ArrayPtr<T> const& other);
 		ArrayPtr<T>& operator=(ArrayPtr<T>&& other) noexcept;
-		~ArrayPtr();
+		virtual ~ArrayPtr();
 
-		[[nodiscard]] constexpr Iterator begin() const;
-		[[nodiscard]] virtual Iterator end() const;
+		[[nodiscard]] virtual Iterator<T> begin() const;
+		[[nodiscard]] virtual Iterator<T> end() const;
 
 		/// <returns>If data is a nullptr.</returns> 
 		[[nodiscard]] constexpr bool IsNull() const;
@@ -94,9 +70,9 @@ namespace vi
 	};
 
 	template <typename T>
-	constexpr typename ArrayPtr<T>::Iterator ArrayPtr<T>::begin() const
+	Iterator<T> ArrayPtr<T>::begin() const
 	{
-		Iterator it{};
+		Iterator<T> it{};
 		it.begin = _data;
 		it.length = _length;
 		it.index = 0;
@@ -123,9 +99,9 @@ namespace vi
 	}
 
 	template <typename T>
-	typename ArrayPtr<T>::Iterator ArrayPtr<T>::end() const
+	Iterator<T> ArrayPtr<T>::end() const
 	{
-		Iterator it{};
+		Iterator<T> it{};
 		it.begin = _data;
 		it.length = _length;
 		it.index = _length;
@@ -177,7 +153,7 @@ namespace vi
 	template <typename T>
 	void ArrayPtr<T>::ResetValues(const uint32_t start, int32_t end, const T& initValue)
 	{
-		assert(start < end);
+		assert(start <= end);
 		assert(end <= static_cast<int32_t>(_length));
 
 		end = end > -1 ? end : _length;
@@ -205,33 +181,6 @@ namespace vi
 		other._data = nullptr;
 		other._allocator = nullptr;
 		return *this;
-	}
-
-	template <typename T>
-	T& ArrayPtr<T>::Iterator::operator*() const
-	{
-		return begin[index];
-	}
-
-	template <typename T>
-	T& ArrayPtr<T>::Iterator::operator->() const
-	{
-		return begin[index];
-	}
-
-	template <typename T>
-	const typename ArrayPtr<T>::Iterator& ArrayPtr<T>::Iterator::operator++()
-	{
-		++index;
-		return *this;
-	}
-
-	template <typename T>
-	typename ArrayPtr<T>::Iterator ArrayPtr<T>::Iterator::operator++(int)
-	{
-		Iterator temp(begin, length, index);
-		++index;
-		return temp;
 	}
 
 	template <typename T>
