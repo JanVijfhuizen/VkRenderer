@@ -4,10 +4,10 @@
 namespace vi
 {
 	template <typename T>
-	class BinTree final : public ArrayPtr<KeyValue<T, int32_t>>
+	class BinTree final : public ArrayPtr<KeyValue<int32_t, T>>
 	{
 	public:
-		typedef KeyValue<T, int32_t> Node;
+		typedef KeyValue<int32_t, T> Node;
 
 		explicit BinTree(size_t size, FreeListAllocator& allocator);
 
@@ -17,8 +17,9 @@ namespace vi
 
 		void Clear();
 		[[nodiscard]] size_t GetCount() const;
+		[[nodiscard]] bool IsEmpty() const;
 
-		[[nodiscard]] Iterator<KeyValue<T, int32_t>> end() const override;
+		[[nodiscard]] Iterator<Node> end() const override;
 	private:
 		size_t _count = 0;
 
@@ -47,7 +48,9 @@ namespace vi
 	T BinTree<T>::Peek()
 	{
 		assert(_count > 0);
-		return ArrayPtr<Node>::GetData()[1];
+		const auto data = ArrayPtr<Node>::GetData();
+		const T value = data[1].value;
+		return value;
 	}
 
 	template <typename T>
@@ -76,7 +79,13 @@ namespace vi
 	}
 
 	template <typename T>
-	Iterator<KeyValue<T, int32_t>> BinTree<T>::end() const
+	bool BinTree<T>::IsEmpty() const
+	{
+		return GetCount() == 0;
+	}
+
+	template <typename T>
+	Iterator<KeyValue<int32_t, T>> BinTree<T>::end() const
 	{
 		Iterator<Node> it{};
 		it.begin = ArrayPtr<Node>::GetData();

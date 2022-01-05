@@ -26,6 +26,9 @@ namespace vi
 		~VkCore();
 
 	private:
+		WindowHandler* _windowHandler;
+		VkSurfaceKHR _surface;
+
 		struct Instance;
 
 		/// <summary>
@@ -37,7 +40,6 @@ namespace vi
 
 			void Setup(const Instance& instance);
 			void Cleanup(const Instance& instance) const;
-
 			operator VkDebugUtilsMessengerEXT() const;
 
 			static void CheckValidationSupport(const Info& info);
@@ -65,22 +67,70 @@ namespace vi
 		{
 			VkInstance value;
 
-			void Setup(const Info& info, Debugger& debugger);
+			void Setup(const Info& info, const Debugger& debugger);
 			void Cleanup() const;
-
 			operator VkInstance() const;
 
 			[[nodiscard]] static VkApplicationInfo CreateApplicationInfo(const Info& info);
 			[[nodiscard]] static ArrayPtr<const char*> GetExtensions(const Info& info);		
 		} _instance;
 
+		/// <summary>
+		/// Contains all the physical device related methods and variables.
+		/// </summary>
 		struct PhysicalDevice final
 		{
+			struct QueueFamilies final
+			{
+				union
+				{
+					struct
+					{
+						uint32_t graphics;
+						uint32_t present;
+					};
+
+					uint32_t values[2]
+					{
+						UINT32_MAX,
+						UINT32_MAX
+					};
+				};
+
+				[[nodiscard]] explicit operator bool() const;
+			};
+
+			struct DeviceInfo final
+			{
+				VkPhysicalDevice device;
+				VkPhysicalDeviceProperties properties;
+				VkPhysicalDeviceFeatures features;
+			};
+
 			VkPhysicalDevice value;
 
-			void Setup(const Instance& instance);
-
+			void Setup(const Info& info, const Instance& instance, const VkSurfaceKHR& surface);
 			operator VkPhysicalDevice() const;
+
+			[[nodiscard]] static QueueFamilies GetQueueFamilies(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
+			[[nodiscard]] static bool IsDeviceSuitable(VkSurfaceKHR surface, const DeviceInfo& deviceInfo);
+			[[nodiscard]] static uint32_t RateDevice(const DeviceInfo& deviceInfo);
+			[[nodiscard]] static bool CheckDeviceExtensionSupport(VkPhysicalDevice device, const ArrayPtr<const char*>& extensions);
 		} _physicalDevice;
+
+		struct SwapChain final
+		{
+			struct SupportDetails final
+			{
+				VkSurfaceCapabilitiesKHR capabilities;
+				ArrayPtr<VkSurfaceFormatKHR> formats;
+				ArrayPtr<VkPresentModeKHR> presentModes;
+
+				[[nodiscard]] explicit operator bool() const;
+				[[nodiscard]] uint32_t GetRecommendedImageCount() const;
+			};
+
+			[[nodiscard]] static SupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
+		};
 	};
 }

@@ -18,7 +18,7 @@ constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 #include "BinTree.h";
 #include "ViString.h"
 
-const size_t GMEM_SIZE = 16384;
+const size_t GMEM_SIZE = 65536;
 
 /// <summary>
 /// Memory allocator used for long term allocations.
