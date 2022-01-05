@@ -336,8 +336,8 @@ namespace vi
 		ArrayPtr<VkExtensionProperties> availableExtensions{ extensionCount, GMEM_TEMP };
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.GetData());
 
-		// todo custom set.
-		HashMap<StringHashable> hashMap{ extensionCount, GMEM_TEMP };
+		// Check if every required extension is available.
+		HashMap<CStrRef> hashMap{ extensionCount, GMEM_TEMP };
 		for (auto& extension : extensions)
 			hashMap.Insert(extension);
 
@@ -345,12 +345,6 @@ namespace vi
 			hashMap.Erase(extension.extensionName);
 
 		return hashMap.IsEmpty();
-
-		std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
-
-		for (const auto& extension : availableExtensions)
-			requiredExtensions.erase(extension.extensionName);
-		return requiredExtensions.empty();
 	}
 
 	VkCore::SwapChain::SupportDetails::operator bool() const

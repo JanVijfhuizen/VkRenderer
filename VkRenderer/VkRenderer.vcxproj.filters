@@ -78,7 +78,7 @@
     <ClInclude Include="Include\VkRenderer\HashMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VkRenderer\StringHashable.h">
+    <ClInclude Include="Include\VkRenderer\CStrRef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
