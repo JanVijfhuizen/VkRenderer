@@ -14,7 +14,7 @@ namespace vi
 
 		[[nodiscard]] size_t GetCount() const;
 
-		[[nodiscard]] typename ArrayPtr<T>::Iterator end() const override;
+		[[nodiscard]] Iterator<T> end() const override;
 
 	private:
 		size_t _count = 0;
@@ -52,9 +52,9 @@ namespace vi
 	}
 
 	template <typename T>
-	typename ArrayPtr<T>::Iterator Vector<T>::end() const
+	Iterator<T> Vector<T>::end() const
 	{
-		typename ArrayPtr<T>::Iterator it{};
+		Iterator<T> it{};
 		it.begin = ArrayPtr<T>::GetData();
 		it.length = _count;
 		it.index = _count;

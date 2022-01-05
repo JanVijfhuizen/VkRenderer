@@ -2,6 +2,10 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Standard iterator for data containers like vectors/arrays.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	template <typename T>
 	class Iterator final
 	{

@@ -12,6 +12,7 @@ constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 #include "FreeListAllocator.h"
 #include "Utilities.h"
 #include "UniquePtr.h"
+#include "Iterator.h"
 #include "ArrayPtr.h"
 #include "ViVector.h"
 #include "ViString.h"
