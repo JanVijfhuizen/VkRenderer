@@ -13,17 +13,6 @@
 int main()
 {
 	{
-		vi::HashMap<int> map{20, GMEM_TEMP};
-		map.Insert(20);
-		map.Insert(2500);
-
-		std::cout << map.GetCount() << std::endl;
-		map.Erase(20);
-		map.Erase(100);
-		std::cout << map.GetCount() << std::endl;
-	}
-
-	{
 		vi::WindowHandlerGLFW windowHandler;
 
 		vi::VkCore::Info info{};

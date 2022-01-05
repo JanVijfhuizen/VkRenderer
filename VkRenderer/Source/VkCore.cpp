@@ -337,6 +337,14 @@ namespace vi
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.GetData());
 
 		// todo custom set.
+		HashMap<StringHashable> hashMap{ extensionCount, GMEM_TEMP };
+		for (auto& extension : extensions)
+			hashMap.Insert(extension);
+
+		for (const auto& extension : availableExtensions)
+			hashMap.Erase(extension.extensionName);
+
+		return hashMap.IsEmpty();
 
 		std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
 

@@ -27,6 +27,7 @@
     <ClInclude Include="Include\VkRenderer\KeyValue.h" />
     <ClInclude Include="Include\VkRenderer\LogicalDeviceFactory.h" />
     <ClInclude Include="Include\VkRenderer\Queues.h" />
+    <ClInclude Include="Include\VkRenderer\StringHashable.h" />
     <ClInclude Include="Include\VkRenderer\ViString.h" />
     <ClInclude Include="Include\VkRenderer\SwapChain.h" />
     <ClInclude Include="Include\VkRenderer\PhysicalDeviceFactory.h" />

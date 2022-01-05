@@ -53,7 +53,8 @@ namespace vi
 			index = (index + 1) % length;
 		} while (node->key != -1);
 
-		*node = { hash, value };
+		node->value = value;
+		node->key = index - 1;
 	}
 
 	template <typename T>
