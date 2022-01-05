@@ -11,6 +11,7 @@ namespace vi
 
 		void Add(const T& value = {});
 		void RemoveAt(size_t index);
+		void Clear();
 
 		[[nodiscard]] size_t GetCount() const;
 
@@ -43,6 +44,12 @@ namespace vi
 	void Vector<T>::RemoveAt(const size_t index)
 	{
 		ArrayPtr<T>::operator[](index) = ArrayPtr<T>::operator[](_count-- -1);
+	}
+
+	template <typename T>
+	void Vector<T>::Clear()
+	{
+		_count = 0;
 	}
 
 	template <typename T>

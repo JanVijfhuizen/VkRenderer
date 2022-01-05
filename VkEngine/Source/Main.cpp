@@ -12,6 +12,25 @@
 int main()
 {
 	{
+		vi::BinTree<float> tree{ 10, GMEM_TEMP };
+		tree.Push({1, 1});
+		tree.Push({ 5, 5 });
+		tree.Push({ 3, 3 });
+		tree.Push({ 8, 8 });
+		tree.Push({ 9, 9 });
+		tree.Push({ 6, 6 });
+		tree.Push({ 2, 2 });
+		tree.Push({ 4, 4 });
+		tree.Push({ 7, 7 });
+		tree.Push({ 0, 0 });
+
+		for (int i = 0; i < 10; ++i)
+		{
+			std::cout << tree.Pop() << std::endl;
+		}
+	}
+
+	{
 		vi::WindowHandlerGLFW windowHandler;
 
 		vi::VkCore::Info info{};

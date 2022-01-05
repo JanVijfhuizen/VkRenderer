@@ -15,6 +15,7 @@ constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 #include "Iterator.h"
 #include "ArrayPtr.h"
 #include "ViVector.h"
+#include "BinTree.h";
 #include "ViString.h"
 
 const size_t GMEM_SIZE = 16384;
