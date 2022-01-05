@@ -14,19 +14,7 @@ namespace vi
 	class VkCore final
 	{
 	public:
-		struct Info final
-		{
-			// Handler that sets up the window.
-			WindowHandler* windowHandler = nullptr;
-			// Extensions for the physical device.
-			Vector<const char*> deviceExtensions{1, GMEM_TEMP};
-			// Validation layers used for debugging.
-			Vector<const char*> validationLayers{1, GMEM_TEMP};
-			// Optional extensions for the vulkan instance.
-			Vector<const char*> additionalExtensions{0, GMEM_TEMP};
-		};
-
-		explicit VkCore(Info& info);
+		explicit VkCore(VkCoreInfo& info);
 		~VkCore();
 
 		void DeviceWaitIdle() const;
@@ -35,51 +23,8 @@ namespace vi
 		WindowHandler* _windowHandler;
 		VkSurfaceKHR _surface;
 
-		struct Instance;
-
-		/// <summary>
-		/// Contains all the debug related methods and variables.
-		/// </summary>
-		struct Debugger final
-		{
-			VkDebugUtilsMessengerEXT value;
-
-			void Setup(const Instance& instance);
-			void Cleanup(const Instance& instance) const;
-			operator VkDebugUtilsMessengerEXT() const;
-
-			static void CheckValidationSupport(const Info& info);
-			[[nodiscard]] static VkDebugUtilsMessengerCreateInfoEXT CreateInfo();
-			static void EnableValidationLayers(const Info& info, VkDebugUtilsMessengerCreateInfoEXT& debugInfo, VkInstanceCreateInfo& instanceInfo);
-
-			[[nodiscard]] static VkBool32 DebugCallback(
-				VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-				VkDebugUtilsMessageTypeFlagsEXT messageType,
-				const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-				void* pUserData);
-			[[nodiscard]] static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
-				const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-				const VkAllocationCallbacks* pAllocator,
-				VkDebugUtilsMessengerEXT* pDebugMessenger);
-			static void DestroyDebugUtilsMessengerEXT(VkInstance instance,
-				VkDebugUtilsMessengerEXT debugMessenger,
-				const VkAllocationCallbacks* pAllocator);	
-		} _debugger;
-
-		/// <summary>
-		/// Contains all the instance related methods and variables.
-		/// </summary>
-		struct Instance final
-		{
-			VkInstance value;
-
-			void Setup(const Info& info, const Debugger& debugger);
-			void Cleanup() const;
-			operator VkInstance() const;
-
-			[[nodiscard]] static VkApplicationInfo CreateApplicationInfo(const Info& info);
-			[[nodiscard]] static ArrayPtr<const char*> GetExtensions(const Info& info);		
-		} _instance;
+		VkCoreDebugger _debugger;
+		VkCoreInstance _instance;
 
 		/// <summary>
 		/// Contains all the physical device related methods and variables.
@@ -115,7 +60,7 @@ namespace vi
 
 			VkPhysicalDevice value;
 
-			void Setup(const Info& info, const Instance& instance, const VkSurfaceKHR& surface);
+			void Setup(const VkCoreInfo& info, const VkCoreInstance& instance, const VkSurfaceKHR& surface);
 			operator VkPhysicalDevice() const;
 
 			[[nodiscard]] static QueueFamilies GetQueueFamilies(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
@@ -138,7 +83,7 @@ namespace vi
 				VkQueue queues[2];
 			};
 
-			void Setup(const Info& info, VkSurfaceKHR surface, const PhysicalDevice& physicalDevice);
+			void Setup(const VkCoreInfo& info, VkSurfaceKHR surface, const PhysicalDevice& physicalDevice);
 			void Cleanup() const;
 			operator VkDevice() const;
 		} _logicalDevice;

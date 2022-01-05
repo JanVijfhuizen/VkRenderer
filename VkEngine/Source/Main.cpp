@@ -15,7 +15,7 @@ int main()
 	{
 		vi::WindowHandlerGLFW windowHandler;
 
-		vi::VkCore::Info info{};
+		vi::VkCoreInfo info{};
 		info.windowHandler = &windowHandler;
 
 		vi::VkCore core{info};
