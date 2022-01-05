@@ -28,6 +28,9 @@ namespace vi
 	private:
 		struct Instance;
 
+		/// <summary>
+		/// Contains all the debug related methods and variables.
+		/// </summary>
 		struct Debugger final
 		{
 			VkDebugUtilsMessengerEXT value;
@@ -55,6 +58,9 @@ namespace vi
 				const VkAllocationCallbacks* pAllocator);	
 		} _debugger;
 
+		/// <summary>
+		/// Contains all the instance related methods and variables.
+		/// </summary>
 		struct Instance final
 		{
 			VkInstance value;
@@ -67,5 +73,14 @@ namespace vi
 			[[nodiscard]] static VkApplicationInfo CreateApplicationInfo(const Info& info);
 			[[nodiscard]] static ArrayPtr<const char*> GetExtensions(const Info& info);		
 		} _instance;
+
+		struct PhysicalDevice final
+		{
+			VkPhysicalDevice value;
+
+			void Setup(const Instance& instance);
+
+			operator VkPhysicalDevice() const;
+		} _physicalDevice;
 	};
 }

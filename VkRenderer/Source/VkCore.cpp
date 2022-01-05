@@ -15,10 +15,9 @@ namespace vi
 		// Check debugging support.
 		_debugger.CheckValidationSupport(info);
 
-		// Set up vulkan instance.
 		_instance.Setup(info, _debugger);
-		// Set up debugger.
 		_debugger.Setup(_instance);
+		_physicalDevice.Setup(_instance);
 	}
 
 	VkCore::~VkCore()
@@ -58,7 +57,6 @@ namespace vi
 		return;
 		#endif
 
-		// Parse properties into array.
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -192,6 +190,7 @@ namespace vi
 		debugExtensions = 1;
 		#endif
 
+		// Merge all extensions into one array.
 		const size_t size = requiredExtensions.GetLength() + additionalExtensions.GetCount() + debugExtensions;
 		ArrayPtr<const char*> extensions(size, GMEM_TEMP);
 		extensions.CopyData(requiredExtensions, 0, requiredExtensions.GetLength());
@@ -202,5 +201,56 @@ namespace vi
 		#endif
 
 		return extensions;
+	}
+
+	void VkCore::PhysicalDevice::Setup(const Instance& instance)
+	{
+		uint32_t deviceCount = 0;
+		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+		assert(deviceCount);
+
+		ArrayPtr<VkPhysicalDevice> devices{deviceCount, GMEM_TEMP};
+		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.GetData());
+		/*
+		std::multimap<uint32_t, VkPhysicalDevice> candidates;
+
+		for (const auto& device : devices)
+		{
+			VkPhysicalDeviceProperties deviceProperties;
+			VkPhysicalDeviceFeatures deviceFeatures;
+			deviceFeatures.samplerAnisotropy = VK_TRUE;
+
+			vkGetPhysicalDeviceProperties(device, &deviceProperties);
+			vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+			const auto families = GetQueueFamilies(info.surface, device);
+			if (!families)
+				continue;
+
+			if (!CheckDeviceExtensionSupport(device, info.deviceExtensions))
+				continue;
+
+			const DeviceInfo deviceInfo
+			{
+				device,
+				deviceProperties,
+				deviceFeatures
+			};
+
+			if (!IsDeviceSuitable(info, deviceInfo))
+				continue;
+
+			const uint32_t score = RateDevice(deviceInfo);
+			candidates.insert({ score, device });
+		}
+
+		assert(!candidates.empty());
+		return candidates.rbegin()->second;
+		*/
+	}
+
+	VkCore::PhysicalDevice::operator VkPhysicalDevice_T*() const
+	{
+		return value;
 	}
 }
