@@ -90,6 +90,12 @@
     <ClInclude Include="Include\VkRenderer\VkCore\VkCoreInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\VkRenderer\VkCore\VkCorePhysicalDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\VkRenderer\VkCore\VkCoreSwapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\pch.cpp">
@@ -132,6 +138,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\VkCore\VkCoreInstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VkCore\VkCorePhysicalDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VkCore\VkCoreSwapchain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

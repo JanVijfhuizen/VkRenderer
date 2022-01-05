@@ -41,11 +41,15 @@
     <ClInclude Include="Include\VkRenderer\VkCore\VkCoreDebugger.h" />
     <ClInclude Include="Include\VkRenderer\VkCore\VkCoreInfo.h" />
     <ClInclude Include="Include\VkRenderer\VkCore\VkCoreInstance.h" />
+    <ClInclude Include="Include\VkRenderer\VkCore\VkCorePhysicalDevice.h" />
+    <ClInclude Include="Include\VkRenderer\VkCore\VkCoreSwapchain.h" />
     <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\VkCore\VkCoreSwapchain.cpp" />
+    <ClCompile Include="Source\VkCore\VkCorePhysicalDevice.cpp" />
     <ClCompile Include="Source\VkCore\VkCoreInstance.cpp" />
     <ClCompile Include="Source\VkCore\VkCoreDebugger.cpp" />
     <ClCompile Include="Source\VkCore\VkCore.cpp" />
