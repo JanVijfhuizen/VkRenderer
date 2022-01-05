@@ -25,6 +25,8 @@ namespace vi
 		explicit VkCore(Info& info);
 		~VkCore();
 
+		void DeviceWaitIdle() const;
+
 	private:
 		WindowHandler* _windowHandler;
 		VkSurfaceKHR _surface;
@@ -117,6 +119,25 @@ namespace vi
 			[[nodiscard]] static uint32_t RateDevice(const DeviceInfo& deviceInfo);
 			[[nodiscard]] static bool CheckDeviceExtensionSupport(VkPhysicalDevice device, const ArrayPtr<const char*>& extensions);
 		} _physicalDevice;
+
+		struct LogicalDevice final 
+		{
+			VkDevice value;
+
+			union
+			{
+				struct
+				{
+					VkQueue graphics;
+					VkQueue present;
+				};
+				VkQueue queues[2];
+			};
+
+			void Setup(const Info& info, VkSurfaceKHR surface, const PhysicalDevice& physicalDevice);
+			void Cleanup() const;
+			operator VkDevice() const;
+		} _logicalDevice;
 
 		struct SwapChain final
 		{
