@@ -28,12 +28,16 @@ namespace vi
 
 		// Set up hardware interface.
 		_logicalDevice.Setup(info, _surface, _physicalDevice);
+
+		// Set up command pool.
+		_commandPool.Setup(_surface, _physicalDevice, _logicalDevice);
 	}
 
 	VkCore::~VkCore()
 	{
 		DeviceWaitIdle();
 
+		_commandPool.Cleanup(_logicalDevice);
 		_logicalDevice.Cleanup();
 		vkDestroySurfaceKHR(_instance, _surface, nullptr);
 		_debugger.Cleanup(_instance);
@@ -231,7 +235,10 @@ namespace vi
 		return true;
 	}
 
-	void VkCore::PhysicalDevice::Setup(const Info& info, const Instance& instance, const VkSurfaceKHR& surface)
+	void VkCore::PhysicalDevice::Setup(
+		const Info& info, 
+		const Instance& instance, 
+		const VkSurfaceKHR& surface)
 	{
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -359,7 +366,10 @@ namespace vi
 		return hashMap.IsEmpty();
 	}
 
-	void VkCore::LogicalDevice::Setup(const Info& info, VkSurfaceKHR surface, const PhysicalDevice& physicalDevice)
+	void VkCore::LogicalDevice::Setup(
+		const Info& info, 
+		const VkSurfaceKHR surface, 
+		const PhysicalDevice& physicalDevice)
 	{
 		const auto queueFamilies = PhysicalDevice::GetQueueFamilies(surface, physicalDevice);
 
@@ -424,6 +434,32 @@ namespace vi
 	}
 
 	VkCore::LogicalDevice::operator VkDevice() const
+	{
+		return value;
+	}
+
+	void VkCore::CommandPool::Setup(
+		const VkSurfaceKHR surface, 
+		const PhysicalDevice& physicalDevice, 
+		const LogicalDevice& logicalDevice)
+	{
+		const auto families = PhysicalDevice::GetQueueFamilies(surface, physicalDevice);
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.queueFamilyIndex = families.graphics;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+		const auto result = vkCreateCommandPool(logicalDevice, &poolInfo, nullptr, &value);
+		assert(!result);
+	}
+
+	void VkCore::CommandPool::Cleanup(const LogicalDevice& logicalDevice) const
+	{
+		vkDestroyCommandPool(logicalDevice, value, nullptr);
+	}
+
+	VkCore::CommandPool::operator VkCommandPool() const
 	{
 		return value;
 	}

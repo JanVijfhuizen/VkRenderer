@@ -139,6 +139,15 @@ namespace vi
 			operator VkDevice() const;
 		} _logicalDevice;
 
+		struct CommandPool final
+		{
+			VkCommandPool value;
+
+			void Setup(VkSurfaceKHR surface, const PhysicalDevice& physicalDevice, const LogicalDevice& logicalDevice);
+			void Cleanup(const LogicalDevice& logicalDevice) const;
+			operator VkCommandPool() const;
+		} _commandPool;
+
 		struct SwapChain final
 		{
 			struct SupportDetails final
