@@ -14,7 +14,9 @@ namespace vi
 		void Push(const Node& node);
 		[[nodiscard]] T Peek();
 		T Pop();
+
 		void Clear();
+		[[nodiscard]] size_t GetCount() const;
 
 		[[nodiscard]] Iterator<KeyValue<T, int32_t>> end() const override;
 	private:
@@ -26,27 +28,26 @@ namespace vi
 	};
 
 	template <typename T>
-	BinTree<T>::BinTree(const size_t size, FreeListAllocator& allocator) : ArrayPtr<Node>(size, allocator)
+	BinTree<T>::BinTree(const size_t size, FreeListAllocator& allocator) : ArrayPtr<Node>(size + 1, allocator)
 	{
 	}
 
 	template <typename T>
 	void BinTree<T>::Push(const Node& node)
 	{
+		_count++;
 		assert(_count < ArrayPtr<Node>::GetLength());
 		const auto data = ArrayPtr<Node>::GetData();
 
 		data[_count] = node;
 		HeapifyBottomToTop(_count);
-
-		_count++;
 	}
 
 	template <typename T>
 	T BinTree<T>::Peek()
 	{
 		assert(_count > 0);
-		return ArrayPtr<Node>::GetData()[0];
+		return ArrayPtr<Node>::GetData()[1];
 	}
 
 	template <typename T>
@@ -55,10 +56,10 @@ namespace vi
 		assert(_count > 0);
 
 		const auto data = ArrayPtr<Node>::GetData();
-		T value = data[0].value;
-		data[0] = data[--_count];
+		const T value = data[1].value;
+		data[1] = data[_count--];
 
-		HeapifyTopToBottom(0);
+		HeapifyTopToBottom(1);
 		return value;
 	}
 
@@ -66,6 +67,12 @@ namespace vi
 	void BinTree<T>::Clear()
 	{
 		_count = 0;
+	}
+
+	template <typename T>
+	size_t BinTree<T>::GetCount() const
+	{
+		return _count;
 	}
 
 	template <typename T>
@@ -83,7 +90,7 @@ namespace vi
 	void BinTree<T>::HeapifyBottomToTop(const uint32_t index)
 	{
 		// Tree root found.
-		if (index == 0)
+		if (index <= 1)
 			return;
 
 		const auto data = ArrayPtr<Node>::GetData();
@@ -113,7 +120,7 @@ namespace vi
 		// Is the right node smaller than index.
 		const bool rDiff = _count > left ? data[index].key > data[right].key : false;
 		// Is left smaller than right.
-		const bool dir = rDiff ? data[left].key < data[right].key : true;
+		const bool dir = rDiff ? data[left].key > data[right].key : false;
 
 		if(lDiff || rDiff)
 		{
