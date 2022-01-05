@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "VkCore.h"
+#include "VkCore/VkCore.h"
 #include "WindowHandler.h"
 
 namespace vi

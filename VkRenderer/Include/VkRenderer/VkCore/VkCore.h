@@ -1,5 +1,9 @@
 ﻿#pragma once
 
+#include "VkCoreInfo.h"
+#include "VkCoreDebugger.h"
+#include "VkCoreInstance.h"
+
 namespace vi
 {
 	class WindowHandler;

@@ -6,7 +6,7 @@
 #include "Rendering/DefaultMaterial.h"
 #include "Rendering/ShadowCaster.h"
 #include "Rendering/Light.h"
-#include "VkRenderer/VkCore.h"
+#include "VkRenderer/VkCore/VkCore.h"
 #include "VkRenderer/WindowHandlerGLFW.h"
 
 
