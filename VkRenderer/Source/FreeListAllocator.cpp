@@ -22,6 +22,8 @@ namespace vi
 
 	void* FreeListAllocator::MAlloc(const size_t size) const
 	{
+		if (size == 0)
+			return nullptr;
 		assert(size <= _capacity);
 
 		// Try out all the blocks until allocation is successful.	

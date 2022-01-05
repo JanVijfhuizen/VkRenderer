@@ -23,6 +23,7 @@
     <ClInclude Include="Include\VkRenderer\FreeListAllocator.h" />
     <ClInclude Include="Include\VkRenderer\LogicalDeviceFactory.h" />
     <ClInclude Include="Include\VkRenderer\Queues.h" />
+    <ClInclude Include="Include\VkRenderer\ViString.h" />
     <ClInclude Include="Include\VkRenderer\SwapChain.h" />
     <ClInclude Include="Include\VkRenderer\PhysicalDeviceFactory.h" />
     <ClInclude Include="Include\VkRenderer\InstanceFactory.h" />
@@ -30,11 +31,15 @@
     <ClInclude Include="Include\VkRenderer\pch.h" />
     <ClInclude Include="Include\VkRenderer\UniquePtr.h" />
     <ClInclude Include="Include\VkRenderer\Utilities.h" />
+    <ClInclude Include="Include\VkRenderer\ViVector.h" />
+    <ClInclude Include="Include\VkRenderer\VkCore.h" />
     <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\VkCore.cpp" />
+    <ClCompile Include="Source\ViString.cpp" />
     <ClCompile Include="Source\FreeListAllocator.cpp" />
     <ClCompile Include="Source\LogicalDeviceFactory.cpp" />
     <ClCompile Include="Source\SwapChain.cpp" />

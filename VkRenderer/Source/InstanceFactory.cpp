@@ -27,8 +27,8 @@ namespace vi
 
 	VkApplicationInfo InstanceFactory::CreateApplicationInfo(const Info& info)
 	{
-		const auto& windowInfo = info.windowHandler->GetVkInfo();
-		const auto& name = windowInfo.name.c_str();
+		const auto& windowInfo = info.windowHandler->GetInfo();
+		const auto& name = windowInfo.name.GetData();
 		const auto version = VK_MAKE_VERSION(1, 0, 0);
 
 		VkApplicationInfo appInfo{};

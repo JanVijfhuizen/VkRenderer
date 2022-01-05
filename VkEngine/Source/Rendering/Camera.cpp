@@ -44,7 +44,7 @@ void Camera::System::Update()
 
 	auto& transformSystem = Transform::System::Get();
 
-	const auto resolution = windowSystem.GetVkInfo().resolution;
+	const auto resolution = windowSystem.GetInfo().resolution;
 	const float aspectRatio = static_cast<float>(resolution.x) / resolution.y;
 	const uint32_t imageIndex = swapChain.GetCurrentImageIndex();
 
