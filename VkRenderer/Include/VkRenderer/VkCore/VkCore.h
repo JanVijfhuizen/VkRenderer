@@ -15,6 +15,7 @@
 #include "../VkHandlers/VkMemoryHandler.h"
 #include "../VkHandlers/VkPipelineHandler.h"
 #include "../VkHandlers/VkRenderPassHandler.h"
+#include "../VkHandlers/VkShaderHandler.h"
 #include "../VkHandlers/VkSyncHandler.h"
 
 namespace vi
@@ -52,6 +53,7 @@ namespace vi
 		[[nodiscard]] VkMemoryHandler& GetMemoryHandler();
 		[[nodiscard]] VkPipelineHandler& GetPipelineHandler();
 		[[nodiscard]] VkRenderPassHandler& GetRenderPassHandler();
+		[[nodiscard]] VkShaderHandler& GetShaderHandler();
 		[[nodiscard]] VkSyncHandler& GetSyncHandler();
 
 	private:
@@ -63,7 +65,7 @@ namespace vi
 		VkCorePhysicalDevice _physicalDevice;
 		VkCoreLogicalDevice _logicalDevice;
 		VkCoreCommandPool _commandPool;
-		VkCoreSwapchain _swapChain;
+		VkCoreSwapchain _swapChain{*this};
 
 		VkCommandBufferHandler _commandBufferHandler{ *this };
 		VkFrameBufferHandler _frameBufferHandler{ *this };
@@ -72,6 +74,7 @@ namespace vi
 		VkMemoryHandler _memoryHandler{*this};
 		VkPipelineHandler _pipelineHandler{*this};
 		VkRenderPassHandler _renderPassHandler{ *this };
+		VkShaderHandler _shaderHandler{ *this };
 		VkSyncHandler _syncHandler{ *this };
 	};
 }

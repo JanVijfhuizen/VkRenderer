@@ -54,12 +54,14 @@
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkMemoryHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkPipelineHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkRenderPassHandler.h" />
+    <ClInclude Include="Include\VkRenderer\VkHandlers\VkShaderHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkSyncHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\VkHandlers\VkShaderHandler.cpp" />
     <ClCompile Include="Source\VkHandlers\VkPipelineHandler.cpp" />
     <ClCompile Include="Source\VkHandlers\VkDescriptorPoolHandler.cpp" />
     <ClCompile Include="Source\VkHandlers\VkLayoutHandler.cpp" />

@@ -12,6 +12,12 @@ namespace vi
 		friend VkCorePhysicalDevice;
 
 	public:
+		void BeginFrame(bool callWaitForImage = true);
+		void EndFrame(bool& shouldRecreateAssets);
+
+		void WaitForImage();
+		void Reconstruct(bool executeCleanup = true);
+
 		[[nodiscard]] VkExtent2D GetExtent() const;
 		[[nodiscard]] VkFormat GetDepthBufferFormat() const;
 		[[nodiscard]] VkFormat GetFormat() const;
@@ -61,6 +67,8 @@ namespace vi
 			VkFence inFlightFence;
 		};
 
+		VkCore& _core;
+
 		ArrayPtr<Image> _images;
 		ArrayPtr<Frame> _frames;
 		ArrayPtr<VkFence> _inFlight;
@@ -71,21 +79,25 @@ namespace vi
 		VkSwapchainKHR _swapChain = VK_NULL_HANDLE;
 		VkRenderPass _renderPass = VK_NULL_HANDLE;
 
-		VkCoreSwapchain();
+		uint32_t _frameIndex = 0;
+		uint32_t _imageIndex;
 
-		void Construct(VkCore& core);
-		void Reconstruct(VkCore& core, bool executeCleanup = true);
-		void Cleanup(VkCore& core) const;
+		VkCoreSwapchain(VkCore& core);
+
+		void Construct();
+		void Cleanup() const;
+
+		[[nodiscard]] VkResult Present();
 
 		[[nodiscard]] static SupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
 
-		void ConstructImages(VkCore& core) const;
-		void ConstructFrames(VkCore& core) const;
-		void ConstructBuffers(VkCore& core) const;
+		void ConstructImages() const;
+		void ConstructFrames() const;
+		void ConstructBuffers() const;
 
-		void FreeImages(VkCore& core) const;
-		void FreeFrames(VkCore& core) const;
-		void FreeBuffers(VkCore& core) const;
+		void FreeImages() const;
+		void FreeFrames() const;
+		void FreeBuffers() const;
 
 		[[nodiscard]] static VkSurfaceFormatKHR ChooseSurfaceFormat(const ArrayPtr<VkSurfaceFormatKHR>& availableFormats);
 		[[nodiscard]] static VkPresentModeKHR ChoosePresentMode(const ArrayPtr<VkPresentModeKHR>& availablePresentModes);
