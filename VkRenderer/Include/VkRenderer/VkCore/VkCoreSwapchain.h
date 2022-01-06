@@ -12,6 +12,9 @@ namespace vi
 		friend VkCorePhysicalDevice;
 
 	public:
+		[[nodiscard]] VkExtent2D GetExtent() const;
+		[[nodiscard]] VkFormat GetDepthBufferFormat() const;
+		[[nodiscard]] VkFormat GetFormat() const;
 
 	private:
 #define _MAX_FRAMES_IN_FLIGHT 3
@@ -61,14 +64,16 @@ namespace vi
 		ArrayPtr<Frame> _frames;
 		ArrayPtr<VkFence> _inFlight;
 		VkFormat _format;
+		VkFormat _depthBufferFormat;
 
 		VkExtent2D _extent;
 		VkSwapchainKHR _swapChain = VK_NULL_HANDLE;
+		VkRenderPass _renderPass = VK_NULL_HANDLE;
 
 		VkCoreSwapchain();
 
 		void Construct(VkCore& core);
-		void Reconstruct(VkCore& core);
+		void Reconstruct(VkCore& core, bool executeCleanup = true);
 		void Cleanup(VkCore& core) const;
 
 		[[nodiscard]] static SupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);

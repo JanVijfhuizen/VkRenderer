@@ -130,6 +130,25 @@ namespace vi
 		}
 	}
 
+	VkFormat VkImageHandler::FindSupportedFormat(
+		const ArrayPtr<VkFormat>& candidates, 
+		const VkImageTiling tiling,
+		VkFormatFeatureFlags features) const
+	{
+		for (VkFormat format : candidates)
+		{
+			VkFormatProperties props;
+			vkGetPhysicalDeviceFormatProperties(core.GetPhysicalDevice(), format, &props);
+
+			if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+				return format;
+			if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+				return format;
+		}
+
+		throw std::exception("Format not available!");
+	}
+
 	VkImageHandler::VkImageHandler(VkCore& core) : VkHandler(core)
 	{
 	}

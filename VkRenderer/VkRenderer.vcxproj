@@ -46,14 +46,20 @@
     <ClInclude Include="Include\VkRenderer\VkCore\VkCorePhysicalDevice.h" />
     <ClInclude Include="Include\VkRenderer\VkCore\VkCoreSwapchain.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkCommandBufferHandler.h" />
+    <ClInclude Include="Include\VkRenderer\VkHandlers\VkFrameBufferHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkImageHandler.h" />
+    <ClInclude Include="Include\VkRenderer\VkHandlers\VkMemoryHandler.h" />
+    <ClInclude Include="Include\VkRenderer\VkHandlers\VkRenderPassHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkSyncHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\VkHandlers\VkFrameBufferHandler.cpp" />
+    <ClCompile Include="Source\VkHandlers\VkRenderPassHandler.cpp" />
+    <ClCompile Include="Source\VkHandlers\VkMemoryHandler.cpp" />
     <ClCompile Include="Source\VkHandlers\VkSyncHandler.cpp" />
     <ClCompile Include="Source\VkHandlers\VkCommandBufferHandler.cpp" />
     <ClCompile Include="Source\VkHandlers\VkHandler.cpp" />

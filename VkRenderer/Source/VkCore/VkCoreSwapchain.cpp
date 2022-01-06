@@ -45,6 +45,21 @@ namespace vi
 		return actualExtent;
 	}
 
+	VkFormat VkCoreSwapchain::GetFormat() const
+	{
+		return _format;
+	}
+
+	VkExtent2D VkCoreSwapchain::GetExtent() const
+	{
+		return _extent;
+	}
+
+	VkFormat VkCoreSwapchain::GetDepthBufferFormat() const
+	{
+		return _depthBufferFormat;
+	}
+
 	VkCoreSwapchain::SupportDetails::operator bool() const
 	{
 		return !formats.IsNull() && !presentModes.IsNull();
@@ -76,10 +91,19 @@ namespace vi
 		const VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(support.formats);
 		_format = surfaceFormat.format;
 
-		Reconstruct(core);
+		const ArrayPtr<VkFormat> depthFormats{3, GMEM_TEMP};
+		depthFormats[0] = VK_FORMAT_D32_SFLOAT;
+		depthFormats[1] = VK_FORMAT_D32_SFLOAT_S8_UINT;
+		depthFormats[2] = VK_FORMAT_D24_UNORM_S8_UINT;
+
+		_depthBufferFormat = core.GetImageHandler().FindSupportedFormat(depthFormats,
+			VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+		);
+
+		Reconstruct(core, false);
 	}
 
-	void VkCoreSwapchain::Reconstruct(VkCore& core)
+	void VkCoreSwapchain::Reconstruct(VkCore& core, const bool executeCleanup)
 	{
 		const auto surface = core.GetSurface();
 		const auto physicalDevice = core.GetPhysicalDevice();
@@ -127,9 +151,11 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &newSwapchain);
 		assert(!result);
 
-		Cleanup(core);
+		if(executeCleanup)
+			Cleanup(core);
 
 		_swapChain = newSwapchain;
+		_renderPass = core.GetRenderPassHandler().Create();
 
 		ConstructImages(core);
 		ConstructFrames(core);
@@ -143,6 +169,8 @@ namespace vi
 			if (fence)
 				syncHandler.WaitForFence(fence);
 
+		if (_renderPass)
+			core.GetRenderPassHandler().Destroy(_renderPass);
 		if(_swapChain)
 			vkDestroySwapchainKHR(core.GetLogicalDevice(), _swapChain, nullptr);
 
@@ -193,7 +221,6 @@ namespace vi
 		for (uint32_t i = 0; i < length; ++i)
 		{
 			auto& image = _images[i];
-
 			image.image = vkImages[i];
 			image.imageView = imageHandler.CreateView(image.image, _format);
 		}
@@ -214,6 +241,7 @@ namespace vi
 	void VkCoreSwapchain::ConstructBuffers(VkCore& core) const
 	{
 		auto& commandBufferHandler = core.GetCommandBufferHandler();
+		auto& frameBufferHandler = core.GetFrameBufferHandler();
 		auto& imageHandler = core.GetImageHandler();
 		auto& memoryHandler = core.GetMemoryHandler();
 		auto& syncHandler = core.GetSyncHandler();
@@ -233,17 +261,15 @@ namespace vi
 		const auto result = vkAllocateCommandBuffers(logicalDevice, &allocInfo, commandBuffers.GetData());
 		assert(!result);
 
-		const auto format = renderer->GetDepthBufferFormat();
-
 		for (uint32_t i = 0; i < length; ++i)
 		{
 			auto& image = _images[i];
 
-			image.depthImage = imageHandler.Create({ _extent.width, _extent.height }, format,
+			image.depthImage = imageHandler.Create({ _extent.width, _extent.height }, _depthBufferFormat,
 				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
 			image.depthImageMemory = memoryHandler.Allocate(image.depthImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 			memoryHandler.Bind(image.depthImage, image.depthImageMemory);
-			image.depthImageView = imageHandler.CreateView(image.depthImage, format, VK_IMAGE_ASPECT_DEPTH_BIT);
+			image.depthImageView = imageHandler.CreateView(image.depthImage, _depthBufferFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 			auto cmdBuffer = commandBufferHandler.Create();
 			const auto fence = syncHandler.CreateFence();
@@ -257,13 +283,27 @@ namespace vi
 			commandBufferHandler.Destroy(cmdBuffer);
 			syncHandler.DestroyFence(fence);
 
-			image.frameBuffer = renderer->CreateFrameBuffer(image.imageViews, 2, _renderPass, _extent);
+			image.frameBuffer = frameBufferHandler.Create(image.imageViews, 2, _renderPass, _extent);
 			image.commandBuffer = commandBuffers[i];
 		}
 	}
 
 	void VkCoreSwapchain::FreeBuffers(VkCore& core) const
 	{
+		auto& commandBufferHandler = core.GetCommandBufferHandler();
+		auto& frameBufferHandler = core.GetFrameBufferHandler();
+		auto& imageHandler = core.GetImageHandler();
+		auto& memoryHandler = core.GetMemoryHandler();
+
+		for (auto& image : _images)
+		{
+			imageHandler.DestroyView(image.depthImageView);
+			imageHandler.Destroy(image.depthImage);
+			memoryHandler.Free(image.depthImageMemory);
+
+			frameBufferHandler.Destroy(image.frameBuffer);
+			commandBufferHandler.Destroy(image.commandBuffer);
+		}
 	}
 
 	void VkCoreSwapchain::FreeImages(VkCore& core) const
@@ -274,10 +314,7 @@ namespace vi
 		for (uint32_t i = 0; i < length; ++i)
 		{
 			auto& image = _images[i];
-			auto& imageView = image.imageView;
-
-			if (imageView)
-				imageHandler.DestroyView(imageView);
+			imageHandler.DestroyView(image.imageView);
 		}
 	}
 

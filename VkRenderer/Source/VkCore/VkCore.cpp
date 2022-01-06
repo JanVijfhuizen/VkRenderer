@@ -99,6 +99,11 @@ namespace vi
 		return _commandBufferHandler;
 	}
 
+	VkFrameBufferHandler& VkCore::GetFrameBufferHandler()
+	{
+		return _frameBufferHandler;
+	}
+
 	VkImageHandler& VkCore::GetImageHandler()
 	{
 		return _imageHandler;
@@ -107,6 +112,11 @@ namespace vi
 	VkMemoryHandler& VkCore::GetMemoryHandler()
 	{
 		return _memoryHandler;
+	}
+
+	VkRenderPassHandler& VkCore::GetRenderPassHandler()
+	{
+		return _renderPassHandler;
 	}
 
 	VkSyncHandler& VkCore::GetSyncHandler()

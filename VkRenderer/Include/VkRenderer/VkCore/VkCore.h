@@ -9,8 +9,10 @@
 #include "VkCoreCommandPool.h"
 
 #include "../VkHandlers/VkCommandBufferHandler.h"
+#include "../VkHandlers/VkFrameBufferHandler.h"
 #include "../VkHandlers/VkImageHandler.h"
 #include "../VkHandlers/VkMemoryHandler.h"
+#include "../VkHandlers/VkRenderPassHandler.h"
 #include "../VkHandlers/VkSyncHandler.h"
 
 namespace vi
@@ -42,8 +44,10 @@ namespace vi
 		[[nodiscard]] VkCoreSwapchain& GetSwapChain();
 
 		[[nodiscard]] VkCommandBufferHandler& GetCommandBufferHandler();
+		[[nodiscard]] VkFrameBufferHandler& GetFrameBufferHandler();
 		[[nodiscard]] VkImageHandler& GetImageHandler();
 		[[nodiscard]] VkMemoryHandler& GetMemoryHandler();
+		[[nodiscard]] VkRenderPassHandler& GetRenderPassHandler();
 		[[nodiscard]] VkSyncHandler& GetSyncHandler();
 
 	private:
@@ -58,8 +62,10 @@ namespace vi
 		VkCoreSwapchain _swapChain;
 
 		VkCommandBufferHandler _commandBufferHandler{ *this };
+		VkFrameBufferHandler _frameBufferHandler{ *this };
 		VkImageHandler _imageHandler{ *this };
 		VkMemoryHandler _memoryHandler{*this};
+		VkRenderPassHandler _renderPassHandler{ *this };
 		VkSyncHandler _syncHandler{ *this };
 	};
 }

@@ -24,6 +24,9 @@ namespace vi
 		static void GetLayoutMasks(VkImageLayout layout, VkAccessFlags& outAccessFlags, 
 			VkPipelineStageFlags& outPipelineStageFlags);
 
+		[[nodiscard]] VkFormat FindSupportedFormat(const ArrayPtr<VkFormat>& candidates,
+			VkImageTiling tiling, VkFormatFeatureFlags features) const;
+
 	private:
 		explicit VkImageHandler(VkCore& core);
 	};
