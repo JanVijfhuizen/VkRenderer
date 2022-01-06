@@ -48,6 +48,27 @@ namespace vi
 		return _current;
 	}
 
+	void VkCommandBufferHandler::Submit(VkCommandBuffer* buffers, 
+		const uint32_t buffersCount, const VkSemaphore waitSemaphore,
+		const VkSemaphore signalSemaphore, const VkFence fence)
+	{
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		submitInfo.waitSemaphoreCount = waitSemaphore ? 1 : 0;
+		submitInfo.pWaitSemaphores = &waitSemaphore;
+		submitInfo.pWaitDstStageMask = &waitStage;
+		submitInfo.commandBufferCount = buffersCount;
+		submitInfo.pCommandBuffers = buffers;
+		submitInfo.signalSemaphoreCount = signalSemaphore ? 1 : 0;
+		submitInfo.pSignalSemaphores = &signalSemaphore;
+
+		vkResetFences(core.GetLogicalDevice(), 1, &fence);
+		const auto result = vkQueueSubmit(core.GetQueues().graphics, 1, &submitInfo, fence);
+		assert(!result);
+	}
+
 	VkCommandBufferHandler::VkCommandBufferHandler(VkCore& core) : VkHandler(core)
 	{
 		

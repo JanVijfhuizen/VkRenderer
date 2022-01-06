@@ -75,9 +75,11 @@ namespace vi
 
 		void ConstructImages(VkCore& core) const;
 		void ConstructFrames(VkCore& core) const;
+		void ConstructBuffers(VkCore& core) const;
 
 		void FreeImages(VkCore& core) const;
 		void FreeFrames(VkCore& core) const;
+		void FreeBuffers(VkCore& core) const;
 
 		[[nodiscard]] static VkSurfaceFormatKHR ChooseSurfaceFormat(const ArrayPtr<VkSurfaceFormatKHR>& availableFormats);
 		[[nodiscard]] static VkPresentModeKHR ChoosePresentMode(const ArrayPtr<VkPresentModeKHR>& availablePresentModes);

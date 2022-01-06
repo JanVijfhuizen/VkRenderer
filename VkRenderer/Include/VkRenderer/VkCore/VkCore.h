@@ -10,6 +10,7 @@
 
 #include "../VkHandlers/VkCommandBufferHandler.h"
 #include "../VkHandlers/VkImageHandler.h"
+#include "../VkHandlers/VkMemoryHandler.h"
 #include "../VkHandlers/VkSyncHandler.h"
 
 namespace vi
@@ -34,6 +35,7 @@ namespace vi
 		[[nodiscard]] VkInstance GetInstance() const;
 		[[nodiscard]] VkPhysicalDevice GetPhysicalDevice() const;
 		[[nodiscard]] VkDevice GetLogicalDevice() const;
+		[[nodiscard]] Queues GetQueues() const;
 		[[nodiscard]] VkCommandPool GetCommandPool() const;
 
 		[[nodiscard]] WindowHandler& GetWindowHandler() const;
@@ -41,6 +43,7 @@ namespace vi
 
 		[[nodiscard]] VkCommandBufferHandler& GetCommandBufferHandler();
 		[[nodiscard]] VkImageHandler& GetImageHandler();
+		[[nodiscard]] VkMemoryHandler& GetMemoryHandler();
 		[[nodiscard]] VkSyncHandler& GetSyncHandler();
 
 	private:
@@ -56,6 +59,7 @@ namespace vi
 
 		VkCommandBufferHandler _commandBufferHandler{ *this };
 		VkImageHandler _imageHandler{ *this };
+		VkMemoryHandler _memoryHandler{*this};
 		VkSyncHandler _syncHandler{ *this };
 	};
 }

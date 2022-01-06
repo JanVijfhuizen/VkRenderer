@@ -74,6 +74,11 @@ namespace vi
 		return _logicalDevice;
 	}
 
+	Queues VkCore::GetQueues() const
+	{
+		return _logicalDevice.queues;
+	}
+
 	VkCommandPool VkCore::GetCommandPool() const
 	{
 		return _commandPool;
@@ -97,6 +102,11 @@ namespace vi
 	VkImageHandler& VkCore::GetImageHandler()
 	{
 		return _imageHandler;
+	}
+
+	VkMemoryHandler& VkCore::GetMemoryHandler()
+	{
+		return _memoryHandler;
 	}
 
 	VkSyncHandler& VkCore::GetSyncHandler()

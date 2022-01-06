@@ -62,7 +62,7 @@ namespace vi
 		uint32_t i = 0;
 		for (const auto& family : queueFamilies.values)
 		{
-			vkGetDeviceQueue(_value, family, 0, &queues[i]);
+			vkGetDeviceQueue(_value, family, 0, &queues.values[i]);
 			i++;
 		}
 	}

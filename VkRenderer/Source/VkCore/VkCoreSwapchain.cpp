@@ -211,6 +211,61 @@ namespace vi
 		}
 	}
 
+	void VkCoreSwapchain::ConstructBuffers(VkCore& core) const
+	{
+		auto& commandBufferHandler = core.GetCommandBufferHandler();
+		auto& imageHandler = core.GetImageHandler();
+		auto& memoryHandler = core.GetMemoryHandler();
+		auto& syncHandler = core.GetSyncHandler();
+
+		const auto commandPool = core.GetCommandPool();
+		const auto logicalDevice = core.GetLogicalDevice();
+
+		const uint32_t length = _images.GetLength();
+		const auto commandBuffers = ArrayPtr<VkCommandBuffer>(length, GMEM_TEMP);
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = commandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = length;
+
+		const auto result = vkAllocateCommandBuffers(logicalDevice, &allocInfo, commandBuffers.GetData());
+		assert(!result);
+
+		const auto format = renderer->GetDepthBufferFormat();
+
+		for (uint32_t i = 0; i < length; ++i)
+		{
+			auto& image = _images[i];
+
+			image.depthImage = imageHandler.Create({ _extent.width, _extent.height }, format,
+				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+			image.depthImageMemory = memoryHandler.Allocate(image.depthImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			memoryHandler.Bind(image.depthImage, image.depthImageMemory);
+			image.depthImageView = imageHandler.CreateView(image.depthImage, format, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+			auto cmdBuffer = commandBufferHandler.Create();
+			const auto fence = syncHandler.CreateFence();
+
+			commandBufferHandler.BeginRecording(cmdBuffer);
+			imageHandler.TransitionLayout(image.depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
+			commandBufferHandler.EndRecording();
+			commandBufferHandler.Submit(&cmdBuffer, 1, nullptr, nullptr, fence);
+			syncHandler.WaitForFence(fence);
+
+			commandBufferHandler.Destroy(cmdBuffer);
+			syncHandler.DestroyFence(fence);
+
+			image.frameBuffer = renderer->CreateFrameBuffer(image.imageViews, 2, _renderPass, _extent);
+			image.commandBuffer = commandBuffers[i];
+		}
+	}
+
+	void VkCoreSwapchain::FreeBuffers(VkCore& core) const
+	{
+	}
+
 	void VkCoreSwapchain::FreeImages(VkCore& core) const
 	{
 		const uint32_t length = _images.GetLength();

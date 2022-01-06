@@ -5,11 +5,8 @@ namespace vi
 	struct VkCoreInfo;
 	struct VkCorePhysicalDevice;
 
-	struct VkCoreLogicalDevice final
+	struct Queues final
 	{
-		friend class VkCore;
-
-	public:
 		union
 		{
 			struct
@@ -17,8 +14,16 @@ namespace vi
 				VkQueue graphics;
 				VkQueue present;
 			};
-			VkQueue queues[2];
+			VkQueue values[2];
 		};
+	};
+
+	struct VkCoreLogicalDevice final
+	{
+		friend class VkCore;
+
+	public:
+		Queues queues;
 
 		void Setup(const VkCoreInfo& info, VkSurfaceKHR surface, const VkCorePhysicalDevice& physicalDevice);
 		void Cleanup() const;
