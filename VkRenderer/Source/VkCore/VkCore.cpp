@@ -109,9 +109,19 @@ namespace vi
 		return _imageHandler;
 	}
 
+	VkLayoutHandler& VkCore::GetLayoutHandler()
+	{
+		return _layoutHandler;
+	}
+
 	VkMemoryHandler& VkCore::GetMemoryHandler()
 	{
 		return _memoryHandler;
+	}
+
+	VkPipelineHandler& VkCore::GetPipelineHandler()
+	{
+		return _pipelineHandler;
 	}
 
 	VkRenderPassHandler& VkCore::GetRenderPassHandler()

@@ -20,9 +20,8 @@ namespace vi
 		// Create a queue for each individual queue family.
 		// So if a single family handles both graphics and presentation, only create it once.
 		// Hence the hashmap.
-		for (uint32_t i = 0; i < queueFamiliesCount; ++i)
+		for (auto& family : queueFamilies.values)
 		{
-			const uint32_t family = queueFamilies.values[i];
 			if (familyIndexes.Contains(family))
 				continue;
 			familyIndexes.Insert(family);

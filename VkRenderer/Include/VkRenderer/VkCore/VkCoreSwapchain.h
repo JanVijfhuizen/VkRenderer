@@ -15,6 +15,7 @@ namespace vi
 		[[nodiscard]] VkExtent2D GetExtent() const;
 		[[nodiscard]] VkFormat GetDepthBufferFormat() const;
 		[[nodiscard]] VkFormat GetFormat() const;
+		[[nodiscard]] VkRenderPass GetRenderPass() const;
 
 	private:
 #define _MAX_FRAMES_IN_FLIGHT 3

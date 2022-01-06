@@ -50,6 +50,11 @@ namespace vi
 		return _format;
 	}
 
+	VkRenderPass VkCoreSwapchain::GetRenderPass() const
+	{
+		return _renderPass;
+	}
+
 	VkExtent2D VkCoreSwapchain::GetExtent() const
 	{
 		return _extent;
