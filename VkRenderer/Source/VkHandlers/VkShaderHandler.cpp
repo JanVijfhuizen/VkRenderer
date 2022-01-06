@@ -4,6 +4,11 @@
 
 namespace vi
 {
+	void VkShaderHandler::Draw(const uint32_t indexCount) const
+	{
+		vkCmdDrawIndexed(core.GetCommandBufferHandler().GetCurrent(), indexCount, 1, 0, 0, 0);
+	}
+
 	VkShaderModule VkShaderHandler::CreateModule(const String& data) const
 	{
 		VkShaderModuleCreateInfo createInfo{};

@@ -8,6 +8,9 @@ namespace vi
 		friend VkCore;
 
 	public:
+		/// <summary>
+		/// Struct that is used when creating a new render pass.
+		/// </summary>
 		struct Info final
 		{
 			bool useColorAttachment = true;
