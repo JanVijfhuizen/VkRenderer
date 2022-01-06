@@ -9,7 +9,6 @@
 #include "VkRenderer/VkCore/VkCore.h"
 #include "VkRenderer/WindowHandlerGLFW.h"
 
-
 int main()
 {
 	{

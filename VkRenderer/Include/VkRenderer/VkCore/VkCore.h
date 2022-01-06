@@ -26,6 +26,12 @@ namespace vi
 		/// </summary>
 		void DeviceWaitIdle() const;
 
+		[[nodiscard]] VkSurfaceKHR GetSurface() const;
+		[[nodiscard]] VkInstance GetInstance() const;
+		[[nodiscard]] VkPhysicalDevice GetPhysicalDevice() const;
+		[[nodiscard]] VkDevice GetLogicalDevice() const;
+		[[nodiscard]] VkCommandPool GetCommandPool() const;
+
 	private:
 		WindowHandler* _windowHandler;
 		VkSurfaceKHR _surface;

@@ -31,12 +31,16 @@ namespace vi
 
 		// Set up command pool.
 		_commandPool.Setup(_surface, _physicalDevice, _logicalDevice);
+
+		// Set up swapchain.
+		_swapChain.Construct(_surface, *_windowHandler, _logicalDevice, _physicalDevice);
 	}
 
 	VkCore::~VkCore()
 	{
 		DeviceWaitIdle();
 
+		_swapChain.Cleanup(_logicalDevice);
 		_commandPool.Cleanup(_logicalDevice);
 		_logicalDevice.Cleanup();
 		vkDestroySurfaceKHR(_instance, _surface, nullptr);
@@ -48,5 +52,30 @@ namespace vi
 	{
 		const auto result = vkDeviceWaitIdle(_logicalDevice);
 		assert(!result);
+	}
+
+	VkSurfaceKHR VkCore::GetSurface() const
+	{
+		return _surface;
+	}
+
+	VkInstance VkCore::GetInstance() const
+	{
+		return _instance;
+	}
+
+	VkPhysicalDevice VkCore::GetPhysicalDevice() const
+	{
+		return _physicalDevice;
+	}
+
+	VkDevice VkCore::GetLogicalDevice() const
+	{
+		return _logicalDevice;
+	}
+
+	VkCommandPool VkCore::GetCommandPool() const
+	{
+		return _commandPool;
 	}
 }
