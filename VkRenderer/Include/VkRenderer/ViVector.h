@@ -2,6 +2,9 @@
 
 namespace vi
 {
+	/// <summary>
+	/// A resizeable array.
+	/// </summary>
 	template <typename T>
 	class Vector final : public ArrayPtr<T>
 	{
@@ -11,6 +14,7 @@ namespace vi
 
 		void Add(const T& value = {});
 		void RemoveAt(size_t index);
+		/// <summary>Removes all elements and sets count to zero.</summary>
 		void Clear();
 
 		[[nodiscard]] size_t GetCount() const;
