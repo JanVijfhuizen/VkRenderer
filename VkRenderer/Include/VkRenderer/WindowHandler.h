@@ -8,6 +8,7 @@ namespace vi
 	class WindowHandler
 	{
 		friend class VkCore;
+		friend class VkCoreInstance;
 
 		friend class VkRenderer;
 		friend class InstanceFactory;

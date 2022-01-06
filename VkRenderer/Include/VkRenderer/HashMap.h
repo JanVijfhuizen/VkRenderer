@@ -61,7 +61,7 @@ namespace vi
 	T* HashMap<T>::Contains(const T& value)
 	{
 		const auto node = Find(value);
-		return node ? node->value : nullptr;
+		return node ? &node->value : nullptr;
 	}
 
 	template <typename T>

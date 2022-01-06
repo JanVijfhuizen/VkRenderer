@@ -3,6 +3,9 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Binary tree that can be used to quickly sort data based on the key value.
+	/// </summary>
 	template <typename T>
 	class BinTree final : public ArrayPtr<KeyValue<int32_t, T>>
 	{
