@@ -175,4 +175,26 @@ namespace vi
 
 		return details;
 	}
+
+	void VkCoreSwapchain::FillImages()
+	{
+		/*
+		const auto renderer = _info.renderer;
+		uint32_t count = _images.GetLength();
+
+		const auto vkImages = ArrayPtr<VkImage>(count, GMEM_TEMP);
+		vkGetSwapchainImagesKHR(_info.device, _swapChain, &count, vkImages.GetData());
+
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			auto& image = _images[i];
+			image.image = vkImages[i];
+			image.imageView = renderer->CreateImageView(image.image, _format);
+		}
+		*/
+	}
+
+	void VkCoreSwapchain::FillFrames()
+	{
+	}
 }

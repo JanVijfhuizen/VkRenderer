@@ -78,4 +78,9 @@ namespace vi
 	{
 		return _commandPool;
 	}
+
+	VkCoreSwapchain& VkCore::GetSwapChain()
+	{
+		return _swapChain;
+	}
 }

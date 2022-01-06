@@ -45,11 +45,17 @@
     <ClInclude Include="Include\VkRenderer\VkCore\VkCoreLogicalDevice.h" />
     <ClInclude Include="Include\VkRenderer\VkCore\VkCorePhysicalDevice.h" />
     <ClInclude Include="Include\VkRenderer\VkCore\VkCoreSwapchain.h" />
+    <ClInclude Include="Include\VkRenderer\VkHandlers\VkCommandBufferHandler.h" />
+    <ClInclude Include="Include\VkRenderer\VkHandlers\VkHandler.h" />
+    <ClInclude Include="Include\VkRenderer\VkHandlers\VkImageHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\VkHandlers\VkCommandBufferHandler.cpp" />
+    <ClCompile Include="Source\VkHandlers\VkHandler.cpp" />
+    <ClCompile Include="Source\VkHandlers\VkImageHandler.cpp" />
     <ClCompile Include="Source\VkCore\VkCoreCommandPool.cpp" />
     <ClCompile Include="Source\VkCore\VkCoreLogicalDevice.cpp" />
     <ClCompile Include="Source\VkCore\VkCoreSwapchain.cpp" />

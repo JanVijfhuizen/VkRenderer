@@ -9,8 +9,13 @@ namespace vi
 	class VkCoreSwapchain final
 	{
 		friend class VkCore;
+		friend VkCorePhysicalDevice;
 
 	public:
+
+	private:
+#define _MAX_FRAMES_IN_FLIGHT 3
+
 		struct SupportDetails final
 		{
 			VkSurfaceCapabilitiesKHR capabilities;
@@ -20,17 +25,6 @@ namespace vi
 			[[nodiscard]] explicit operator bool() const;
 			[[nodiscard]] uint32_t GetRecommendedImageCount() const;
 		};
-
-		void Construct(VkSurfaceKHR surface, const WindowHandler& windowHandler, 
-			const VkCoreLogicalDevice& logicalDevice, const VkCorePhysicalDevice& physicalDevice);
-		void Reconstruct(VkSurfaceKHR surface, const WindowHandler& windowHandler, 
-			const VkCoreLogicalDevice& logicalDevice, const VkCorePhysicalDevice& physicalDevice);
-		void Cleanup(const VkCoreLogicalDevice& logicalDevice);
-
-		[[nodiscard]] static SupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
-
-	private:
-#define _MAX_FRAMES_IN_FLIGHT 3
 
 		struct Image final
 		{
@@ -68,6 +62,17 @@ namespace vi
 		VkSwapchainKHR _swapChain = VK_NULL_HANDLE;
 
 		VkCoreSwapchain();
+
+		void Construct(VkSurfaceKHR surface, const WindowHandler& windowHandler,
+			const VkCoreLogicalDevice& logicalDevice, const VkCorePhysicalDevice& physicalDevice);
+		void Reconstruct(VkSurfaceKHR surface, const WindowHandler& windowHandler,
+			const VkCoreLogicalDevice& logicalDevice, const VkCorePhysicalDevice& physicalDevice);
+		void Cleanup(const VkCoreLogicalDevice& logicalDevice);
+
+		[[nodiscard]] static SupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
+
+		void FillImages();
+		void FillFrames();
 
 		[[nodiscard]] static VkSurfaceFormatKHR ChooseSurfaceFormat(const ArrayPtr<VkSurfaceFormatKHR>& availableFormats);
 		[[nodiscard]] static VkPresentModeKHR ChoosePresentMode(const ArrayPtr<VkPresentModeKHR>& availablePresentModes);

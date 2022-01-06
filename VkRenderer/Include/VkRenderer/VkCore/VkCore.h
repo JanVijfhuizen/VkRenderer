@@ -8,6 +8,9 @@
 #include "VkCoreSwapchain.h"
 #include "VkCoreCommandPool.h"
 
+#include "../VkHandlers/VkCommandBufferHandler.h"
+#include "../VkHandlers/VkImageHandler.h"
+
 namespace vi
 {
 	class WindowHandler;
@@ -18,6 +21,9 @@ namespace vi
 	class VkCore final
 	{
 	public:
+		const VkCommandBufferHandler commandBufferHandler{ *this };
+		const VkImageHandler imageHandler{*this};
+
 		explicit VkCore(VkCoreInfo& info);
 		~VkCore();
 
@@ -31,6 +37,7 @@ namespace vi
 		[[nodiscard]] VkPhysicalDevice GetPhysicalDevice() const;
 		[[nodiscard]] VkDevice GetLogicalDevice() const;
 		[[nodiscard]] VkCommandPool GetCommandPool() const;
+		[[nodiscard]] VkCoreSwapchain& GetSwapChain();
 
 	private:
 		WindowHandler* _windowHandler;
