@@ -4,6 +4,9 @@ namespace vi
 {
 	class VkCore;
 
+	/// <summary>
+	/// Base class for specialized VkCore handlers to inherit from.
+	/// </summary>
 	class VkHandler
 	{
 	public:

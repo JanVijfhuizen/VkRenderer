@@ -6,21 +6,48 @@ namespace vi
 	struct VkCoreLogicalDevice;
 	struct VkCorePhysicalDevice;
 
+	/// <summary>
+	/// Used to draw directly to the screen.
+	/// </summary>
 	class VkCoreSwapchain final
 	{
 		friend class VkCore;
 		friend VkCorePhysicalDevice;
 
 	public:
+		/// <summary>
+		/// Call this at the start of the frame.
+		/// </summary>
+		/// <param name="callWaitForImage">If false, does not call wait for image. <br>
+		/// Useful for when you want to do some rendering before actually drawing to the swap chain image.</param>
 		void BeginFrame(bool callWaitForImage = true);
+		/// <summary>
+		/// Call this at the end of the frame.
+		/// </summary>
+		/// <param name="shouldRecreateAssets">Checks if the render assets are outdated.<br> 
+		/// This can happen in the case of a resize. If true, you should call Reconstruct afterwards.</param>
 		void EndFrame(bool& shouldRecreateAssets);
 
+		/// <summary>
+		/// Waits until a new image target is available. Called by BeginFrame by default.
+		/// </summary>
 		void WaitForImage();
-		void Reconstruct(bool executeCleanup = true);
+		/// <summary>
+		/// Reconstruct the swap chain. This is needed in the case of a resize.
+		/// </summary>
+		void Reconstruct();
 
+		/// <returns>Amount of images in the swap chain.</returns>
+		[[nodiscard]] uint32_t GetLength() const;
+		/// <returns>Current image count.</returns>
+		[[nodiscard]] uint32_t GetImageIndex() const;
+		/// <returns>Resolution of the images.</returns>
 		[[nodiscard]] VkExtent2D GetExtent() const;
+		/// <returns>Depth buffer image format.</returns>
 		[[nodiscard]] VkFormat GetDepthBufferFormat() const;
+		/// <returns>Color image format.</returns>
 		[[nodiscard]] VkFormat GetFormat() const;
+		/// <returns>Render pass in use by the swapchain.</returns>
 		[[nodiscard]] VkRenderPass GetRenderPass() const;
 
 	private:
@@ -82,10 +109,11 @@ namespace vi
 		uint32_t _frameIndex = 0;
 		uint32_t _imageIndex;
 
-		VkCoreSwapchain(VkCore& core);
+		explicit VkCoreSwapchain(VkCore& core);
 
 		void Construct();
 		void Cleanup() const;
+		void IntReconstruct(bool executeCleanup = true);
 
 		[[nodiscard]] VkResult Present();
 

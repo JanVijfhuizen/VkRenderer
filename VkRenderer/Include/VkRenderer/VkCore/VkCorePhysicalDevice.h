@@ -5,11 +5,17 @@ namespace vi
 	struct VkCoreInfo;
 	struct VkCoreInstance;
 
+	/// <summary>
+	/// Class used by VkCore to set up and manage parts of the renderer.
+	/// </summary>
 	struct VkCorePhysicalDevice final
 	{
 		friend class VkCore;
 
 	public:
+		/// <summary>
+		/// Stores the handles to different vulkan queues.
+		/// </summary>
 		struct QueueFamilies final
 		{
 			union
@@ -30,6 +36,9 @@ namespace vi
 			[[nodiscard]] explicit operator bool() const;
 		};
 
+		/// <summary>
+		/// Support information regarding the physical device.
+		/// </summary>
 		struct DeviceInfo final
 		{
 			VkPhysicalDevice device;

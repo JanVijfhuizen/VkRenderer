@@ -5,6 +5,9 @@ namespace vi
 	struct VkCoreInfo;
 	struct VkCorePhysicalDevice;
 
+	/// <summary>
+	/// Class that contains the different render queues used by our Vulkan instance.
+	/// </summary>
 	struct Queues final
 	{
 		union
@@ -18,6 +21,9 @@ namespace vi
 		};
 	};
 
+	/// <summary>
+	/// Class used by VkCore to set up and manage parts of the renderer.
+	/// </summary>
 	struct VkCoreLogicalDevice final
 	{
 		friend class VkCore;

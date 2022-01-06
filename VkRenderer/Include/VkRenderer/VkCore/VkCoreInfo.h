@@ -2,6 +2,9 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Used for customizing the VkCore class.
+	/// </summary>
 	struct VkCoreInfo final
 	{
 		// Handler that sets up the window.

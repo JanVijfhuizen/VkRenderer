@@ -5,6 +5,9 @@ namespace vi
 	struct VkCoreInfo;
 	struct VkCoreDebugger;
 
+	/// <summary>
+	/// Class used by VkCore to set up and manage parts of the renderer.
+	/// </summary>
 	struct VkCoreInstance final
 	{
 		friend class VkCore;

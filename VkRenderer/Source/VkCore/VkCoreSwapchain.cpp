@@ -124,6 +124,11 @@ namespace vi
 		imageInFlight = frame.inFlightFence;
 	}
 
+	void VkCoreSwapchain::Reconstruct()
+	{
+		IntReconstruct();
+	}
+
 	VkExtent2D VkCoreSwapchain::GetExtent() const
 	{
 		return _extent;
@@ -174,10 +179,35 @@ namespace vi
 			VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
 		);
 
-		Reconstruct(false);
+		IntReconstruct(false);
 	}
 
-	void VkCoreSwapchain::Reconstruct(const bool executeCleanup)
+	uint32_t VkCoreSwapchain::GetLength() const
+	{
+		return _images.GetLength();
+	}
+
+	uint32_t VkCoreSwapchain::GetImageIndex() const
+	{
+		return _imageIndex;
+	}
+
+	void VkCoreSwapchain::Cleanup() const
+	{
+		auto& syncHandler = _core.GetSyncHandler();
+
+		for (auto& fence : _inFlight)
+			if (fence)
+				syncHandler.WaitForFence(fence);
+
+		_core.GetRenderPassHandler().Destroy(_renderPass);
+		vkDestroySwapchainKHR(_core.GetLogicalDevice(), _swapChain, nullptr);
+
+		FreeImages();
+		FreeFrames();
+	}
+
+	void VkCoreSwapchain::IntReconstruct(const bool executeCleanup)
 	{
 		const auto surface = _core.GetSurface();
 		const auto physicalDevice = _core.GetPhysicalDevice();
@@ -225,7 +255,7 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &newSwapchain);
 		assert(!result);
 
-		if(executeCleanup)
+		if (executeCleanup)
 			Cleanup();
 
 		_swapChain = newSwapchain;
@@ -233,21 +263,6 @@ namespace vi
 
 		ConstructImages();
 		ConstructFrames();
-	}
-
-	void VkCoreSwapchain::Cleanup() const
-	{
-		auto& syncHandler = _core.GetSyncHandler();
-
-		for (auto& fence : _inFlight)
-			if (fence)
-				syncHandler.WaitForFence(fence);
-
-		_core.GetRenderPassHandler().Destroy(_renderPass);
-		vkDestroySwapchainKHR(_core.GetLogicalDevice(), _swapChain, nullptr);
-
-		FreeImages();
-		FreeFrames();
 	}
 
 	VkCoreSwapchain::SupportDetails VkCoreSwapchain::QuerySwapChainSupport(
