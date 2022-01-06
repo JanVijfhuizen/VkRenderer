@@ -10,6 +10,7 @@
 
 #include "../VkHandlers/VkCommandBufferHandler.h"
 #include "../VkHandlers/VkImageHandler.h"
+#include "../VkHandlers/VkSyncHandler.h"
 
 namespace vi
 {
@@ -18,12 +19,9 @@ namespace vi
 	/// <summary>
 	/// Sets up vulkan in a way where it can be used for generic game development purposes.
 	/// </summary>
-	class VkCore final
+	class VkCore
 	{
 	public:
-		const VkCommandBufferHandler commandBufferHandler{ *this };
-		const VkImageHandler imageHandler{*this};
-
 		explicit VkCore(VkCoreInfo& info);
 		~VkCore();
 
@@ -37,7 +35,13 @@ namespace vi
 		[[nodiscard]] VkPhysicalDevice GetPhysicalDevice() const;
 		[[nodiscard]] VkDevice GetLogicalDevice() const;
 		[[nodiscard]] VkCommandPool GetCommandPool() const;
+
+		[[nodiscard]] WindowHandler& GetWindowHandler() const;
 		[[nodiscard]] VkCoreSwapchain& GetSwapChain();
+
+		[[nodiscard]] VkCommandBufferHandler& GetCommandBufferHandler();
+		[[nodiscard]] VkImageHandler& GetImageHandler();
+		[[nodiscard]] VkSyncHandler& GetSyncHandler();
 
 	private:
 		WindowHandler* _windowHandler;
@@ -49,5 +53,9 @@ namespace vi
 		VkCoreLogicalDevice _logicalDevice;
 		VkCoreCommandPool _commandPool;
 		VkCoreSwapchain _swapChain;
+
+		VkCommandBufferHandler _commandBufferHandler{ *this };
+		VkImageHandler _imageHandler{ *this };
+		VkSyncHandler _syncHandler{ *this };
 	};
 }

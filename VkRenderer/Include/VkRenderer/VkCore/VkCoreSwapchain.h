@@ -35,7 +35,11 @@ namespace vi
 					VkImageView imageView;
 					VkImageView depthImageView;
 				};
-				VkImageView imageViews[2];
+				VkImageView imageViews[2]
+				{
+					VK_NULL_HANDLE,
+					VK_NULL_HANDLE
+				};
 			};
 
 			VkImage image;
@@ -63,16 +67,17 @@ namespace vi
 
 		VkCoreSwapchain();
 
-		void Construct(VkSurfaceKHR surface, const WindowHandler& windowHandler,
-			const VkCoreLogicalDevice& logicalDevice, const VkCorePhysicalDevice& physicalDevice);
-		void Reconstruct(VkSurfaceKHR surface, const WindowHandler& windowHandler,
-			const VkCoreLogicalDevice& logicalDevice, const VkCorePhysicalDevice& physicalDevice);
-		void Cleanup(const VkCoreLogicalDevice& logicalDevice);
+		void Construct(VkCore& core);
+		void Reconstruct(VkCore& core);
+		void Cleanup(VkCore& core) const;
 
 		[[nodiscard]] static SupportDetails QuerySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
 
-		void FillImages();
-		void FillFrames();
+		void ConstructImages(VkCore& core) const;
+		void ConstructFrames(VkCore& core) const;
+
+		void FreeImages(VkCore& core) const;
+		void FreeFrames(VkCore& core) const;
 
 		[[nodiscard]] static VkSurfaceFormatKHR ChooseSurfaceFormat(const ArrayPtr<VkSurfaceFormatKHR>& availableFormats);
 		[[nodiscard]] static VkPresentModeKHR ChoosePresentMode(const ArrayPtr<VkPresentModeKHR>& availablePresentModes);

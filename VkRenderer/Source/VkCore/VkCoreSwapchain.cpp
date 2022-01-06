@@ -1,8 +1,6 @@
 ﻿#include "pch.h"
 #include "WindowHandler.h"
-#include "VkCore/VkCoreSwapchain.h"
-#include "VkCore/VkCorePhysicalDevice.h"
-#include "VkCore/VkCoreLogicalDevice.h"
+#include "VkCore/VkCore.h"
 
 namespace vi
 {
@@ -65,13 +63,9 @@ namespace vi
 		return imageCount;
 	}
 
-	void VkCoreSwapchain::Construct(
-		const VkSurfaceKHR surface, 
-		const WindowHandler& windowHandler,
-		const VkCoreLogicalDevice& logicalDevice,
-		const VkCorePhysicalDevice& physicalDevice)
+	void VkCoreSwapchain::Construct(VkCore& core)
 	{
-		const SupportDetails support = QuerySwapChainSupport(surface, physicalDevice);
+		const SupportDetails support = QuerySwapChainSupport(core.GetSurface(), core.GetPhysicalDevice());
 		const uint32_t imageCount = support.GetRecommendedImageCount();
 
 		// These array's don't ever resize, so reusing these arrays means that there will be no memory fragmentation.
@@ -82,22 +76,22 @@ namespace vi
 		const VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(support.formats);
 		_format = surfaceFormat.format;
 
-		Reconstruct(surface, windowHandler, logicalDevice, physicalDevice);
+		Reconstruct(core);
 	}
 
-	void VkCoreSwapchain::Reconstruct(
-		const VkSurfaceKHR surface, 
-		const WindowHandler& windowHandler,
-		const VkCoreLogicalDevice& logicalDevice,
-		const VkCorePhysicalDevice& physicalDevice)
+	void VkCoreSwapchain::Reconstruct(VkCore& core)
 	{
+		const auto surface = core.GetSurface();
+		const auto physicalDevice = core.GetPhysicalDevice();
+		const auto logicalDevice = core.GetLogicalDevice();
+
 		const SupportDetails support = QuerySwapChainSupport(surface, physicalDevice);
 		const auto families = VkCorePhysicalDevice::GetQueueFamilies(surface, physicalDevice);
 
 		const VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(support.formats);
 		const VkPresentModeKHR presentMode = ChoosePresentMode(support.presentModes);
 
-		_extent = ChooseExtent(windowHandler, support.capabilities);
+		_extent = ChooseExtent(core.GetWindowHandler(), support.capabilities);
 
 		uint32_t queueFamilyIndices[] =
 		{
@@ -133,15 +127,27 @@ namespace vi
 		const auto result = vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &newSwapchain);
 		assert(!result);
 
-		Cleanup(logicalDevice);
+		Cleanup(core);
 
 		_swapChain = newSwapchain;
+
+		ConstructImages(core);
+		ConstructFrames(core);
 	}
 
-	void VkCoreSwapchain::Cleanup(const VkCoreLogicalDevice& logicalDevice)
+	void VkCoreSwapchain::Cleanup(VkCore& core) const
 	{
+		auto& syncHandler = core.GetSyncHandler();
+
+		for (auto& fence : _inFlight)
+			if (fence)
+				syncHandler.WaitForFence(fence);
+
 		if(_swapChain)
-			vkDestroySwapchainKHR(logicalDevice, _swapChain, nullptr);
+			vkDestroySwapchainKHR(core.GetLogicalDevice(), _swapChain, nullptr);
+
+		FreeImages(core);
+		FreeFrames(core);
 	}
 
 	VkCoreSwapchain::SupportDetails VkCoreSwapchain::QuerySwapChainSupport(
@@ -176,25 +182,59 @@ namespace vi
 		return details;
 	}
 
-	void VkCoreSwapchain::FillImages()
+	void VkCoreSwapchain::ConstructImages(VkCore& core) const
 	{
-		/*
-		const auto renderer = _info.renderer;
-		uint32_t count = _images.GetLength();
+		uint32_t length = _images.GetLength();
+		const auto& imageHandler = core.GetImageHandler();
 
-		const auto vkImages = ArrayPtr<VkImage>(count, GMEM_TEMP);
-		vkGetSwapchainImagesKHR(_info.device, _swapChain, &count, vkImages.GetData());
+		const auto vkImages = ArrayPtr<VkImage>(length, GMEM_TEMP);
+		vkGetSwapchainImagesKHR(core.GetLogicalDevice(), _swapChain, &length, vkImages.GetData());
 
-		for (uint32_t i = 0; i < count; ++i)
+		for (uint32_t i = 0; i < length; ++i)
 		{
 			auto& image = _images[i];
+
 			image.image = vkImages[i];
-			image.imageView = renderer->CreateImageView(image.image, _format);
+			image.imageView = imageHandler.CreateView(image.image, _format);
 		}
-		*/
 	}
 
-	void VkCoreSwapchain::FillFrames()
+	void VkCoreSwapchain::ConstructFrames(VkCore& core) const
 	{
+		auto& syncHandler = core.GetSyncHandler();
+
+		for (auto& frame : _frames)
+		{
+			frame.imageAvailableSemaphore = syncHandler.CreateSemaphore();
+			frame.renderFinishedSemaphore = syncHandler.CreateSemaphore();
+			frame.inFlightFence = syncHandler.CreateFence();
+		}
+	}
+
+	void VkCoreSwapchain::FreeImages(VkCore& core) const
+	{
+		const uint32_t length = _images.GetLength();
+		const auto& imageHandler = core.GetImageHandler();
+
+		for (uint32_t i = 0; i < length; ++i)
+		{
+			auto& image = _images[i];
+			auto& imageView = image.imageView;
+
+			if (imageView)
+				imageHandler.DestroyView(imageView);
+		}
+	}
+
+	void VkCoreSwapchain::FreeFrames(VkCore& core) const
+	{
+		auto& syncHandler = core.GetSyncHandler();
+
+		for (const auto& frame : _frames)
+		{
+			syncHandler.DestroySemaphore(frame.imageAvailableSemaphore);
+			syncHandler.DestroySemaphore(frame.renderFinishedSemaphore);
+			syncHandler.DestroyFence(frame.inFlightFence);
+		}
 	}
 }

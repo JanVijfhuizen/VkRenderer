@@ -33,14 +33,14 @@ namespace vi
 		_commandPool.Setup(_surface, _physicalDevice, _logicalDevice);
 
 		// Set up swapchain.
-		_swapChain.Construct(_surface, *_windowHandler, _logicalDevice, _physicalDevice);
+		_swapChain.Construct(*this);
 	}
 
 	VkCore::~VkCore()
 	{
 		DeviceWaitIdle();
 
-		_swapChain.Cleanup(_logicalDevice);
+		_swapChain.Cleanup(*this);
 		_commandPool.Cleanup(_logicalDevice);
 		_logicalDevice.Cleanup();
 		vkDestroySurfaceKHR(_instance, _surface, nullptr);
@@ -79,8 +79,28 @@ namespace vi
 		return _commandPool;
 	}
 
+	WindowHandler& VkCore::GetWindowHandler() const
+	{
+		return *_windowHandler;
+	}
+
 	VkCoreSwapchain& VkCore::GetSwapChain()
 	{
 		return _swapChain;
+	}
+
+	VkCommandBufferHandler& VkCore::GetCommandBufferHandler()
+	{
+		return _commandBufferHandler;
+	}
+
+	VkImageHandler& VkCore::GetImageHandler()
+	{
+		return _imageHandler;
+	}
+
+	VkSyncHandler& VkCore::GetSyncHandler()
+	{
+		return _syncHandler;
 	}
 }

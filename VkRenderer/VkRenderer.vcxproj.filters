@@ -111,6 +111,9 @@
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkCommandBufferHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\VkRenderer\VkHandlers\VkSyncHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\pch.cpp">
@@ -174,6 +177,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\VkHandlers\VkCommandBufferHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\VkHandlers\VkSyncHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
