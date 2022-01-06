@@ -3,9 +3,6 @@
 
 namespace vi
 {
-	/// <summary>
-	/// Contains all the descriptor related methods for the renderer.
-	/// </summary>
 	class VkDescriptorPoolHandler final : public VkHandler
 	{
 		friend VkCore;
