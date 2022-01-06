@@ -70,7 +70,7 @@ namespace vi
 		return _value;
 	}
 
-	VkCorePhysicalDevice::QueueFamilies vi::VkCorePhysicalDevice::GetQueueFamilies(
+	VkCorePhysicalDevice::QueueFamilies VkCorePhysicalDevice::GetQueueFamilies(
 		const VkSurfaceKHR surface,
 		const VkPhysicalDevice physicalDevice)
 	{

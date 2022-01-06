@@ -4,7 +4,9 @@
 #include "VkCoreDebugger.h"
 #include "VkCoreInstance.h"
 #include "VkCorePhysicalDevice.h"
+#include "VkCoreLogicalDevice.h"
 #include "VkCoreSwapchain.h"
+#include "VkCoreCommandPool.h"
 
 namespace vi
 {
@@ -19,6 +21,9 @@ namespace vi
 		explicit VkCore(VkCoreInfo& info);
 		~VkCore();
 
+		/// <summary>
+		/// Wait until all graphic related tasks are finished.
+		/// </summary>
 		void DeviceWaitIdle() const;
 
 	private:
@@ -28,35 +33,8 @@ namespace vi
 		VkCoreDebugger _debugger;
 		VkCoreInstance _instance;
 		VkCorePhysicalDevice _physicalDevice;
-
-		struct LogicalDevice final 
-		{
-			VkDevice value;
-
-			union
-			{
-				struct
-				{
-					VkQueue graphics;
-					VkQueue present;
-				};
-				VkQueue queues[2];
-			};
-
-			void Setup(const VkCoreInfo& info, VkSurfaceKHR surface, const VkCorePhysicalDevice& physicalDevice);
-			void Cleanup() const;
-			operator VkDevice() const;
-		} _logicalDevice;
-
-		struct CommandPool final
-		{
-			VkCommandPool value;
-
-			void Setup(VkSurfaceKHR surface, const VkCorePhysicalDevice& physicalDevice, const LogicalDevice& logicalDevice);
-			void Cleanup(const LogicalDevice& logicalDevice) const;
-			operator VkCommandPool() const;
-		} _commandPool;
-
+		VkCoreLogicalDevice _logicalDevice;
+		VkCoreCommandPool _commandPool;
 		VkCoreSwapchain _swapChain;
 	};
 }

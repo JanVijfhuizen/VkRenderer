@@ -1,54 +1,57 @@
 ﻿#include "pch.h"
 #include "VkCore/VkCoreSwapchain.h"
 
-vi::VkCoreSwapchain::VkCoreSwapchain() = default;
-
-vi::VkCoreSwapchain::SupportDetails::operator bool() const
+namespace vi
 {
-	return !formats.IsNull() && !presentModes.IsNull();
-}
+	VkCoreSwapchain::VkCoreSwapchain() = default;
 
-uint32_t vi::VkCoreSwapchain::SupportDetails::GetRecommendedImageCount() const
-{
-	uint32_t imageCount = capabilities.minImageCount + 1;
-
-	const auto& maxImageCount = capabilities.maxImageCount;
-	if (maxImageCount > 0 && imageCount > maxImageCount)
-		imageCount = maxImageCount;
-
-	if (imageCount > SWAPCHAIN_MAX_FRAMES)
-		imageCount = SWAPCHAIN_MAX_FRAMES;
-	return imageCount;
-}
-
-vi::VkCoreSwapchain::SupportDetails vi::VkCoreSwapchain::QuerySwapChainSupport(
-	const VkSurfaceKHR surface,
-	const VkPhysicalDevice device)
-{
-	SupportDetails details{};
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
-
-	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-
-	if (formatCount != 0)
+	VkCoreSwapchain::SupportDetails::operator bool() const
 	{
-		auto& formats = details.formats;
-		formats = ArrayPtr<VkSurfaceFormatKHR>(formatCount, GMEM_TEMP);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.GetData());
+		return !formats.IsNull() && !presentModes.IsNull();
 	}
 
-	uint32_t presentModeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-
-	if (presentModeCount != 0)
+	uint32_t VkCoreSwapchain::SupportDetails::GetRecommendedImageCount() const
 	{
-		auto& presentModes = details.presentModes;
-		presentModes = ArrayPtr<VkPresentModeKHR>(presentModeCount, GMEM_TEMP);
+		uint32_t imageCount = capabilities.minImageCount + 1;
 
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
-			&presentModeCount, details.presentModes.GetData());
+		const auto& maxImageCount = capabilities.maxImageCount;
+		if (maxImageCount > 0 && imageCount > maxImageCount)
+			imageCount = maxImageCount;
+
+		if (imageCount > SWAPCHAIN_MAX_FRAMES)
+			imageCount = SWAPCHAIN_MAX_FRAMES;
+		return imageCount;
 	}
 
-	return details;
+	VkCoreSwapchain::SupportDetails VkCoreSwapchain::QuerySwapChainSupport(
+		const VkSurfaceKHR surface,
+		const VkPhysicalDevice device)
+	{
+		SupportDetails details{};
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+
+		uint32_t formatCount;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+
+		if (formatCount != 0)
+		{
+			auto& formats = details.formats;
+			formats = ArrayPtr<VkSurfaceFormatKHR>(formatCount, GMEM_TEMP);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.GetData());
+		}
+
+		uint32_t presentModeCount;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+
+		if (presentModeCount != 0)
+		{
+			auto& presentModes = details.presentModes;
+			presentModes = ArrayPtr<VkPresentModeKHR>(presentModeCount, GMEM_TEMP);
+
+			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
+				&presentModeCount, details.presentModes.GetData());
+		}
+
+		return details;
+	}
 }
