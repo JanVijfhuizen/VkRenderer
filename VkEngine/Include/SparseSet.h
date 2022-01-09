@@ -8,7 +8,7 @@ public:
 
 	T& operator [](uint32_t sparseIndex) const;
 
-	explicit SparseSet(size_t capacity, vi::FreeListAllocator& allocator = GMEM);
+	explicit SparseSet(size_t size, vi::FreeListAllocator& allocator = GMEM);
 
 	virtual T& Insert(uint32_t sparseIndex, const T& value = {});
 	virtual void RemoveAt(uint32_t sparseIndex);
@@ -32,8 +32,8 @@ T& SparseSet<T>::operator[](const uint32_t sparseIndex) const
 }
 
 template <typename T>
-SparseSet<T>::SparseSet(const size_t capacity, vi::FreeListAllocator& allocator) : 
-	_instances(capacity, allocator), _sparse(capacity, allocator, -1), _dense(capacity, allocator, -1)
+SparseSet<T>::SparseSet(const size_t size, vi::FreeListAllocator& allocator) : 
+	_instances(size, allocator), _sparse(size, allocator, -1), _dense(size, allocator, -1)
 {
 
 }

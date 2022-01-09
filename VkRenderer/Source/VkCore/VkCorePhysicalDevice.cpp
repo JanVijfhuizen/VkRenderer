@@ -144,7 +144,7 @@ namespace vi
 			hashMap.Insert(extension);
 
 		for (const auto& extension : availableExtensions)
-			hashMap.Erase(extension.extensionName);
+			hashMap.Remove(extension.extensionName);
 
 		return hashMap.IsEmpty();
 	}

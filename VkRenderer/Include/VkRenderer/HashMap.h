@@ -14,17 +14,19 @@ namespace vi
 		void Insert(const T& value);
 		/// <returns>A pointer to the value if present, otherwise returns a nullptr.</returns>
 		T* Contains(const T& value);
-		void Erase(const T& value);
+		void Remove(const T& value);
 
 		[[nodiscard]] size_t GetCount() const;
 		[[nodiscard]] bool IsEmpty() const;
+
+		[[nodiscard]] T* Find(const T& value);
 
 	private:
 		typedef KeyValue<int32_t, T> Node;
 
 		size_t _count = 0;
 
-		[[nodiscard]] Node* Find(const T& value, uint32_t* outIndex = nullptr);
+		[[nodiscard]] Node* FindNode(const T& value, uint32_t* outIndex = nullptr);
 		[[nodiscard]] int32_t ToHash(const T& value) const;
 	};
 
@@ -63,15 +65,15 @@ namespace vi
 	template <typename T>
 	T* HashMap<T>::Contains(const T& value)
 	{
-		const auto node = Find(value);
+		const auto node = FindNode(value);
 		return node ? &node->value : nullptr;
 	}
 
 	template <typename T>
-	void HashMap<T>::Erase(const T& value)
+	void HashMap<T>::Remove(const T& value)
 	{
 		uint32_t index;
-		const auto node = Find(value, &index);
+		const auto node = FindNode(value, &index);
 		if (!node)
 			return;
 
@@ -104,7 +106,14 @@ namespace vi
 	}
 
 	template <typename T>
-	typename HashMap<T>::Node* HashMap<T>::Find(const T& value, uint32_t* outIndex)
+	T* HashMap<T>::Find(const T& value)
+	{
+		const auto node = FindNode(value);
+		return node ? &node->value : nullptr;
+	}
+
+	template <typename T>
+	typename HashMap<T>::Node* HashMap<T>::FindNode(const T& value, uint32_t* outIndex)
 	{
 		const auto data = ArrayPtr<Node>::GetData();
 		const int32_t hash = ToHash(value);

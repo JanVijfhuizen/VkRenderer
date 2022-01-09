@@ -4,9 +4,9 @@ template <typename T>
 class HashSet
 {
 public:
-	[[nodiscard]] T* operator[] (uint32_t sparseIndex) const;
+	[[nodiscard]] T& operator[] (uint32_t sparseIndex);
 
-	explicit HashSet(size_t capacity, vi::FreeListAllocator& allocator = GMEM);
+	explicit HashSet(size_t size, vi::FreeListAllocator& allocator = GMEM);
 
 	virtual T& Insert(uint32_t sparseIndex, const T& value = {});
 	virtual void RemoveAt(uint32_t sparseIndex);
@@ -17,26 +17,31 @@ public:
 	[[nodiscard]] vi::Iterator<T> end() const;
 
 private:
-	typedef vi::KeyValue<int32_t, uint32_t> Hash;
+	struct Hashable final
+	{
+		uint32_t value;
+		uint32_t denseIndex;
+
+		[[nodiscard]] size_t operator%(size_t mod) const;
+		[[nodiscard]] bool operator==(const Hashable& other) const;
+	};
 
 	vi::Vector<T> _instances;
-	vi::ArrayPtr<Hash> _hashes;
+	vi::HashMap<Hashable> _hashMap;
 	vi::ArrayPtr<uint32_t> _dense;
-
-	[[nodiscard]] int32_t ToHash(uint32_t sparseIndex) const;
-	[[nodiscard]] int32_t Find(uint32_t sparseIndex) const;
 };
 
 template <typename T>
-T* HashSet<T>::operator[](const uint32_t sparseIndex) const
+T& HashSet<T>::operator[](const uint32_t sparseIndex)
 {
-	const int32_t hashIndex = Find(sparseIndex);
-	return hashIndex == -1 ? nullptr : &_instances[_hashes[hashIndex].value];
+	Hashable* hashable = _hashMap.FindNode({ sparseIndex, -1 });
+	assert(hashable);
+	return _instances[hashable->denseIndex];
 }
 
 template <typename T>
-HashSet<T>::HashSet(const size_t capacity, vi::FreeListAllocator& allocator) : 
-	_instances(capacity, allocator), _hashes(capacity, allocator, { -1, {} }), _dense(capacity, allocator)
+HashSet<T>::HashSet(const size_t size, vi::FreeListAllocator& allocator) :
+	_instances(size, allocator), _hashMap(size, allocator), _dense(size, allocator)
 {
 	
 }
@@ -44,62 +49,37 @@ HashSet<T>::HashSet(const size_t capacity, vi::FreeListAllocator& allocator) :
 template <typename T>
 T& HashSet<T>::Insert(const uint32_t sparseIndex, const T& value)
 {
-	{
-		// If the set already contains the value.
-		T* ret = operator[](sparseIndex);
-		if (ret)
-			return ret;
-	}
-
-	const size_t count = _instances.GetCount() + 1;
-
-	const auto data = _hashes.GetData();
-	const size_t length = _hashes.GetLength();
-	const int32_t hash = ToHash(sparseIndex);
-	int32_t index = hash;
-
-	assert(count <= length);
-
-	Hash* sparse;
-	do
-	{
-		sparse = &data[index];
-		index = (index + 1) % length;
-	} while (sparse->key != -1);
-
-	sparse->value = _instances.GetCount();
-	sparse->key = index - 1;
-
-	_dense[index - 1] = sparseIndex;
+	assert(_instances.GetCount() < _instances.GetLength());
+	const uint32_t count = _instances.GetCount();
+	_hashMap.Insert({ sparseIndex, count });
+	_dense[count] = sparseIndex;
 	return _instances.Add(value);
 }
 
 template <typename T>
 void HashSet<T>::RemoveAt(const uint32_t sparseIndex)
 {
-	int32_t hashIndex = Find(sparseIndex);
-	if (hashIndex == -1)
+	Hashable* hashable = _hashMap.Find({ sparseIndex, 0 });
+	if (!hashable)
 		return;
 
-	auto& hash = _hashes[hashIndex];
+	const uint32_t denseIndex = hashable->denseIndex;
+	_instances.RemoveAt(denseIndex);
+	_dense[denseIndex] = _dense[_instances.GetCount()];
+	_hashMap.Remove({ sparseIndex , 0});
 
-	const size_t count = _instances.GetCount() - 1;
-	hashIndex = _dense[count];
-
-	// Update other hash.
-	_hashes[hashIndex].value = hash.value;
-
-	_instances.RemoveAt(hash.value);
-	_dense[hash.value] = hashIndex;
-
-	// Reset hash.
-	hash = { -1, {} };
+	// Decrement pointing index if it's higher than the one removed.
+	for (auto& keyPair : _hashMap)
+	{
+		auto& keypairDenseIndex = keyPair.value.denseIndex;
+		keypairDenseIndex -= keypairDenseIndex > denseIndex ? 1 : 0;
+	}
 }
 
 template <typename T>
 size_t HashSet<T>::GetLength() const
 {
-	return _hashes.GetLength();
+	return _hashMap.GetLength();
 }
 
 template <typename T>
@@ -115,24 +95,13 @@ vi::Iterator<T> HashSet<T>::end() const
 }
 
 template <typename T>
-int32_t HashSet<T>::ToHash(const uint32_t sparseIndex) const
+size_t HashSet<T>::Hashable::operator%(const size_t mod) const
 {
-	return sparseIndex % _hashes.GetLength();
+	return value % mod;
 }
 
 template <typename T>
-int32_t HashSet<T>::Find(const uint32_t sparseIndex) const
+bool HashSet<T>::Hashable::operator==(const Hashable& other) const
 {
-	const auto data = _hashes.GetData();
-	const int32_t hash = ToHash(sparseIndex);
-	int32_t index = hash;
-
-	Hash* sparse;
-	do
-	{
-		sparse = &data[index++];
-		if (sparse->key == hash && sparseIndex == sparse->value)
-			return index - 1;
-	} while (sparse->key >= hash);
-	return -1;
+	return value == other.value;
 }

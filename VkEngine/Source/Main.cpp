@@ -3,6 +3,7 @@
 #include "VkRenderer/WindowHandlerGLFW.h"
 #include "Cecsar.h"
 #include "SparseSet.h"
+#include "HashSet.h"
 
 class TransformSystem final : public System<float>
 {
@@ -17,17 +18,6 @@ TransformSystem::TransformSystem(Cecsar& cecsar) : System(cecsar)
 
 int main()
 {
-	{
-		vi::HashMap<int> map{10, GMEM_TEMP};
-
-		map.Insert(15);
-		map.Insert(25);
-
-		map.Erase(25);
-
-		std::cout << map.Contains(25);
-	}
-
 	{
 		vi::WindowHandlerGLFW windowHandler;
 
@@ -46,6 +36,17 @@ int main()
 		for (const auto& [index, instance] : system)
 		{
 			std::cout << instance << std::endl;
+		}
+
+		HashSet<float> hashSet{10, GMEM};
+		hashSet.Insert(48, 24);
+		hashSet.Insert(12, 6);
+		hashSet.Insert(22, 8);
+		hashSet.RemoveAt(12);
+
+		for (auto& hash_set : hashSet)
+		{
+			std::cout << hash_set << std::endl;
 		}
 	}
 
