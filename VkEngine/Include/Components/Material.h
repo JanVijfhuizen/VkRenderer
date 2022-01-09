@@ -1,19 +1,22 @@
 ﻿#pragma once
 
-namespace vi 
-{
-	class VkCore;
-}
+class Renderer;
 
-struct Material final
+struct Material
 {
 public:
 	class System final : public ce::System<Material>
 	{
 	public:
-		explicit System(ce::Cecsar& cecsar, vi::VkCore& core);
+		explicit System(ce::Cecsar& cecsar, Renderer& renderer, const char* shaderName);
+		~System();
+
+		[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
 
 	private:
-		vi::VkCore& _core;
+		Renderer& _renderer;
+		VkDescriptorSetLayout _layout;
+		VkPipeline _pipeline;
+		VkPipelineLayout _pipelineLayout;
 	};
 };

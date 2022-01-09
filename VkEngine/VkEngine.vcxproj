@@ -151,6 +151,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Components\Camera.cpp" />
+    <ClCompile Include="Source\Rendering\ShaderExt.cpp" />
+    <ClCompile Include="Source\Rendering\Renderer.cpp" />
+    <ClCompile Include="Source\Utils\FileReader.cpp" />
     <ClCompile Include="Source\Rendering\Vertex.cpp" />
     <ClCompile Include="Source\Components\Material.cpp" />
     <ClCompile Include="Source\Components\Transform.cpp" />
@@ -167,10 +171,14 @@
     <ClInclude Include="Include\Components\Material.h" />
     <ClInclude Include="Include\ECS\Cecsar.h" />
     <ClInclude Include="Include\ECS\HashSet.h" />
+    <ClInclude Include="Include\Rendering\Renderer.h" />
+    <ClInclude Include="Include\Rendering\ShaderExt.h" />
+    <ClInclude Include="Include\Utils\FileReader.h" />
     <ClInclude Include="Include\pch.h" />
     <ClInclude Include="Include\ECS\SparseSet.h" />
     <ClInclude Include="Include\Components\Transform.h" />
     <ClInclude Include="Include\Rendering\Vertex.h" />
+    <ClInclude Include="Include\Components\Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">

@@ -7,5 +7,5 @@ struct Vertex final
 	glm::vec2 textureCoordinates{0};
 
 	[[nodiscard]] static VkVertexInputBindingDescription GetBindingDescription();
-	[[nodiscard]] static vi::ArrayPtr<VkVertexInputAttributeDescription> GetAttributeDescriptions();
+	[[nodiscard]] static vi::Vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
 };

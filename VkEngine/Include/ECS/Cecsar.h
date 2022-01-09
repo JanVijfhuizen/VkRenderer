@@ -51,9 +51,11 @@ namespace ce
 		/// The main upside to subscribing is that when an entity is destroyed, the subscribed systems automatically remove any related component.
 		/// </summary>
 		void SubscribeSystem(ISystem* system);
+		Entity& Insert(const uint32_t sparseIndex, const Entity& value) override;
 		void RemoveAt(uint32_t sparseIndex) override;
 
 	private:
+		uint32_t _next = 0;
 		vi::Vector<ISystem*> _systems{ 32, GMEM_VOL };
 	};
 

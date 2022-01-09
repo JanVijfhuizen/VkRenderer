@@ -18,6 +18,11 @@ namespace vi
 		operator[](GetLength() - 1) = '\0';
 	}
 
+	String::String(const size_t size, FreeListAllocator& allocator)
+	{
+		Reallocate(size, allocator);
+	}
+
 	String::operator const char*() const
 	{
 		assert(GetLength() > 0);

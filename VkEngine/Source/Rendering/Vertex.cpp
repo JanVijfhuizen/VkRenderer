@@ -10,9 +10,9 @@ VkVertexInputBindingDescription Vertex::GetBindingDescription()
 	return bindingDescription;
 }
 
-vi::ArrayPtr<VkVertexInputAttributeDescription> Vertex::GetAttributeDescriptions()
+vi::Vector<VkVertexInputAttributeDescription> Vertex::GetAttributeDescriptions()
 {
-	vi::ArrayPtr<VkVertexInputAttributeDescription> attributeDescriptions{3, GMEM_TEMP};
+	vi::Vector<VkVertexInputAttributeDescription> attributeDescriptions{3, GMEM_TEMP, 3};
 
 	auto& position = attributeDescriptions[0];
 	position.binding = 0;

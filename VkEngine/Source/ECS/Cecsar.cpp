@@ -37,6 +37,13 @@ namespace ce
 		_systems.Add(system);
 	}
 
+	Entity& Cecsar::Insert(const uint32_t sparseIndex, const Entity& value)
+	{
+		auto& instance = SparseSet<Entity>::Insert(sparseIndex, value);
+		instance._identifier = _next++;
+		return instance;
+	}
+
 	void Cecsar::RemoveAt(const uint32_t sparseIndex)
 	{
 		for (auto& system : _systems)

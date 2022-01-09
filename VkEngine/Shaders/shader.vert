@@ -9,6 +9,7 @@ layout(location = 2) in vec2 inTexCoords;
 layout (set = 0, binding = 0) uniform Camera
 {
     vec3 position;
+    float rotation;
 } camera;
 
 layout (push_constant) uniform PushConstants

@@ -10,7 +10,7 @@ namespace vi
 	{
 	public:
 		Vector();
-		explicit Vector(size_t size, FreeListAllocator& allocator);
+		explicit Vector(size_t size, FreeListAllocator& allocator, size_t count = 0);
 
 		T& Add(const T& value = {});
 		void RemoveAt(size_t index);
@@ -29,8 +29,9 @@ namespace vi
 	Vector<T>::Vector() = default;
 
 	template <typename T>
-	Vector<T>::Vector(const size_t size, FreeListAllocator& allocator) : ArrayPtr<T>(size, allocator)
+	Vector<T>::Vector(const size_t size, FreeListAllocator& allocator, const size_t count) : ArrayPtr<T>(size, allocator), _count(count)
 	{
+		assert(_count <= size);
 	}
 
 	template <typename T>

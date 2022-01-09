@@ -11,6 +11,7 @@ namespace vi
 		String();
 		explicit String(FreeListAllocator& allocator);
 		String(const char* buffer, FreeListAllocator& allocator);
+		String(size_t size, FreeListAllocator& allocator);
 		[[nodiscard]] operator const char* () const;
 
 		/// <summary>
