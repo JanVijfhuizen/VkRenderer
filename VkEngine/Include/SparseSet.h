@@ -1,5 +1,9 @@
 #pragma once
 
+/// <summary>
+/// Data container that avoids fragmentation and supports O(1) lookup, but requires a lot of memory.
+/// In the ECS, This set is most useful when working with a large amount of component instances.
+/// </summary>
 template <typename T>
 class SparseSet
 {
