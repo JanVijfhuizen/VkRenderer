@@ -1,13 +1,14 @@
 ﻿#pragma once
 
 /// <summary>
-/// Data container that avoids fragmentation and supports O(1)-O(N) lookup.<br>
-/// In the ECS, This set is most useful when working with a small amount of component instances.
+/// Data container that avoids fragmentation and supports O(1)-O(N) lookup.
 /// </summary>
 template <typename T>
 class HashSet
 {
 public:
+	typedef vi::KeyValue<uint32_t, T> Instance;
+
 	[[nodiscard]] T& operator[] (uint32_t sparseIndex);
 
 	explicit HashSet(size_t size, vi::FreeListAllocator& allocator = GMEM);
@@ -17,8 +18,8 @@ public:
 
 	[[nodiscard]] size_t GetLength() const;
 
-	[[nodiscard]] vi::Iterator<T> begin() const;
-	[[nodiscard]] vi::Iterator<T> end() const;
+	[[nodiscard]] vi::Iterator<Instance> begin() const;
+	[[nodiscard]] vi::Iterator<Instance> end() const;
 
 private:
 	struct Hashable final
@@ -30,7 +31,7 @@ private:
 		[[nodiscard]] bool operator==(const Hashable& other) const;
 	};
 
-	vi::Vector<T> _instances;
+	vi::Vector<Instance> _instances;
 	vi::HashMap<Hashable> _hashMap;
 	vi::ArrayPtr<uint32_t> _dense;
 };
@@ -40,7 +41,7 @@ T& HashSet<T>::operator[](const uint32_t sparseIndex)
 {
 	Hashable* hashable = _hashMap.FindNode({ sparseIndex, -1 });
 	assert(hashable);
-	return _instances[hashable->denseIndex];
+	return _instances[hashable->denseIndex].value;
 }
 
 template <typename T>
@@ -57,7 +58,7 @@ T& HashSet<T>::Insert(const uint32_t sparseIndex, const T& value)
 	const uint32_t count = _instances.GetCount();
 	_hashMap.Insert({ sparseIndex, count });
 	_dense[count] = sparseIndex;
-	return _instances.Add(value);
+	return _instances.Add({ sparseIndex, value }).value;
 }
 
 template <typename T>
@@ -70,7 +71,7 @@ void HashSet<T>::RemoveAt(const uint32_t sparseIndex)
 	const uint32_t denseIndex = hashable->denseIndex;
 	_instances.RemoveAt(denseIndex);
 	_dense[denseIndex] = _dense[_instances.GetCount()];
-	_hashMap.Remove({ sparseIndex , 0});
+	_hashMap.Remove({ sparseIndex, 0});
 
 	// Decrement pointing index if it's higher than the one removed.
 	for (auto& keyPair : _hashMap)
@@ -87,13 +88,13 @@ size_t HashSet<T>::GetLength() const
 }
 
 template <typename T>
-vi::Iterator<T> HashSet<T>::begin() const
+vi::Iterator<typename HashSet<T>::Instance> HashSet<T>::begin() const
 {
 	return _instances.begin();
 }
 
 template <typename T>
-vi::Iterator<T> HashSet<T>::end() const
+vi::Iterator<typename HashSet<T>::Instance> HashSet<T>::end() const
 {
 	return _instances.end();
 }

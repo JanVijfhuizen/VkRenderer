@@ -44,9 +44,9 @@ int main()
 		hashSet.Insert(22, 8);
 		hashSet.RemoveAt(12);
 
-		for (auto& hash_set : hashSet)
+		for (const auto& [index, instance] : hashSet)
 		{
-			std::cout << hash_set << std::endl;
+			std::cout << instance << " " << index << std::endl;
 		}
 	}
 
