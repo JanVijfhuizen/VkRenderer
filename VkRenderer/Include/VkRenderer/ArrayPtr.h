@@ -41,6 +41,8 @@ namespace vi
 		/// <returns>Used allocator, if any.</returns>
 		[[nodiscard]] FreeListAllocator* GetAllocator() const;
 
+		void Swap(size_t a, size_t b);
+
 		/// <summary>Copy a range of values into this array.</summary>
 		/// <param name="other">Other array from which to copy the values.</param>  
 		/// <param name="begin">Start of the memory range (inclusive).</param>  
@@ -119,6 +121,14 @@ namespace vi
 	FreeListAllocator* ArrayPtr<T>::GetAllocator() const
 	{
 		return _allocator;
+	}
+
+	template <typename T>
+	void ArrayPtr<T>::Swap(const size_t a, const size_t b)
+	{
+		const T temp = _data[a];
+		_data[a] = _data[b];
+		_data[b] = temp;
 	}
 
 	template <typename T>

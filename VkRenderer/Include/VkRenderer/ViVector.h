@@ -12,7 +12,7 @@ namespace vi
 		Vector();
 		explicit Vector(size_t size, FreeListAllocator& allocator);
 
-		void Add(const T& value = {});
+		T& Add(const T& value = {});
 		void RemoveAt(size_t index);
 		/// <summary>Removes all elements and sets count to zero.</summary>
 		void Clear();
@@ -34,14 +34,14 @@ namespace vi
 	}
 
 	template <typename T>
-	void Vector<T>::Add(const T& value)
+	T& Vector<T>::Add(const T& value)
 	{
 		auto allocator = ArrayPtr<T>::GetAllocator();
 		assert(allocator);
 		const size_t length = ArrayPtr<T>::GetLength();
 		if(++_count >= length)
 			ArrayPtr<T>::Reallocate(Ut::Max<size_t>(1, length * 2), *allocator);
-		ArrayPtr<T>::operator[](_count - 1) = value;
+		return ArrayPtr<T>::operator[](_count - 1) = value;
 	}
 
 	template <typename T>

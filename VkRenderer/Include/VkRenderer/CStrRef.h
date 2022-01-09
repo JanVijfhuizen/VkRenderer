@@ -34,11 +34,6 @@ namespace vi
 
 	inline bool CStrRef::operator==(const CStrRef& other) const
 	{
-		if (size != other.size)
-			return false;
-		for (size_t i = 0; i < size; ++i)
-			if (value[i] != other.value[i])
-				return false;
-		return true;
+		return strcmp(value, other.value);
 	}
 }
