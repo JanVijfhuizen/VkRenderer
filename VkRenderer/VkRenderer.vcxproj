@@ -25,14 +25,8 @@
     <ClInclude Include="Include\VkRenderer\HashMap.h" />
     <ClInclude Include="Include\VkRenderer\Iterator.h" />
     <ClInclude Include="Include\VkRenderer\KeyValue.h" />
-    <ClInclude Include="Include\VkRenderer\LogicalDeviceFactory.h" />
-    <ClInclude Include="Include\VkRenderer\Queues.h" />
     <ClInclude Include="Include\VkRenderer\CStrRef.h" />
     <ClInclude Include="Include\VkRenderer\ViString.h" />
-    <ClInclude Include="Include\VkRenderer\SwapChain.h" />
-    <ClInclude Include="Include\VkRenderer\PhysicalDeviceFactory.h" />
-    <ClInclude Include="Include\VkRenderer\InstanceFactory.h" />
-    <ClInclude Include="Include\VkRenderer\Debugger.h" />
     <ClInclude Include="Include\VkRenderer\pch.h" />
     <ClInclude Include="Include\VkRenderer\UniquePtr.h" />
     <ClInclude Include="Include\VkRenderer\Utilities.h" />
@@ -56,7 +50,6 @@
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkRenderPassHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkShaderHandler.h" />
     <ClInclude Include="Include\VkRenderer\VkHandlers\VkSyncHandler.h" />
-    <ClInclude Include="Include\VkRenderer\VkRenderer.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandler.h" />
     <ClInclude Include="Include\VkRenderer\WindowHandlerGLFW.h" />
   </ItemGroup>
@@ -81,14 +74,8 @@
     <ClCompile Include="Source\VkCore\VkCore.cpp" />
     <ClCompile Include="Source\ViString.cpp" />
     <ClCompile Include="Source\FreeListAllocator.cpp" />
-    <ClCompile Include="Source\LogicalDeviceFactory.cpp" />
-    <ClCompile Include="Source\SwapChain.cpp" />
-    <ClCompile Include="Source\PhysicalDeviceFactory.cpp" />
-    <ClCompile Include="Source\InstanceFactory.cpp" />
-    <ClCompile Include="Source\Debugger.cpp" />
     <ClCompile Include="Source\WindowHandlerGLFW.cpp" />
     <ClCompile Include="Source\WindowHandler.cpp" />
-    <ClCompile Include="Source\VkRenderer.cpp" />
     <ClCompile Include="Source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

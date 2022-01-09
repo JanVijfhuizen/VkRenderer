@@ -151,18 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Rendering\Light.cpp" />
-    <ClCompile Include="Source\Rendering\ShadowCaster.cpp" />
-    <ClCompile Include="Source\Rendering\SwapChainGC.cpp" />
-    <ClCompile Include="Source\Rendering\Texture.cpp" />
-    <ClCompile Include="Source\FileReader.cpp" />
-    <ClCompile Include="Source\Rendering\DescriptorPool.cpp" />
-    <ClCompile Include="Source\Engine.cpp" />
-    <ClCompile Include="Source\Rendering\Camera.cpp" />
-    <ClCompile Include="Source\Rendering\DefaultMaterial.cpp" />
-    <ClCompile Include="Source\Rendering\Mesh.cpp" />
-    <ClCompile Include="Source\Rendering\RenderManager.cpp" />
-    <ClCompile Include="Source\Cecsar.cpp" />
     <ClCompile Include="Source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
@@ -170,32 +158,9 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Source\Main.cpp" />
-    <ClCompile Include="Source\Transform.cpp" />
-    <ClCompile Include="Source\Rendering\Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\Engine.h" />
-    <ClInclude Include="Include\FileReader.h" />
-    <ClInclude Include="Include\Cecsar.h" />
-    <ClInclude Include="Include\Entity.h" />
-    <ClInclude Include="Include\MapSet.h" />
-    <ClInclude Include="Include\Rendering\Camera.h" />
-    <ClInclude Include="Include\Rendering\DefaultMaterial.h" />
-    <ClInclude Include="Include\Rendering\DescriptorPool.h" />
-    <ClInclude Include="Include\Rendering\Light.h" />
-    <ClInclude Include="Include\Rendering\ShadowCaster.h" />
-    <ClInclude Include="Include\Rendering\SwapChainGC.h" />
-    <ClInclude Include="Include\Rendering\Texture.h" />
-    <ClInclude Include="Include\UVector.h" />
-    <ClInclude Include="Include\Singleton.h" />
-    <ClInclude Include="Include\Set.h" />
-    <ClInclude Include="Include\SparseSet.h" />
     <ClInclude Include="Include\pch.h" />
-    <ClInclude Include="Include\tiny_obj_loader.h" />
-    <ClInclude Include="Include\Rendering\RenderManager.h" />
-    <ClInclude Include="Include\Transform.h" />
-    <ClInclude Include="Include\Rendering\Mesh.h" />
-    <ClInclude Include="Include\Rendering\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">
