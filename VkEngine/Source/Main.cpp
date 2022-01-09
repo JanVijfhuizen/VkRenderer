@@ -19,21 +19,25 @@ TransformSystem::TransformSystem(Cecsar& cecsar) : System(cecsar)
 int main()
 {
 	{
-		vi::WindowHandlerGLFW windowHandler;
+		const uint32_t capacity = 100;
 
-		vi::VkCoreInfo info{};
-		info.windowHandler = &windowHandler;
+		vi::UniquePtr<vi::WindowHandlerGLFW> windowHandler{GMEM};
+		vi::UniquePtr<vi::VkCore> core{};
+		vi::UniquePtr<Cecsar> cecsar{GMEM, capacity };
+		vi::UniquePtr<TransformSystem> system{GMEM, *cecsar};
 
-		vi::VkCore core{info};
+		{
+			vi::VkCoreInfo info{};
+			info.windowHandler = windowHandler;
+			core = { GMEM, info };
+		}
 
-		Cecsar cecsar{100};
-		TransformSystem system{cecsar};
-		system.Insert(5, 10);
-		system.Insert(15, 30);
-		system.Insert(2, 4);
-		system.RemoveAt(15);
+		system->Insert(5, 10);
+		system->Insert(15, 30);
+		system->Insert(2, 4);
+		system->RemoveAt(15);
 
-		for (const auto& [index, instance] : system)
+		for (const auto& [index, instance] : *system)
 		{
 			std::cout << instance << std::endl;
 		}

@@ -9,16 +9,18 @@ namespace vi
 	class UniquePtr final
 	{
 	public:
+		UniquePtr();
 		/// <param name="allocator">The allocator that holds the owned object</summary>
 		/// <param name="args">Variadic arguments which are passed to the object's constructor.</param>
 		template <typename ...Args>
-		UniquePtr(FreeListAllocator& allocator, Args... args);
+		UniquePtr(FreeListAllocator& allocator, Args&... args);
 		UniquePtr(UniquePtr<T>& other);
 		UniquePtr(UniquePtr<T>&& other) noexcept;
 		UniquePtr<T>& operator=(UniquePtr<T> const& other);
 		UniquePtr<T>& operator=(UniquePtr<T>&& other) noexcept;
 		~UniquePtr();
 
+		[[nodiscard]] T* operator ->() const;
 		// ReSharper disable once CppNonExplicitConversionOperator
 		operator T* () const;
 		operator bool() const;
@@ -30,10 +32,13 @@ namespace vi
 	};
 
 	template <typename T>
+	UniquePtr<T>::UniquePtr() = default;
+
+	template <typename T>
 	template <typename ... Args>
-	UniquePtr<T>::UniquePtr(FreeListAllocator& allocator, Args... args) : _allocator(&allocator)
+	UniquePtr<T>::UniquePtr(FreeListAllocator& allocator, Args&... args) : _allocator(&allocator)
 	{
-		_ptr = allocator.New<T>(args);
+		_ptr = allocator.New<T>(args...);
 	}
 
 	template <typename T>
@@ -68,6 +73,12 @@ namespace vi
 	}
 
 	template <typename T>
+	T* UniquePtr<T>::operator->() const
+	{
+		return _ptr;
+	}
+
+	template <typename T>
 	UniquePtr<T>::operator T* () const
 	{
 		return _ptr;
@@ -84,7 +95,7 @@ namespace vi
 	{
 		_ptr = other._ptr;
 		_allocator = other._allocator;
-		other._ptr = nullptr;
+		other._allocator = nullptr;
 		return *this;
 	}
 }
