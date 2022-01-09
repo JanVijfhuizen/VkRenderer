@@ -18,6 +18,17 @@ TransformSystem::TransformSystem(Cecsar& cecsar) : System(cecsar)
 int main()
 {
 	{
+		vi::HashMap<int> map{10, GMEM_TEMP};
+
+		map.Insert(15);
+		map.Insert(25);
+
+		map.Erase(25);
+
+		std::cout << map.Contains(25);
+	}
+
+	{
 		vi::WindowHandlerGLFW windowHandler;
 
 		vi::VkCoreInfo info{};
@@ -32,7 +43,7 @@ int main()
 		system.Insert(2, 4);
 		system.RemoveAt(15);
 
-		for (const auto& [instance, index] : system)
+		for (const auto& [index, instance] : system)
 		{
 			std::cout << instance << std::endl;
 		}

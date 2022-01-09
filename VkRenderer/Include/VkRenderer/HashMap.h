@@ -24,7 +24,7 @@ namespace vi
 
 		size_t _count = 0;
 
-		[[nodiscard]] Node* Find(const T& value);
+		[[nodiscard]] Node* Find(const T& value, uint32_t* outIndex = nullptr);
 		[[nodiscard]] int32_t ToHash(const T& value) const;
 	};
 
@@ -37,6 +37,9 @@ namespace vi
 	template <typename T>
 	void HashMap<T>::Insert(const T& value)
 	{
+		if (Contains(value))
+			return;
+
 		_count++;
 
 		const auto data = ArrayPtr<Node>::GetData();
@@ -54,7 +57,7 @@ namespace vi
 		} while (node->key != -1);
 
 		node->value = value;
-		node->key = index - 1;
+		node->key = hash;
 	}
 
 	template <typename T>
@@ -67,10 +70,24 @@ namespace vi
 	template <typename T>
 	void HashMap<T>::Erase(const T& value)
 	{
-		const auto node = Find(value);
+		uint32_t index;
+		const auto node = Find(value, &index);
 		if (!node)
 			return;
-		*node = { -1, {} };
+
+		const auto data = ArrayPtr<Node>::GetData();
+		const size_t length = ArrayPtr<Node>::GetLength();
+
+		Node* neighbour = node;
+		while (node->key == neighbour->key)
+		{
+			index = (index + 1) % length;
+			neighbour = &data[index];
+		} 
+
+		Node* other = &data[(length + index - 1) % length];
+		*node = *other;
+		*other = { -1, {} };
 		_count--;
 	}
 
@@ -87,7 +104,7 @@ namespace vi
 	}
 
 	template <typename T>
-	typename HashMap<T>::Node* HashMap<T>::Find(const T& value)
+	typename HashMap<T>::Node* HashMap<T>::Find(const T& value, uint32_t* outIndex)
 	{
 		const auto data = ArrayPtr<Node>::GetData();
 		const int32_t hash = ToHash(value);
@@ -98,7 +115,11 @@ namespace vi
 		{
 			node = &data[index++];
 			if (node->key == hash && value == node->value)
+			{
+				if (outIndex)
+					*outIndex = index - 1;
 				return node;
+			}
 		} while (node->key >= hash);
 		return nullptr;
 	}

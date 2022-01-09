@@ -162,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Cecsar.h" />
+    <ClInclude Include="Include\HashSet.h" />
     <ClInclude Include="Include\pch.h" />
     <ClInclude Include="Include\SparseSet.h" />
   </ItemGroup>

@@ -4,11 +4,7 @@ template <typename T>
 class SparseSet
 {
 public:
-	struct Instance final
-	{
-		T value;
-		uint32_t sparseIndex;
-	};
+	typedef vi::KeyValue<uint32_t, T> Instance;
 
 	T& operator [](uint32_t sparseIndex) const;
 
@@ -53,7 +49,7 @@ T& SparseSet<T>::Insert(const uint32_t sparseIndex, const T& value)
 	denseId = _instances.GetCount();
 	_dense[denseId] = sparseIndex;
 
-	auto& instance = _instances.Add({value, sparseIndex});
+	auto& instance = _instances.Add({sparseIndex, value });
 	return instance.value;
 }
 
