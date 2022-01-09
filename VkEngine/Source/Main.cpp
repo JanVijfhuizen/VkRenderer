@@ -4,6 +4,17 @@
 #include "Cecsar.h"
 #include "SparseSet.h"
 
+class TransformSystem final : public System<float>
+{
+public:
+	explicit TransformSystem(Cecsar& cecsar);
+};
+
+TransformSystem::TransformSystem(Cecsar& cecsar) : System(cecsar)
+{
+	
+}
+
 int main()
 {
 	{
@@ -14,14 +25,14 @@ int main()
 
 		vi::VkCore core{info};
 
-		Cecsar cecsar{};
-		SparseSet<float> sparseSet{100, GMEM};
-		sparseSet.Insert(5, 10);
-		sparseSet.Insert(15, 30);
-		sparseSet.Insert(2, 4);
-		sparseSet.RemoveAt(15);
+		Cecsar cecsar{100};
+		TransformSystem system{cecsar};
+		system.Insert(5, 10);
+		system.Insert(15, 30);
+		system.Insert(2, 4);
+		system.RemoveAt(15);
 
-		for (const auto& [instance, index] : sparseSet)
+		for (const auto& [instance, index] : system)
 		{
 			std::cout << instance << std::endl;
 		}

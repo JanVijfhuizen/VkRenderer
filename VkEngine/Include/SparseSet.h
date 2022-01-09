@@ -1,7 +1,7 @@
 #pragma once
 
 template <typename T>
-class SparseSet final
+class SparseSet
 {
 public:
 	struct Instance final
@@ -14,9 +14,11 @@ public:
 
 	explicit SparseSet(size_t capacity, vi::FreeListAllocator& allocator = GMEM);
 
-	T& Insert(uint32_t sparseIndex, const T& value = {});
-	void RemoveAt(uint32_t sparseIndex);
+	virtual T& Insert(uint32_t sparseIndex, const T& value = {});
+	virtual void RemoveAt(uint32_t sparseIndex);
 	[[nodiscard]] bool Contains(uint32_t sparseIndex);
+
+	[[nodiscard]] size_t GetLength() const;
 
 	[[nodiscard]] vi::Iterator<Instance> begin() const;
 	[[nodiscard]] vi::Iterator<Instance> end() const;
@@ -76,6 +78,12 @@ template <typename T>
 bool SparseSet<T>::Contains(const uint32_t sparseIndex)
 {
 	return _sparse[sparseIndex] != -1;
+}
+
+template <typename T>
+size_t SparseSet<T>::GetLength() const
+{
+	return _instances.GetLength();
 }
 
 template <typename T>
