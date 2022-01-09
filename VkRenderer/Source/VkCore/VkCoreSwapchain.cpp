@@ -203,6 +203,7 @@ namespace vi
 		_core.GetRenderPassHandler().Destroy(_renderPass);
 		vkDestroySwapchainKHR(_core.GetLogicalDevice(), _swapChain, nullptr);
 
+		FreeBuffers();
 		FreeImages();
 		FreeFrames();
 	}
@@ -263,6 +264,7 @@ namespace vi
 
 		ConstructImages();
 		ConstructFrames();
+		ConstructBuffers();
 	}
 
 	VkCoreSwapchain::SupportDetails VkCoreSwapchain::QuerySwapChainSupport(

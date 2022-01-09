@@ -18,7 +18,7 @@ namespace vi
 		/// </summary>
 		/// <param name="args">Arguments which are passed to the constructor.</param>
 		template <typename T, typename ...Args>
-		[[nodiscard]] T* New(Args... args);
+		[[nodiscard]] T* New(Args&... args);
 		/// <summary>
 		/// Deallocates object of type T. Destructor is called.
 		/// </summary>
@@ -66,7 +66,7 @@ namespace vi
 	};
 
 	template <typename T, typename ... Args>
-	T* FreeListAllocator::New(Args... args)
+	T* FreeListAllocator::New(Args&... args)
 	{
 		const auto ptr = reinterpret_cast<T*>(MAlloc(sizeof(T)));
 		new (ptr) T(args...);

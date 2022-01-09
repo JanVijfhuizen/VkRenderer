@@ -151,7 +151,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Cecsar.cpp" />
+    <ClCompile Include="Source\Rendering\Vertex.cpp" />
+    <ClCompile Include="Source\Components\Material.cpp" />
+    <ClCompile Include="Source\Components\Transform.cpp" />
+    <ClCompile Include="Source\ECS\Cecsar.cpp" />
     <ClCompile Include="Source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
@@ -161,10 +164,13 @@
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\Cecsar.h" />
-    <ClInclude Include="Include\HashSet.h" />
+    <ClInclude Include="Include\Components\Material.h" />
+    <ClInclude Include="Include\ECS\Cecsar.h" />
+    <ClInclude Include="Include\ECS\HashSet.h" />
     <ClInclude Include="Include\pch.h" />
-    <ClInclude Include="Include\SparseSet.h" />
+    <ClInclude Include="Include\ECS\SparseSet.h" />
+    <ClInclude Include="Include\Components\Transform.h" />
+    <ClInclude Include="Include\Rendering\Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">

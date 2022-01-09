@@ -1,20 +1,9 @@
 #include "pch.h"
 #include "VkRenderer/VkCore/VkCore.h"
 #include "VkRenderer/WindowHandlerGLFW.h"
-#include "Cecsar.h"
-#include "SparseSet.h"
-#include "HashSet.h"
-
-class TransformSystem final : public System<float>
-{
-public:
-	explicit TransformSystem(Cecsar& cecsar);
-};
-
-TransformSystem::TransformSystem(Cecsar& cecsar) : System(cecsar)
-{
-	
-}
+#include "ECS/Cecsar.h"
+#include "Components/Material.h"
+#include "Components/Transform.h"
 
 int main()
 {
@@ -23,34 +12,30 @@ int main()
 
 		vi::UniquePtr<vi::WindowHandlerGLFW> windowHandler{GMEM};
 		vi::UniquePtr<vi::VkCore> core{};
-		vi::UniquePtr<Cecsar> cecsar{GMEM, capacity };
-		vi::UniquePtr<TransformSystem> system{GMEM, *cecsar};
+		vi::UniquePtr<ce::Cecsar> cecsar{GMEM, capacity };
 
 		{
 			vi::VkCoreInfo info{};
 			info.windowHandler = windowHandler;
+			info.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
 			core = { GMEM, info };
 		}
 
-		system->Insert(5, 10);
-		system->Insert(15, 30);
-		system->Insert(2, 4);
-		system->RemoveAt(15);
+		vi::UniquePtr<Transform::System> transforms{GMEM, *cecsar };
+		vi::UniquePtr<Material::System> materials{GMEM, *cecsar, *core };
 
-		for (const auto& [index, instance] : *system)
+		auto& swapChain = core->GetSwapChain();
+		while(true)
 		{
-			std::cout << instance << std::endl;
-		}
+			bool outQuit = false;
+			windowHandler->BeginFrame(outQuit);
+			if (outQuit)
+				break;
 
-		HashSet<float> hashSet{10, GMEM};
-		hashSet.Insert(48, 24);
-		hashSet.Insert(12, 6);
-		hashSet.Insert(22, 8);
-		hashSet.RemoveAt(12);
+			swapChain.BeginFrame();
 
-		for (const auto& [index, instance] : hashSet)
-		{
-			std::cout << instance << " " << index << std::endl;
+			bool recreateAssets = false;
+			swapChain.EndFrame(recreateAssets);
 		}
 	}
 
