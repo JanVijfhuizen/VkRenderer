@@ -9,6 +9,7 @@
 #include "VkCoreCommandPool.h"
 
 #include "../VkHandlers/VkCommandBufferHandler.h"
+#include "../VkHandlers/VkDescriptorPoolHandler.h"
 #include "../VkHandlers/VkFrameBufferHandler.h"
 #include "../VkHandlers/VkImageHandler.h"
 #include "../VkHandlers/VkLayoutHandler.h"
@@ -17,6 +18,7 @@
 #include "../VkHandlers/VkRenderPassHandler.h"
 #include "../VkHandlers/VkShaderHandler.h"
 #include "../VkHandlers/VkSyncHandler.h"
+
 
 namespace vi
 {
@@ -47,6 +49,7 @@ namespace vi
 		[[nodiscard]] VkCoreSwapchain& GetSwapChain();
 
 		[[nodiscard]] VkCommandBufferHandler& GetCommandBufferHandler();
+		[[nodiscard]] VkDescriptorPoolHandler& GetDescriptorPoolHandler();
 		[[nodiscard]] VkFrameBufferHandler& GetFrameBufferHandler();
 		[[nodiscard]] VkImageHandler& GetImageHandler();
 		[[nodiscard]] VkLayoutHandler& GetLayoutHandler();
@@ -68,11 +71,12 @@ namespace vi
 		VkCoreSwapchain _swapChain{*this};
 
 		VkCommandBufferHandler _commandBufferHandler{ *this };
+		VkDescriptorPoolHandler _descriptorPoolHandler{ *this };
 		VkFrameBufferHandler _frameBufferHandler{ *this };
 		VkImageHandler _imageHandler{ *this };
 		VkLayoutHandler _layoutHandler{ *this };
-		VkMemoryHandler _memoryHandler{*this};
-		VkPipelineHandler _pipelineHandler{*this};
+		VkMemoryHandler _memoryHandler{ *this };
+		VkPipelineHandler _pipelineHandler{ *this };
 		VkRenderPassHandler _renderPassHandler{ *this };
 		VkShaderHandler _shaderHandler{ *this };
 		VkSyncHandler _syncHandler{ *this };

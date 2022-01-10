@@ -99,6 +99,11 @@ namespace vi
 		return _commandBufferHandler;
 	}
 
+	VkDescriptorPoolHandler& VkCore::GetDescriptorPoolHandler()
+	{
+		return _descriptorPoolHandler;
+	}
+
 	VkFrameBufferHandler& VkCore::GetFrameBufferHandler()
 	{
 		return _frameBufferHandler;

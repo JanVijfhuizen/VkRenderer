@@ -21,6 +21,11 @@ namespace vi
 		/// <summary>Create the array as an observer to a memory range owned by something else.</summary>
 		explicit ArrayPtr(void* begin, size_t size);
 
+		/// <summary>
+		/// This is the only constructor that copies rather than moves.
+		/// </summary>
+		/// <param name="other">Array to copy from.</param>
+		ArrayPtr(ArrayPtr<T>& other, FreeListAllocator& allocator);
 		ArrayPtr(ArrayPtr<T>& other);
 		ArrayPtr(ArrayPtr<T>&& other) noexcept;
 		ArrayPtr<T>& operator=(ArrayPtr<T> const& other);
@@ -208,6 +213,13 @@ namespace vi
 		_data(reinterpret_cast<T*>(begin)), _length(size)
 	{
 
+	}
+
+	template <typename T>
+	ArrayPtr<T>::ArrayPtr(ArrayPtr<T>& other, FreeListAllocator& allocator)
+	{
+		Reallocate(sizeof(T) * other.GetLength(), allocator);
+		CopyData(other);
 	}
 
 	template <typename T>

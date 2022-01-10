@@ -12,10 +12,18 @@ namespace vi
 		Vector();
 		explicit Vector(size_t size, FreeListAllocator& allocator, size_t count = 0);
 
+		/// <summary>
+		/// Adjusts the count value. Resizes if count is larger than the vector's length.
+		/// </summary>
+		/// <param name="count">New count.</param>
+		void Resize(size_t count);
 		T& Add(const T& value = {});
 		void RemoveAt(size_t index);
 		/// <summary>Removes all elements and sets count to zero.</summary>
 		void Clear();
+
+		/// <summary>Removes the first instance in the vector and returns it. </summary>
+		T Pop();
 
 		[[nodiscard]] size_t GetCount() const;
 
@@ -32,6 +40,18 @@ namespace vi
 	Vector<T>::Vector(const size_t size, FreeListAllocator& allocator, const size_t count) : ArrayPtr<T>(size, allocator), _count(count)
 	{
 		assert(_count <= size);
+	}
+
+	template <typename T>
+	void Vector<T>::Resize(size_t count)
+	{
+		FreeListAllocator* allocator = ArrayPtr<T>::GetAllocator();
+		assert(allocator);
+
+		const size_t length = ArrayPtr<T>::GetLength();
+		if (length < count)
+			ArrayPtr<T>::Reallocate(count, *allocator);
+		_count = count;
 	}
 
 	template <typename T>
@@ -55,6 +75,14 @@ namespace vi
 	void Vector<T>::Clear()
 	{
 		_count = 0;
+	}
+
+	template <typename T>
+	T Vector<T>::Pop()
+	{
+		const T instance = ArrayPtr<T>::GetData()[0];
+		RemoveAt(0);
+		return instance;
 	}
 
 	template <typename T>
