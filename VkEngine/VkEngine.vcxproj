@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\SwapChainGC.cpp" />
     <ClCompile Include="Source\Rendering\DescriptorPool.cpp" />
     <ClCompile Include="Source\Components\Camera.cpp" />
     <ClCompile Include="Source\Rendering\ShaderExt.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="Include\ECS\Cecsar.h" />
     <ClInclude Include="Include\ECS\HashSet.h" />
     <ClInclude Include="Include\Rendering\DescriptorPool.h" />
+    <ClInclude Include="Include\Rendering\SwapChainGC.h" />
     <ClInclude Include="Include\Rendering\Renderer.h" />
     <ClInclude Include="Include\Rendering\ShaderExt.h" />
     <ClInclude Include="Include\Utils\FileReader.h" />

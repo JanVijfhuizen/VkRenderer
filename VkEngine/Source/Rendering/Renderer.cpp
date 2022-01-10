@@ -10,3 +10,8 @@ ShaderExt& Renderer::GetShaderExt()
 {
 	return _shaderExt;
 }
+
+SwapChainGC& Renderer::GetSwapChainGC()
+{
+	return _swapChainGC;
+}
