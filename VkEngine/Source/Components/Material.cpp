@@ -9,7 +9,7 @@ Material::System::System(ce::Cecsar& cecsar, Renderer& renderer, const char* sha
 	ce::System<Material>(cecsar), _renderer(renderer)
 {
 	auto& swapChain = renderer.GetSwapChain();
-	const auto shader = renderer.GetShaderExt().Load(shaderName);
+	_shader = renderer.GetShaderExt().Load(shaderName);
 
 	vi::VkLayoutHandler::Info layoutInfo{};
 	vi::VkLayoutHandler::Info::Binding camBinding{};
@@ -22,11 +22,12 @@ Material::System::System(ce::Cecsar& cecsar, Renderer& renderer, const char* sha
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.setLayouts.Add(_layout);
-	pipelineInfo.modules.Add(shader.vertex);
-	pipelineInfo.modules.Add(shader.fragment);
+	pipelineInfo.modules.Add(_shader.vertex);
+	pipelineInfo.modules.Add(_shader.fragment);
 	pipelineInfo.pushConstants.Add({ sizeof(Transform), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.renderPass = swapChain.GetRenderPass();
 	pipelineInfo.extent = swapChain.GetExtent();
+	
 	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
@@ -34,6 +35,7 @@ Material::System::~System()
 {
 	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
+	_renderer.GetShaderExt().DestroyShader(_shader);
 }
 
 VkDescriptorSetLayout Material::System::GetLayout() const

@@ -10,9 +10,9 @@ int main()
 	{
 		const uint32_t capacity = 100;
 
-		vi::UniquePtr<vi::WindowHandlerGLFW> windowHandler{GMEM};
+		const vi::UniquePtr<vi::WindowHandlerGLFW> windowHandler{GMEM};
 		vi::UniquePtr<Renderer> renderer{};
-		vi::UniquePtr<ce::Cecsar> cecsar{GMEM, capacity };
+		const vi::UniquePtr<ce::Cecsar> cecsar{GMEM, capacity };
 
 		{
 			vi::VkCoreInfo info{};
@@ -22,7 +22,7 @@ int main()
 		}
 
 		vi::UniquePtr<Transform::System> transforms{GMEM, *cecsar };
-		vi::UniquePtr<Material::System> materials{GMEM, *cecsar, *renderer, "shader"};
+		vi::UniquePtr<Material::System> materials{GMEM, *cecsar, *renderer, ""};
 
 		auto& swapChain = renderer->GetSwapChain();
 		while(true)

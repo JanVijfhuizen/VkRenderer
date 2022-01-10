@@ -9,12 +9,12 @@ ShaderExt::ShaderExt(vi::VkCore& core) : VkHandler(core)
 
 ShaderExt::Shader ShaderExt::Load(const char* name) const
 {
-	vi::String vertPrefix{ ".vert", GMEM_TEMP };
-	vi::String fragPrefix{ ".frag", GMEM_TEMP };
+	vi::String vertPostFix{ "vert.spv", GMEM_TEMP };
+	vi::String fragPostFix{ "frag.spv", GMEM_TEMP };
 	vi::String middle{ name, GMEM_TEMP };
 
-	const auto vertCode = ToCode(middle, vertPrefix);
-	const auto fragCode = ToCode(middle, fragPrefix);
+	const auto vertCode = ToCode(middle, vertPostFix);
+	const auto fragCode = ToCode(middle, fragPostFix);
 
 	auto& handler = core.GetShaderHandler();
 
@@ -22,6 +22,13 @@ ShaderExt::Shader ShaderExt::Load(const char* name) const
 	shader.vertex.module = handler.CreateModule(vertCode);
 	shader.fragment.module = handler.CreateModule(fragCode);
 	return shader;
+}
+
+void ShaderExt::DestroyShader(const Shader& shader)
+{
+	auto& handler = core.GetShaderHandler();
+	handler.DestroyModule(shader.fragment.module);
+	handler.DestroyModule(shader.vertex.module);
 }
 
 vi::String ShaderExt::ToCode(vi::String& name, vi::String& postFix)

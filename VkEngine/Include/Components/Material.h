@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Rendering/ShaderExt.h"
 
 class Renderer;
 
@@ -18,5 +19,6 @@ public:
 		VkDescriptorSetLayout _layout;
 		VkPipeline _pipeline;
 		VkPipelineLayout _pipelineLayout;
+		ShaderExt::Shader _shader;
 	};
 };

@@ -9,10 +9,9 @@ vi::String FileReader::Read(const vi::String& path)
 
 	const size_t fileSize = static_cast<size_t>(file.tellg());
 	vi::String buffer{fileSize, GMEM_TEMP};
-
+	
 	file.seekg(0);
 	file.read(buffer.GetData(), fileSize);
-
 	file.close();
 	return buffer;
 }

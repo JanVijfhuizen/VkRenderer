@@ -20,6 +20,7 @@ public:
 	explicit ShaderExt(vi::VkCore& core);
 
 	[[nodiscard]] Shader Load(const char* name) const;
+	void DestroyShader(const Shader& shader);
 
 private:
 	[[nodiscard]] static vi::String ToCode(vi::String& name, vi::String& postFix);

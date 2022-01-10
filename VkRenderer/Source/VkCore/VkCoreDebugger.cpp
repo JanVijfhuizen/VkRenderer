@@ -77,6 +77,11 @@ namespace vi
 		VkDebugUtilsMessengerCreateInfoEXT& debugInfo,
 		VkInstanceCreateInfo& instanceInfo)
 	{
+		#ifdef NDEBUG
+		instanceInfo.enabledLayerCount = 0;
+		return;
+		#endif
+
 		auto& validationLayers = info.validationLayers;
 		instanceInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.GetCount());
 		instanceInfo.ppEnabledLayerNames = validationLayers.GetData();
