@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Rendering/ShaderExt.h"
+#include "Rendering/DescriptorPool.h"
 
 class Renderer;
 
@@ -20,5 +21,6 @@ public:
 		VkPipeline _pipeline;
 		VkPipelineLayout _pipelineLayout;
 		ShaderExt::Shader _shader;
+		DescriptorPool _descriptorPool;
 	};
 };

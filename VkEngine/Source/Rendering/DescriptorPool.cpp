@@ -2,23 +2,25 @@
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/Renderer.h"
 
-DescriptorPool::DescriptorPool(Renderer& renderer,
-    const VkDescriptorSetLayout layout, 
-    vi::ArrayPtr<VkDescriptorType>& types, 
-    vi::ArrayPtr<uint32_t>& capacities,
-    const uint32_t blockSize) :
-	_renderer(renderer), _layout(layout), _types(types, GMEM_VOL), 
-	_capacities(capacities, GMEM_VOL), _blockSize(blockSize)
+void DescriptorPool::Construct(
+    Renderer& renderer, const VkDescriptorSetLayout layout, VkDescriptorType* types,
+	uint32_t* capacities, const uint32_t typeCount, const uint32_t blockSize)
 {
+    _renderer = &renderer;
+    _layout = layout;
+    _types = vi::ArrayPtr<VkDescriptorType>{ types, typeCount, GMEM_VOL };
+    _capacities = vi::ArrayPtr<uint32_t>{ capacities, typeCount, GMEM_VOL };
+    _blockSize = blockSize;
+
     assert(blockSize > 0);
     AddBlock();
 }
 
-DescriptorPool::~DescriptorPool()
+void DescriptorPool::Cleanup()
 {
-    auto& handler = _renderer.GetDescriptorPoolHandler();
-	for (auto& pool : _pools)
-		handler.Destroy(pool);
+    auto& handler = _renderer->GetDescriptorPoolHandler();
+    for (auto& pool : _pools)
+        handler.Destroy(pool);
 }
 
 VkDescriptorSet DescriptorPool::Get()
@@ -35,7 +37,7 @@ void DescriptorPool::Add(const VkDescriptorSet set)
 
 void DescriptorPool::AddBlock()
 {
-    auto& handler = _renderer.GetDescriptorPoolHandler();
+    auto& handler = _renderer->GetDescriptorPoolHandler();
     const auto pool = handler.Create(_types.GetData(), _capacities.GetData(), _types.GetLength());
     _pools.Add(pool);
 

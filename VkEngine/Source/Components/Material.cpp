@@ -4,6 +4,7 @@
 #include "Components/Camera.h"
 #include "Rendering/Vertex.h"
 #include "Components/Transform.h"
+#include "Rendering/DescriptorPool.h"
 
 Material::System::System(ce::Cecsar& cecsar, Renderer& renderer, const char* shaderName) :
 	ce::System<Material>(cecsar), _renderer(renderer)
@@ -29,6 +30,11 @@ Material::System::System(ce::Cecsar& cecsar, Renderer& renderer, const char* sha
 	pipelineInfo.extent = swapChain.GetExtent();
 	
 	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
+
+	VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+	const uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
+	uint32_t sizes[] = { blockSize, blockSize };
+	_descriptorPool.Construct(_renderer, _layout, uboTypes, sizes, 2, blockSize);
 }
 
 Material::System::~System()
@@ -36,6 +42,7 @@ Material::System::~System()
 	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
 	_renderer.GetShaderExt().DestroyShader(_shader);
+	_descriptorPool.Cleanup();
 }
 
 VkDescriptorSetLayout Material::System::GetLayout() const

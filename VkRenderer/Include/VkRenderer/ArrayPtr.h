@@ -20,6 +20,8 @@ namespace vi
 		explicit ArrayPtr(size_t size, FreeListAllocator& allocator, const T& initValue = {});
 		/// <summary>Create the array as an observer to a memory range owned by something else.</summary>
 		explicit ArrayPtr(void* begin, size_t size);
+		/// <summary>Create the array as the owner of a memory range. Copies the given range.</summary>
+		explicit ArrayPtr(void* begin, size_t size, FreeListAllocator& allocator);
 
 		/// <summary>
 		/// This is the only constructor that copies rather than moves.
@@ -28,7 +30,7 @@ namespace vi
 		ArrayPtr(ArrayPtr<T>& other, FreeListAllocator& allocator);
 		ArrayPtr(ArrayPtr<T>& other);
 		ArrayPtr(ArrayPtr<T>&& other) noexcept;
-		ArrayPtr<T>& operator=(ArrayPtr<T> const& other);
+		ArrayPtr<T>& operator=(const ArrayPtr<T>& other);
 		ArrayPtr<T>& operator=(ArrayPtr<T>&& other) noexcept;
 		virtual ~ArrayPtr();
 
@@ -216,6 +218,13 @@ namespace vi
 	}
 
 	template <typename T>
+	ArrayPtr<T>::ArrayPtr(void* begin, const size_t size, FreeListAllocator& allocator)
+	{
+		Reallocate(size, allocator);
+		memcpy(_data, begin, size * sizeof(T));
+	}
+
+	template <typename T>
 	ArrayPtr<T>::ArrayPtr(ArrayPtr<T>& other, FreeListAllocator& allocator)
 	{
 		Reallocate(sizeof(T) * other.GetLength(), allocator);
@@ -233,13 +242,13 @@ namespace vi
 	{
 		Move(other);
 	}
-
+	
 	template <typename T>
-	ArrayPtr<T>& ArrayPtr<T>::operator=(ArrayPtr<T> const& other)
+	ArrayPtr<T>& ArrayPtr<T>::operator=(const ArrayPtr<T>& other)
 	{
 		return Move(other);
 	}
-
+	
 	template <typename T>
 	ArrayPtr<T>& ArrayPtr<T>::operator=(ArrayPtr<T>&& other) noexcept
 	{
