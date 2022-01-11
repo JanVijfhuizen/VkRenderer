@@ -5,6 +5,7 @@
 #include "Rendering/Vertex.h"
 #include "Components/Transform.h"
 #include "Rendering/DescriptorPool.h"
+#include "Rendering/MeshHandler.h"
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, const char* shaderName) : System<Material>(cecsar), _renderer(renderer)
 {
@@ -34,6 +35,9 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, const cha
 	const uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
 	uint32_t sizes[] = { blockSize, blockSize };
 	_descriptorPool.Construct(_renderer, _layout, uboTypes, sizes, 2, blockSize);
+
+	const auto vertexData = MeshHandler::GenerateQuad();
+	auto& meshHandler = renderer.GetMeshHandler();
 }
 
 MaterialSystem::~MaterialSystem()

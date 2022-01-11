@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\MeshHandler.cpp" />
     <ClCompile Include="Source\Engine\Engine.cpp" />
     <ClCompile Include="Source\Rendering\SwapChainGC.cpp" />
     <ClCompile Include="Source\Rendering\DescriptorPool.cpp" />
@@ -179,12 +180,14 @@
     <ClInclude Include="Include\Rendering\SwapChainGC.h" />
     <ClInclude Include="Include\Rendering\Renderer.h" />
     <ClInclude Include="Include\Rendering\ShaderExt.h" />
+    <ClInclude Include="Include\Rendering\MeshHandler.h" />
     <ClInclude Include="Include\Utils\FileReader.h" />
     <ClInclude Include="Include\pch.h" />
     <ClInclude Include="Include\ECS\SparseSet.h" />
     <ClInclude Include="Include\Components\Transform.h" />
     <ClInclude Include="Include\Rendering\Vertex.h" />
     <ClInclude Include="Include\Components\Camera.h" />
+    <ClInclude Include="Source\Rendering\Shader.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">

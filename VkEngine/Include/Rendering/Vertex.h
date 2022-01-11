@@ -2,6 +2,8 @@
 
 struct Vertex final
 {
+	typedef uint8_t Index;
+
 	glm::vec3 position{0};
 	glm::vec3 normal{0, 0, 1};
 	glm::vec2 textureCoordinates{0};

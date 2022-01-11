@@ -10,6 +10,7 @@ layout (set = 0, binding = 0) uniform Camera
 {
     vec3 position;
     float rotation;
+    float depth;
 } camera;
 
 layout (push_constant) uniform PushConstants
@@ -27,7 +28,7 @@ layout(location = 0) out Data
 
 void main() 
 {
-    gl_Position = vec4(pushConstants.position + inPosition - camera.position, 1);
+    gl_Position = vec4(pushConstants.position + inPosition - camera.position, camera.depth);
 
     outData.normal = inNormal;
     outData.fragTexCoord = inTexCoords;

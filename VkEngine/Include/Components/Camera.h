@@ -6,5 +6,6 @@ struct Camera final
 	{
 		glm::vec3 position;
 		float scale;
+		float depth = 1;
 	};
 };
