@@ -5,17 +5,17 @@
 #include "Rendering/Renderer.h"
 #include "Components/Camera.h"
 
-class Engine
+class Engine final
 {
 public:
 	struct Info final
 	{
 		size_t capacity = 1e2f;
 
-		typedef void (*Awake)();
-		typedef void (*Start)();
-		typedef void (*Update)(bool& outQuit);
-		typedef void (*Cleanup)();
+		typedef void (*Awake)(Engine& engine);
+		typedef void (*Start)(Engine& engine);
+		typedef void (*Update)(Engine& engine, bool& outQuit);
+		typedef void (*Cleanup)(Engine& engine);
 
 		Awake awake = nullptr;
 		Start start = nullptr;
@@ -29,7 +29,6 @@ public:
 	[[nodiscard]] int Run(const Info& info);
 	[[nodiscard]] bool IsRunning() const;
 
-protected:
 	[[nodiscard]] Renderer& GetRenderer() const;
 	[[nodiscard]] ce::Cecsar& GetCecsar() const;
 	[[nodiscard]] CameraSystem& GetCameras() const;

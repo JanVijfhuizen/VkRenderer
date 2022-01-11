@@ -21,9 +21,9 @@ int Engine::Run(const Info& info)
 	_materials = { GMEM, *_cecsar, *_renderer, *_transforms, "" };
 
 	if (info.awake)
-		info.awake();
+		info.awake(*this);
 	if (info.start)
-		info.start();
+		info.start(*this);
 
 	auto& swapChain = _renderer->GetSwapChain();
 	auto& swapChainExt = _renderer->GetSwapChainExt();
@@ -36,25 +36,26 @@ int Engine::Run(const Info& info)
 			break;
 
 		if (info.update)
-			info.update(outQuit);
+			info.update(*this, outQuit);
 		if (outQuit)
 			break;
 		if (info.physicsUpdate)
-			info.physicsUpdate(outQuit);
+			info.physicsUpdate(*this, outQuit);
 		if (outQuit)
 			break;
 
 		if(info.preRenderUpdate)
-			info.preRenderUpdate(outQuit);
+			info.preRenderUpdate(*this, outQuit);
 		if (outQuit)
 			break;
 
 		swapChain.BeginFrame();
 
+		_cameras->Update();
 		_materials->Update();
 
 		if(info.renderUpdate)
-			info.renderUpdate(outQuit);
+			info.renderUpdate(*this, outQuit);
 		if (outQuit)
 			break;
 

@@ -31,9 +31,10 @@ public:
 
 	void Update();
 
-	Camera& Insert(uint32_t sparseIndex, const Camera& value) override;
+	Camera& Insert(uint32_t sparseIndex, const Camera& value = {}) override;
 	void RemoveAt(uint32_t index) override;
 
+	[[nodiscard]] VkDescriptorSet GetDescriptor(const Camera& value) const;
 	[[nodiscard]] static vi::VkLayoutHandler::Info::Binding GetBindingInfo();
 
 private:

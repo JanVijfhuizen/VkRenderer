@@ -38,7 +38,7 @@ private:
 template <typename T>
 T& HashSet<T>::operator[](const uint32_t sparseIndex)
 {
-	Hashable* hashable = _hashMap.FindNode({ sparseIndex, -1 });
+	Hashable* hashable = _hashMap.Find({ sparseIndex, 0 });
 	assert(hashable);
 	return _instances[hashable->denseIndex].value;
 }
