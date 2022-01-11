@@ -20,3 +20,8 @@ SwapChainExt& Renderer::GetSwapChainExt()
 {
 	return _swapChainGC;
 }
+
+GPULinearAllocator& Renderer::GetGPULinearAllocator()
+{
+	return _GPULinearAllocator;
+}
