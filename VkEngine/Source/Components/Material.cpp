@@ -15,10 +15,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	_shader = renderer.GetShaderExt().Load(shaderName);
 
 	vi::VkLayoutHandler::Info layoutInfo{};
-	vi::VkLayoutHandler::Info::Binding camBinding{};
-	camBinding.size = sizeof(Camera::Ubo);
-	camBinding.flag = VK_SHADER_STAGE_VERTEX_BIT;
-	layoutInfo.bindings.Add(camBinding);
+	layoutInfo.bindings.Add(CameraSystem::GetBindingInfo());
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
 	VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
@@ -37,13 +34,8 @@ MaterialSystem::~MaterialSystem()
 	DestroySwapChainAssets();
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
 	_renderer.GetShaderExt().DestroyShader(_shader);
-	_descriptorPool.Cleanup();
 	_renderer.GetMeshHandler().Destroy(_mesh);
-}
-
-VkDescriptorSetLayout MaterialSystem::GetLayout() const
-{
-	return _layout;
+	_descriptorPool.Cleanup();
 }
 
 void MaterialSystem::OnRecreateSwapChainAssets()
@@ -75,7 +67,9 @@ void MaterialSystem::Update()
 {
 	auto& shaderHandler = _renderer.GetShaderHandler();
 	auto& meshHandler = _renderer.GetMeshHandler();
+	auto& pipelineHandler = _renderer.GetPipelineHandler();
 
+	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 	meshHandler.Bind(_mesh);
 
 	for (const auto& [index, material] : *this)

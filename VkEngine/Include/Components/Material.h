@@ -20,7 +20,6 @@ public:
 	~MaterialSystem();
 
 	void Update();
-	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
 
 protected:
 	void OnRecreateSwapChainAssets() override;
@@ -32,7 +31,7 @@ private:
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
 	ShaderExt::Shader _shader;
-	DescriptorPool _descriptorPool;
+	DescriptorPool _descriptorPool{};
 	MeshHandler::Mesh _mesh;
 
 	void DestroySwapChainAssets() const;

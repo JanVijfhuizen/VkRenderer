@@ -17,7 +17,7 @@ int Engine::Run(const Info& info)
 
 	_cecsar = { GMEM, info.capacity };
 	_transforms = { GMEM, *_cecsar };
-	_cameras = { GMEM, *_cecsar };
+	_cameras = { GMEM, *_cecsar, *_renderer };
 	_materials = { GMEM, *_cecsar, *_renderer, *_transforms, "" };
 
 	if (info.awake)
