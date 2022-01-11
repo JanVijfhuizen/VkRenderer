@@ -3,6 +3,7 @@
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/UboPool.h"
 
+class TransformSystem;
 class Renderer;
 
 struct Camera final
@@ -12,9 +13,11 @@ struct Camera final
 	struct Ubo final
 	{
 		glm::vec3 position;
-		float scale;
-		float depth = 1;
+		float rotation;
+		float clipFar;
 	};
+
+	float clipFar = 100;
 
 private:
 	VkBuffer _buffer;
@@ -26,7 +29,7 @@ constexpr auto MAX_CAMERAS = 8;
 class CameraSystem final : public ce::SmallSystem<Camera>
 {
 public:
-	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer);
+	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer, TransformSystem& transforms);
 	~CameraSystem();
 
 	void Update();
@@ -39,6 +42,8 @@ public:
 
 private:
 	Renderer& _renderer;
+	TransformSystem& _transforms;
+
 	VkDescriptorSetLayout _layout;
 	DescriptorPool _descriptorPool{};
 	UboPool<Camera::Ubo> _uboPool;

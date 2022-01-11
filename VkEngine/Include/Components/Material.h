@@ -3,6 +3,7 @@
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/MeshHandler.h"
 #include "Rendering/SwapChainExt.h"
+#include "Camera.h"
 
 class TransformSystem;
 class Renderer;
@@ -16,7 +17,7 @@ class MaterialSystem final : public ce::System<Material>, SwapChainExt::Dependen
 {
 public:
 	explicit MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, 
-		TransformSystem& transforms, const char* shaderName);
+		TransformSystem& transforms, CameraSystem& cameras, const char* shaderName);
 	~MaterialSystem();
 
 	void Update();
@@ -27,6 +28,8 @@ protected:
 private:
 	Renderer& _renderer;
 	TransformSystem& _transforms;
+	CameraSystem& _cameras;
+
 	VkDescriptorSetLayout _layout;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;

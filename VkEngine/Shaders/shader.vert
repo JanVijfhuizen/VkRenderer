@@ -10,7 +10,7 @@ layout (set = 0, binding = 0) uniform Camera
 {
     vec3 position;
     float rotation;
-    float depth;
+    float clipFar;
 } camera;
 
 layout (push_constant) uniform PushConstants
@@ -28,7 +28,12 @@ layout(location = 0) out Data
 
 void main() 
 {
-    gl_Position = vec4(pushConstants.position + inPosition - camera.position, camera.depth);
+    // Center position.
+    vec3 pos = pushConstants.position - camera.position;
+    // Don't draw if it's exactly on the camera.
+    pos += abs(pos.z) > .00001 ? inPosition: vec3(0);
+    pos.z /= camera.clipFar;
+    gl_Position = vec4(pos, camera.clipFar);
 
     outData.normal = inNormal;
     outData.fragTexCoord = inTexCoords;

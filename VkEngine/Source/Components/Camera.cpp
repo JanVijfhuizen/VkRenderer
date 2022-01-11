@@ -1,10 +1,13 @@
 ﻿#include "pch.h"
 #include "Components/Camera.h"
 #include "Rendering/Renderer.h"
+#include "Components/Transform.h"
 
-CameraSystem::CameraSystem(ce::Cecsar& cecsar, Renderer& renderer) : 
+CameraSystem::CameraSystem(ce::Cecsar& cecsar, 
+	Renderer& renderer, TransformSystem& transforms) : 
 	SmallSystem<Camera>(cecsar, MAX_CAMERAS), 
-	_renderer(renderer), _uboPool(renderer, SWAPCHAIN_MAX_FRAMES, MAX_CAMERAS)
+	_renderer(renderer), _transforms(transforms),
+	_uboPool(renderer, SWAPCHAIN_MAX_FRAMES, MAX_CAMERAS)
 {
 	auto& swapChain = renderer.GetSwapChain();
 	const uint32_t swapChainLength = swapChain.GetLength();
@@ -27,13 +30,25 @@ CameraSystem::~CameraSystem()
 
 void CameraSystem::Update()
 {
+	auto& memoryHandler = _renderer.GetMemoryHandler();
 	auto& shaderHandler = _renderer.GetShaderHandler();
+
 	const uint32_t imageIndex = _renderer.GetSwapChain().GetImageIndex();
+	const auto memory = _uboPool.GetMemory();
 
 	uint32_t i = 0;
 	for (auto& [index, camera] : *this)
 	{
+		auto& transform = _transforms[index];
+
 		shaderHandler.BindBuffer(camera._descriptors[imageIndex], camera._buffer, 0, sizeof(Camera::Ubo), 0, 0);
+
+		Camera::Ubo ubo{};
+		ubo.position = transform.position;
+		ubo.rotation = transform.rotation;
+		ubo.clipFar = camera.clipFar;
+		memoryHandler.Map(memory, &ubo, sizeof(Camera::Ubo) * i, sizeof(Camera::Ubo));
+
 		i++;
 	}
 }

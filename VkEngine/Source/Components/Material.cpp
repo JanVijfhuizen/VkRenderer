@@ -8,9 +8,10 @@
 #include "Rendering/MeshHandler.h"
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
-	Renderer& renderer, TransformSystem& transforms, const char* shaderName) : 
+	Renderer& renderer, TransformSystem& transforms, 
+	CameraSystem& cameras, const char* shaderName) : 
 	System<Material>(cecsar), Dependency(renderer), 
-	_renderer(renderer), _transforms(transforms)
+	_renderer(renderer), _transforms(transforms), _cameras(cameras)
 {
 	_shader = renderer.GetShaderExt().Load(shaderName);
 
@@ -65,6 +66,7 @@ void MaterialSystem::DestroySwapChainAssets() const
 
 void MaterialSystem::Update()
 {
+	auto& descriptorPoolHandler = _renderer.GetDescriptorPoolHandler();
 	auto& shaderHandler = _renderer.GetShaderHandler();
 	auto& meshHandler = _renderer.GetMeshHandler();
 	auto& pipelineHandler = _renderer.GetPipelineHandler();
@@ -72,10 +74,16 @@ void MaterialSystem::Update()
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 	meshHandler.Bind(_mesh);
 
-	for (const auto& [index, material] : *this)
+	for (auto& [camIndex, camera] : _cameras)
 	{
-		const auto& transform = _transforms[index];
-		shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, transform);
-		meshHandler.Draw();
+		auto set = _cameras.GetDescriptor(camera);
+		descriptorPoolHandler.BindSets(&set, 1);
+
+		for (const auto& [matIndex, material] : *this)
+		{
+			const auto& transform = _transforms[matIndex];
+			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, transform);
+			meshHandler.Draw();
+		}
 	}
 }
