@@ -27,7 +27,7 @@ SwapChainExt::~SwapChainExt()
 		Delete(deleteable, true);
 }
 
-void SwapChainExt::Update() const
+void SwapChainExt::Update()
 {
 	auto& swapChain = core.GetSwapChain();
 	const uint32_t index = swapChain.GetImageIndex();
@@ -36,7 +36,10 @@ void SwapChainExt::Update() const
 	{
 		auto& deleteable = _deleteables[i];
 		if (deleteable.index == index)
+		{
 			Delete(deleteable, false);
+			_deleteables.RemoveAt(i);
+		}
 	}
 
 	if(swapChain.GetShouldRecreateAssets())

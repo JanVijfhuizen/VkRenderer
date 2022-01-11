@@ -27,7 +27,7 @@ public:
 	explicit SwapChainExt(vi::VkCore& core);
 	~SwapChainExt();
 
-	void Update() const;
+	void Update();
 
 	void Collect(VkBuffer buffer);
 	void Collect(VkSampler sampler);
