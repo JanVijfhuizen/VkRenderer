@@ -26,10 +26,21 @@ int Engine::Run(const Info& info)
 		info.start();
 
 	auto& swapChain = _renderer->GetSwapChain();
+	auto& swapChainExt = _renderer->GetSwapChainExt();
+
 	while (true)
 	{
 		bool outQuit = false;
 		_windowHandler->BeginFrame(outQuit);
+		if (outQuit)
+			break;
+
+		if (info.update)
+			info.update(outQuit);
+		if (outQuit)
+			break;
+		if (info.physicsUpdate)
+			info.physicsUpdate(outQuit);
 		if (outQuit)
 			break;
 
@@ -47,17 +58,8 @@ int Engine::Run(const Info& info)
 		if (outQuit)
 			break;
 
-		bool recreateAssets = false;
-		swapChain.EndFrame(recreateAssets);	
-
-		if (info.update)
-			info.update(outQuit);
-		if (outQuit)
-			break;
-		if (info.physicsUpdate)
-			info.physicsUpdate(outQuit);
-		if (outQuit)
-			break;
+		swapChain.EndFrame();
+		swapChainExt.Update();
 	}
 
 	_isRunning = false;

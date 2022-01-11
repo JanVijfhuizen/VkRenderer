@@ -24,9 +24,7 @@ namespace vi
 		/// <summary>
 		/// Call this at the end of the frame.
 		/// </summary>
-		/// <param name="shouldRecreateAssets">Checks if the render assets are outdated.<br> 
-		/// This can happen in the case of a resize. If true, you should call Reconstruct afterwards.</param>
-		void EndFrame(bool& shouldRecreateAssets);
+		void EndFrame();
 
 		/// <summary>
 		/// Waits until a new image target is available. Called by BeginFrame by default.
@@ -49,6 +47,8 @@ namespace vi
 		[[nodiscard]] VkFormat GetFormat() const;
 		/// <returns>Render pass in use by the swapchain.</returns>
 		[[nodiscard]] VkRenderPass GetRenderPass() const;
+		/// <returns>If the current render assets are outdated by the swapchain.</returns>
+		[[nodiscard]] bool GetShouldRecreateAssets() const;
 
 	private:
 #define _MAX_FRAMES_IN_FLIGHT 3
@@ -108,6 +108,7 @@ namespace vi
 
 		uint32_t _frameIndex = 0;
 		uint32_t _imageIndex;
+		VkResult _shouldRecreateAssets;
 
 		explicit VkCoreSwapchain(VkCore& core);
 

@@ -18,6 +18,10 @@ namespace vi
 		/// <param name="count">New count.</param>
 		void Resize(size_t count);
 		T& Add(const T& value = {});
+		/// <summary>Check if the vector contains by value.</summary>
+		bool Contains(const T& instance);
+		/// <summary>Removes element by value.</summary>
+		void Remove(const T& instance, bool removeAllInstances = false);
 		void RemoveAt(size_t index);
 		/// <summary>Removes all elements and sets count to zero.</summary>
 		void Clear();
@@ -63,6 +67,32 @@ namespace vi
 		if(++_count >= length)
 			ArrayPtr<T>::Reallocate(Ut::Max<size_t>(1, length * 2), *allocator);
 		return ArrayPtr<T>::operator[](_count - 1) = value;
+	}
+
+	template <typename T>
+	bool Vector<T>::Contains(const T& instance)
+	{
+		const auto data = ArrayPtr<T>::GetData();
+		for (int32_t i = ArrayPtr<T>::GetLength() - 1; i >= 0; --i)
+			if (instance == data[i])
+				return true;
+		return false;
+	}
+
+	template <typename T>
+	void Vector<T>::Remove(const T& instance, bool removeAllInstances)
+	{
+		const auto data = ArrayPtr<T>::GetData();
+
+		for (int32_t i = ArrayPtr<T>::GetLength() - 1; i >= 0; --i)
+		{
+			if (instance != data[i])
+				continue;
+
+			RemoveAt(i);
+			if (!removeAllInstances)
+				return;
+		}
 	}
 
 	template <typename T>

@@ -2,6 +2,19 @@
 #include "Rendering/SwapChainExt.h"
 #include "VkRenderer/VkCore/VkCore.h"
 #include "Rendering/DescriptorPool.h"
+#include "Rendering/Renderer.h"
+
+SwapChainExt::Dependency::Dependency(Renderer& renderer) : _renderer(renderer)
+{
+	auto& swapChainExt = renderer.GetSwapChainExt();
+	swapChainExt._dependencies.Add(this);
+}
+
+SwapChainExt::Dependency::~Dependency()
+{
+	auto& swapChainExt = _renderer.GetSwapChainExt();
+	swapChainExt._dependencies.Remove(this);
+}
 
 SwapChainExt::SwapChainExt(vi::VkCore& core) : VkHandler(core)
 {
@@ -14,7 +27,7 @@ SwapChainExt::~SwapChainExt()
 		Delete(deleteable, true);
 }
 
-void SwapChainExt::Update()
+void SwapChainExt::Update() const
 {
 	auto& swapChain = core.GetSwapChain();
 	const uint32_t index = swapChain.GetImageIndex();
@@ -24,6 +37,13 @@ void SwapChainExt::Update()
 		auto& deleteable = _deleteables[i];
 		if (deleteable.index == index)
 			Delete(deleteable, false);
+	}
+
+	if(swapChain.GetShouldRecreateAssets())
+	{
+		swapChain.Reconstruct();
+		for (auto& dependency : _dependencies)
+			dependency->OnRecreateAssets();
 	}
 }
 

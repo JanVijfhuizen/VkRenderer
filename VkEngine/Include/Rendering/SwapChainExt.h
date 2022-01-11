@@ -1,15 +1,33 @@
 ﻿#pragma once
 #include "VkRenderer/VkHandlers/VkHandler.h"
 
+class Renderer;
 class DescriptorPool;
 
 class SwapChainExt final : public vi::VkHandler
 {
+	friend class Dependency;
+
 public:
+	class Dependency
+	{
+		friend SwapChainExt;
+
+	public:
+		explicit Dependency(Renderer& renderer);
+		virtual ~Dependency();
+
+	protected:
+		virtual void OnRecreateAssets() = 0;
+
+	private:
+		Renderer& _renderer;
+	};
+
 	explicit SwapChainExt(vi::VkCore& core);
 	~SwapChainExt();
 
-	void Update();
+	void Update() const;
 
 	void Collect(VkBuffer buffer);
 	void Collect(VkSampler sampler);
@@ -53,6 +71,7 @@ private:
 	};
 
 	vi::Vector<Deleteable> _deleteables{32, GMEM_VOL};
+	vi::Vector<Dependency*> _dependencies{ 8, GMEM_VOL };
 
 	void Collect(Deleteable& deleteable);
 	void Delete(Deleteable& deleteable, bool calledByDetructor) const;
