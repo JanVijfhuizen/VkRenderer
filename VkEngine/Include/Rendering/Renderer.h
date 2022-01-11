@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "VkRenderer/VkCore/VkCore.h"
-#include "ShaderExt.h"
-#include "SwapChainGC.h"
 #include "MeshHandler.h"
+#include "ShaderExt.h"
+#include "SwapChainExt.h"
 
 class Renderer final : public vi::VkCore
 {
@@ -11,10 +11,10 @@ public:
 
 	[[nodiscard]] MeshHandler& GetMeshHandler();
 	[[nodiscard]] ShaderExt& GetShaderExt();
-	[[nodiscard]] SwapChainGC& GetSwapChainGC();
+	[[nodiscard]] SwapChainExt& GetSwapChainExt();
 
 private:
 	MeshHandler _meshHandler{ *this };
 	ShaderExt _shaderExt{ *this };
-	SwapChainGC _swapChainGC{ *this };
+	SwapChainExt _swapChainGC{ *this };
 };

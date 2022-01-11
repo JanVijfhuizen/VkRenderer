@@ -3,21 +3,21 @@
 
 class DescriptorPool;
 
-class SwapChainGC final : public vi::VkHandler
+class SwapChainExt final : public vi::VkHandler
 {
 public:
-	explicit SwapChainGC(vi::VkCore& renderer);
-	~SwapChainGC();
+	explicit SwapChainExt(vi::VkCore& core);
+	~SwapChainExt();
 
 	void Update();
 
-	void Enqueue(VkBuffer buffer);
-	void Enqueue(VkSampler sampler);
-	void Enqueue(VkDeviceMemory memory);
-	void Enqueue(VkImage image);
-	void Enqueue(VkImageView imageView);
-	void Enqueue(VkFramebuffer framebuffer);
-	void Enqueue(VkDescriptorSet descriptor, DescriptorPool& pool);
+	void Collect(VkBuffer buffer);
+	void Collect(VkSampler sampler);
+	void Collect(VkDeviceMemory memory);
+	void Collect(VkImage image);
+	void Collect(VkImageView imageView);
+	void Collect(VkFramebuffer framebuffer);
+	void Collect(VkDescriptorSet descriptor, DescriptorPool& pool);
 
 private:
 	struct Deleteable final
@@ -54,6 +54,6 @@ private:
 
 	vi::Vector<Deleteable> _deleteables{32, GMEM_VOL};
 
-	void Enqueue(Deleteable& deleteable);
-	void Delete(Deleteable& deleteable, bool calledByDetructor);
+	void Collect(Deleteable& deleteable);
+	void Delete(Deleteable& deleteable, bool calledByDetructor) const;
 };

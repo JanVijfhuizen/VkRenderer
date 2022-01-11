@@ -18,6 +18,8 @@ public:
 		TransformSystem& transforms, const char* shaderName);
 	~MaterialSystem();
 
+	void RecreateVulkanDependencies();
+
 	void Update();
 	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
 

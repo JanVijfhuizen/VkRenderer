@@ -11,7 +11,6 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	Renderer& renderer, TransformSystem& transforms, const char* shaderName) : 
 	System<Material>(cecsar), _renderer(renderer), _transforms(transforms)
 {
-	auto& swapChain = renderer.GetSwapChain();
 	_shader = renderer.GetShaderExt().Load(shaderName);
 
 	vi::VkLayoutHandler::Info layoutInfo{};
@@ -20,6 +19,30 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	camBinding.flag = VK_SHADER_STAGE_VERTEX_BIT;
 	layoutInfo.bindings.Add(camBinding);
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
+
+	VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+	const uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
+	uint32_t sizes[] = { blockSize, blockSize };
+	_descriptorPool.Construct(_renderer, _layout, uboTypes, sizes, 2, blockSize);
+
+	auto& meshHandler = renderer.GetMeshHandler();
+	_mesh = meshHandler.Create(MeshHandler::GenerateQuad());
+
+	RecreateVulkanDependencies();
+}
+
+MaterialSystem::~MaterialSystem()
+{
+	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
+	_renderer.GetLayoutHandler().DestroyLayout(_layout);
+	_renderer.GetShaderExt().DestroyShader(_shader);
+	_descriptorPool.Cleanup();
+	_renderer.GetMeshHandler().Destroy(_mesh);
+}
+
+void MaterialSystem::RecreateVulkanDependencies()
+{
+	auto& swapChain = _renderer.GetSwapChain();
 
 	vi::VkPipelineHandler::Info pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
@@ -31,24 +54,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	pipelineInfo.renderPass = swapChain.GetRenderPass();
 	pipelineInfo.extent = swapChain.GetExtent();
 
-	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
-
-	VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	const uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
-	uint32_t sizes[] = { blockSize, blockSize };
-	_descriptorPool.Construct(_renderer, _layout, uboTypes, sizes, 2, blockSize);
-
-	auto& meshHandler = renderer.GetMeshHandler();
-	_mesh = meshHandler.Create(MeshHandler::GenerateQuad());
-}
-
-MaterialSystem::~MaterialSystem()
-{
-	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
-	_renderer.GetLayoutHandler().DestroyLayout(_layout);
-	_renderer.GetShaderExt().DestroyShader(_shader);
-	_descriptorPool.Cleanup();
-	_renderer.GetMeshHandler().Destroy(_mesh);
+	_renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
 VkDescriptorSetLayout MaterialSystem::GetLayout() const
