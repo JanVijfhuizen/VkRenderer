@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Rendering/ShaderExt.h"
 #include "Rendering/DescriptorPool.h"
+#include "Rendering/MeshHandler.h"
 
 class Renderer;
 
@@ -25,4 +26,5 @@ private:
 	VkPipelineLayout _pipelineLayout;
 	ShaderExt::Shader _shader;
 	DescriptorPool _descriptorPool;
+	MeshHandler::Mesh _mesh;
 };

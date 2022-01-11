@@ -13,13 +13,17 @@ public:
 
 	struct Mesh final
 	{
-		
+		VkBuffer vertexBuffer;
+		VkDeviceMemory vertexMemory;
+		VkBuffer indexBuffer;
+		VkDeviceMemory indexMemory;
+		uint32_t indexCount;
 	};
 
 	explicit MeshHandler(vi::VkCore& core);
 
 	[[nodiscard]] static VertexData GenerateQuad(vi::FreeListAllocator& allocator = GMEM_TEMP);
 
-	[[nodiscard]] Mesh Create(const VertexData& vertexData);
-	void Destroy(const Mesh& mesh);
+	[[nodiscard]] Mesh Create(const VertexData& vertexData) const;
+	void Destroy(const Mesh& mesh) const;
 };

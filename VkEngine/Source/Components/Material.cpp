@@ -36,8 +36,8 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, const cha
 	uint32_t sizes[] = { blockSize, blockSize };
 	_descriptorPool.Construct(_renderer, _layout, uboTypes, sizes, 2, blockSize);
 
-	const auto vertexData = MeshHandler::GenerateQuad();
 	auto& meshHandler = renderer.GetMeshHandler();
+	_mesh = meshHandler.Create(MeshHandler::GenerateQuad());
 }
 
 MaterialSystem::~MaterialSystem()
@@ -46,6 +46,7 @@ MaterialSystem::~MaterialSystem()
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
 	_renderer.GetShaderExt().DestroyShader(_shader);
 	_descriptorPool.Cleanup();
+	_renderer.GetMeshHandler().Destroy(_mesh);
 }
 
 VkDescriptorSetLayout MaterialSystem::GetLayout() const
