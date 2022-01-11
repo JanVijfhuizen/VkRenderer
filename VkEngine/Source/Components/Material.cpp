@@ -6,8 +6,7 @@
 #include "Components/Transform.h"
 #include "Rendering/DescriptorPool.h"
 
-Material::System::System(ce::Cecsar& cecsar, Renderer& renderer, const char* shaderName) :
-	ce::System<Material>(cecsar), _renderer(renderer)
+MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, const char* shaderName) : System<Material>(cecsar), _renderer(renderer)
 {
 	auto& swapChain = renderer.GetSwapChain();
 	_shader = renderer.GetShaderExt().Load(shaderName);
@@ -28,7 +27,7 @@ Material::System::System(ce::Cecsar& cecsar, Renderer& renderer, const char* sha
 	pipelineInfo.pushConstants.Add({ sizeof(Transform), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.renderPass = swapChain.GetRenderPass();
 	pipelineInfo.extent = swapChain.GetExtent();
-	
+
 	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 
 	VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
@@ -37,7 +36,7 @@ Material::System::System(ce::Cecsar& cecsar, Renderer& renderer, const char* sha
 	_descriptorPool.Construct(_renderer, _layout, uboTypes, sizes, 2, blockSize);
 }
 
-Material::System::~System()
+MaterialSystem::~MaterialSystem()
 {
 	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
@@ -45,7 +44,11 @@ Material::System::~System()
 	_descriptorPool.Cleanup();
 }
 
-VkDescriptorSetLayout Material::System::GetLayout() const
+VkDescriptorSetLayout MaterialSystem::GetLayout() const
 {
 	return _layout;
+}
+
+void MaterialSystem::Update()
+{
 }
