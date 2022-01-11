@@ -48,7 +48,7 @@
     <ClCompile Include="Source\Rendering\DescriptorPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\SwapChainGC.cpp">
+    <ClCompile Include="Source\Rendering\SwapChainExt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Engine\Engine.cpp">
@@ -95,7 +95,7 @@
     <ClInclude Include="Include\Rendering\DescriptorPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Rendering\SwapChainGC.h">
+    <ClInclude Include="Include\Rendering\SwapChainExt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Engine\Engine.h">

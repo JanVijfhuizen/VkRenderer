@@ -1,20 +1,33 @@
 ﻿#include "pch.h"
-#include "Rendering/SwapChainGC.h"
+#include "Rendering/SwapChainExt.h"
 #include "VkRenderer/VkCore/VkCore.h"
 #include "Rendering/DescriptorPool.h"
+#include "Rendering/Renderer.h"
 
-SwapChainGC::SwapChainGC(vi::VkCore& core) : VkHandler(core)
+SwapChainExt::Dependency::Dependency(Renderer& renderer) : _renderer(renderer)
+{
+	auto& swapChainExt = renderer.GetSwapChainExt();
+	swapChainExt._dependencies.Add(this);
+}
+
+SwapChainExt::Dependency::~Dependency()
+{
+	auto& swapChainExt = _renderer.GetSwapChainExt();
+	swapChainExt._dependencies.Remove(this);
+}
+
+SwapChainExt::SwapChainExt(vi::VkCore& core) : VkHandler(core)
 {
 
 }
 
-SwapChainGC::~SwapChainGC()
+SwapChainExt::~SwapChainExt()
 {
 	for (auto& deleteable : _deleteables)
 		Delete(deleteable, true);
 }
 
-void SwapChainGC::Update()
+void SwapChainExt::Update()
 {
 	auto& swapChain = core.GetSwapChain();
 	const uint32_t index = swapChain.GetImageIndex();
@@ -23,67 +36,77 @@ void SwapChainGC::Update()
 	{
 		auto& deleteable = _deleteables[i];
 		if (deleteable.index == index)
+		{
 			Delete(deleteable, false);
+			_deleteables.RemoveAt(i);
+		}
+	}
+
+	if(swapChain.GetShouldRecreateAssets())
+	{
+		swapChain.Reconstruct();
+		for (auto& dependency : _dependencies)
+			dependency->OnRecreateSwapChainAssets();
 	}
 }
 
-void SwapChainGC::Enqueue(const VkBuffer buffer)
+void SwapChainExt::Collect(const VkBuffer buffer)
 {
 	Deleteable deleteable{};
 	deleteable.buffer = buffer;
 	deleteable.type = Deleteable::Type::buffer;
-	Enqueue(deleteable);
+	Collect(deleteable);
 }
 
-void SwapChainGC::Enqueue(const VkSampler sampler)
+void SwapChainExt::Collect(const VkSampler sampler)
 {
 	Deleteable deleteable{};
 	deleteable.sampler = sampler;
 	deleteable.type = Deleteable::Type::sampler;
-	Enqueue(deleteable);
+	Collect(deleteable);
 }
 
-void SwapChainGC::Enqueue(const VkDeviceMemory memory)
+void SwapChainExt::Collect(const VkDeviceMemory memory)
 {
 	Deleteable deleteable{};
 	deleteable.memory = memory;
 	deleteable.type = Deleteable::Type::memory;
-	Enqueue(deleteable);
+	Collect(deleteable);
 }
 
-void SwapChainGC::Enqueue(const VkImage image)
+void SwapChainExt::Collect(const VkImage image)
 {
 	Deleteable deleteable{};
 	deleteable.image = image;
 	deleteable.type = Deleteable::Type::image;
-	Enqueue(deleteable);
+	Collect(deleteable);
 }
 
-void SwapChainGC::Enqueue(const VkImageView imageView)
+void SwapChainExt::Collect(const VkImageView imageView)
 {
 	Deleteable deleteable{};
 	deleteable.imageView = imageView;
 	deleteable.type = Deleteable::Type::imageView;
-	Enqueue(deleteable);
+	Collect(deleteable);
 }
 
-void SwapChainGC::Enqueue(const VkFramebuffer framebuffer)
+void SwapChainExt::Collect(const VkFramebuffer framebuffer)
 {
 	Deleteable deleteable{};
 	deleteable.framebuffer = framebuffer;
 	deleteable.type = Deleteable::Type::framebuffer;
-	Enqueue(deleteable);
+	Collect(deleteable);
 }
 
-void SwapChainGC::Enqueue(const VkDescriptorSet descriptor, DescriptorPool& pool)
+void SwapChainExt::Collect(const VkDescriptorSet descriptor, DescriptorPool& pool)
 {
 	Deleteable deleteable{};
 	deleteable.descriptor = { descriptor, &pool };
 	deleteable.type = Deleteable::Type::descriptor;
-	Enqueue(deleteable);
+	Collect(deleteable);
 }
 
-void SwapChainGC::Enqueue(Deleteable& deleteable)
+void SwapChainExt::Collect(Deleteable& deleteable)
 {
 	auto& swapChain = core.GetSwapChain();
 	deleteable.index = swapChain.GetImageIndex();
@@ -91,7 +114,7 @@ void SwapChainGC::Enqueue(Deleteable& deleteable)
 	_deleteables.Add(deleteable);
 }
 
-void SwapChainGC::Delete(Deleteable& deleteable, const bool calledByDetructor)
+void SwapChainExt::Delete(Deleteable& deleteable, const bool calledByDetructor) const
 {
 	auto& frameBufferHandler = core.GetFrameBufferHandler();
 	auto& imageHandler = core.GetImageHandler();

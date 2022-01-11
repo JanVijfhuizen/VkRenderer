@@ -58,6 +58,11 @@ namespace vi
 		return _renderPass;
 	}
 
+	bool VkCoreSwapchain::GetShouldRecreateAssets() const
+	{
+		return _shouldRecreateAssets;
+	}
+
 	void VkCoreSwapchain::BeginFrame(const bool callWaitForImage)
 	{
 		if (callWaitForImage)
@@ -93,7 +98,7 @@ namespace vi
 		return result;
 	}
 
-	void VkCoreSwapchain::EndFrame(bool& shouldRecreateAssets)
+	void VkCoreSwapchain::EndFrame()
 	{
 		auto& frame = _frames[_frameIndex];
 		auto& image = _images[_imageIndex];
@@ -106,7 +111,7 @@ namespace vi
 		commandBufferHandler.Submit(&image.commandBuffer, 1, frame.imageAvailableSemaphore, frame.renderFinishedSemaphore, frame.inFlightFence);
 
 		const auto result = Present();
-		shouldRecreateAssets = result;
+		_shouldRecreateAssets = result;
 	}
 
 	void VkCoreSwapchain::WaitForImage()

@@ -16,7 +16,12 @@ ShaderExt& Renderer::GetShaderExt()
 	return _shaderExt;
 }
 
-SwapChainGC& Renderer::GetSwapChainGC()
+SwapChainExt& Renderer::GetSwapChainExt()
 {
 	return _swapChainGC;
+}
+
+GPULinearAllocator& Renderer::GetGPULinearAllocator()
+{
+	return _GPULinearAllocator;
 }
