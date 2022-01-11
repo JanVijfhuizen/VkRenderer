@@ -28,12 +28,18 @@ layout(location = 0) out Data
 
 void main() 
 {
-    // Center position.
+    float clipFar = camera.clipFar;
+
     vec3 pos = pushConstants.position - camera.position;
-    // Don't draw if it's exactly on the camera.
-    pos += abs(pos.z) > .00001 ? inPosition: vec3(0);
-    pos.z /= camera.clipFar;
-    gl_Position = vec4(pos, camera.clipFar);
+    vec3 vertPos = inPosition * pushConstants.scale;
+
+    // Scale 2d position based on distance.
+    float dis = pos.z + vertPos.z;
+    vec2 pos2d = pos.xy + vertPos.xy;
+    pos2d /= dis;
+
+    vec3 finalPos = vec3(pos2d, dis / clipFar);
+    gl_Position = vec4(finalPos, clipFar);
 
     outData.normal = inNormal;
     outData.fragTexCoord = inTexCoords;

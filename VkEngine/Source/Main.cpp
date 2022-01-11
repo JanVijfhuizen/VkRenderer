@@ -12,18 +12,24 @@ int main()
 
 		const auto quad = engine.GetCecsar().Insert(1);
 		auto& quadTransform = engine.GetTransforms().Insert(quad);
-		//quadTransform.position.z = -.5;
 		engine.GetMaterials().Insert(quad);
+
+		const auto quad2 = engine.GetCecsar().Insert(2);
+		auto& quad2Transform = engine.GetTransforms().Insert(quad2);
+		engine.GetMaterials().Insert(quad2);
 	};
 
 	info.update = [](Engine& engine, bool& outQuit)
 	{
 		auto& t = engine.GetTransforms()[1];
+		auto& t2 = engine.GetTransforms()[2];
 
 		static float f = 0;
 		f += 0.001f;
 		t.position.x = sin(f);
 		t.position.z = cos(f);
+		t2.position.x = cos(f);
+		t2.position.z = sin(f);
 	};
 
 	vi::UniquePtr<Engine> engine{GMEM};
