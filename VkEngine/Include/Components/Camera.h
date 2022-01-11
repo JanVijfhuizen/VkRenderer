@@ -9,3 +9,11 @@ struct Camera final
 		float depth = 1;
 	};
 };
+
+constexpr auto MAX_CAMERAS = 8;
+
+class CameraSystem final : public ce::SmallSystem<Camera>
+{
+public:
+	explicit CameraSystem(ce::Cecsar& cecsar);
+};

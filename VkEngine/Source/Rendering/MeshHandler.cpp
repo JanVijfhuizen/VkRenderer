@@ -96,6 +96,20 @@ MeshHandler::Mesh MeshHandler::Create(const VertexData& vertexData) const
 	return mesh;
 }
 
+void MeshHandler::Bind(Mesh& mesh)
+{
+	auto& shaderHandler = core.GetShaderHandler();
+	shaderHandler.BindVertexBuffer(mesh.vertexBuffer);
+	shaderHandler.BindIndicesBuffer(mesh.indexBuffer);
+	_boundIndexCount = mesh.indexCount;
+}
+
+void MeshHandler::Draw() const
+{
+	assert(_boundIndexCount != UINT32_MAX);
+	core.GetShaderHandler().Draw(_boundIndexCount);
+}
+
 void MeshHandler::Destroy(const Mesh& mesh) const
 {
 	auto& memoryHandler = core.GetMemoryHandler();

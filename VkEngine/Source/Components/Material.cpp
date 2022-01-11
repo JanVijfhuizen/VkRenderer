@@ -7,7 +7,9 @@
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/MeshHandler.h"
 
-MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, const char* shaderName) : System<Material>(cecsar), _renderer(renderer)
+MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
+	Renderer& renderer, TransformSystem& transforms, const char* shaderName) : 
+	System<Material>(cecsar), _renderer(renderer), _transforms(transforms)
 {
 	auto& swapChain = renderer.GetSwapChain();
 	_shader = renderer.GetShaderExt().Load(shaderName);
@@ -56,4 +58,15 @@ VkDescriptorSetLayout MaterialSystem::GetLayout() const
 
 void MaterialSystem::Update()
 {
+	auto& shaderHandler = _renderer.GetShaderHandler();
+	auto& meshHandler = _renderer.GetMeshHandler();
+
+	meshHandler.Bind(_mesh);
+
+	for (const auto& [index, material] : *this)
+	{
+		const auto& transform = _transforms[index];
+		shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, transform);
+		meshHandler.Draw();
+	}
 }

@@ -3,6 +3,7 @@
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/MeshHandler.h"
 
+class TransformSystem;
 class Renderer;
 
 struct Material
@@ -13,7 +14,8 @@ struct Material
 class MaterialSystem final : public ce::System<Material>
 {
 public:
-	explicit MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, const char* shaderName);
+	explicit MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, 
+		TransformSystem& transforms, const char* shaderName);
 	~MaterialSystem();
 
 	void Update();
@@ -21,6 +23,7 @@ public:
 
 private:
 	Renderer& _renderer;
+	TransformSystem& _transforms;
 	VkDescriptorSetLayout _layout;
 	VkPipeline _pipeline;
 	VkPipelineLayout _pipelineLayout;

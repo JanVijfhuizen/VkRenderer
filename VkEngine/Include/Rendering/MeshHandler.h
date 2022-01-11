@@ -25,5 +25,10 @@ public:
 	[[nodiscard]] static VertexData GenerateQuad(vi::FreeListAllocator& allocator = GMEM_TEMP);
 
 	[[nodiscard]] Mesh Create(const VertexData& vertexData) const;
+	void Bind(Mesh& mesh);
+	void Draw() const;
 	void Destroy(const Mesh& mesh) const;
+
+private:
+	uint32_t _boundIndexCount = UINT32_MAX;
 };

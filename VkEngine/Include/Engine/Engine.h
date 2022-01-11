@@ -3,6 +3,7 @@
 #include "Components/Material.h"
 #include "Components/Transform.h"
 #include "Rendering/Renderer.h"
+#include "Components/Camera.h"
 
 class Engine
 {
@@ -31,6 +32,7 @@ public:
 protected:
 	[[nodiscard]] Renderer& GetRenderer() const;
 	[[nodiscard]] ce::Cecsar& GetCecsar() const;
+	[[nodiscard]] CameraSystem& GetCameras() const;
 	[[nodiscard]] TransformSystem& GetTransforms() const;
 	[[nodiscard]] MaterialSystem& GetMaterials() const;
 
@@ -40,5 +42,6 @@ private:
 	vi::UniquePtr<Renderer> _renderer;
 	vi::UniquePtr<ce::Cecsar> _cecsar;
 	vi::UniquePtr<TransformSystem> _transforms;
+	vi::UniquePtr<CameraSystem> _cameras;
 	vi::UniquePtr<MaterialSystem> _materials;
 };
