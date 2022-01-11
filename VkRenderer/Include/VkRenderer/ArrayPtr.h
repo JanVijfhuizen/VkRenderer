@@ -192,6 +192,8 @@ namespace vi
 	template <typename T>
 	ArrayPtr<T>& ArrayPtr<T>::Move(ArrayPtr<T>& other)
 	{
+		Free();
+
 		_data = other._data;
 		_length = other._length;
 		_allocator = other._allocator;

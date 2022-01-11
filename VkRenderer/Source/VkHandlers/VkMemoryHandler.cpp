@@ -4,22 +4,32 @@
 
 namespace vi
 {
+	VkMemoryRequirements VkMemoryHandler::GetRequirements(const VkBuffer buffer) const
+	{
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(core.GetLogicalDevice(), buffer, &memRequirements);
+		return memRequirements;
+	}
+
+	VkMemoryRequirements VkMemoryHandler::GetRequirements(const VkImage image) const
+	{
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(core.GetLogicalDevice(), image, &memRequirements);
+		return memRequirements;
+	}
+
 	VkDeviceMemory VkMemoryHandler::Allocate(
 		const VkImage image, 
 		const VkMemoryPropertyFlags flags) const
 	{
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(core.GetLogicalDevice(), image, &memRequirements);
-		return Allocate(memRequirements, flags);
+		return Allocate(GetRequirements(image), flags);
 	}
 
 	VkDeviceMemory VkMemoryHandler::Allocate(
 		const VkBuffer buffer, 
 		const VkMemoryPropertyFlags flags) const
 	{
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(core.GetLogicalDevice(), buffer, &memRequirements);
-		return Allocate(memRequirements, flags);
+		return Allocate(GetRequirements(buffer), flags);
 	}
 
 	VkDeviceMemory VkMemoryHandler::Allocate(

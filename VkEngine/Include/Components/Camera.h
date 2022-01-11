@@ -28,4 +28,5 @@ private:
 	Renderer& _renderer;
 	VkDescriptorSetLayout _layout;
 	DescriptorPool _descriptorPool{};
+	VkDeviceMemory _memory;
 };

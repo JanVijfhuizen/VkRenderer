@@ -188,6 +188,7 @@
     <ClInclude Include="Include\Rendering\Vertex.h" />
     <ClInclude Include="Include\Components\Camera.h" />
     <ClInclude Include="Source\Rendering\Shader.h" />
+    <ClInclude Include="Source\Rendering\UboPool.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">
