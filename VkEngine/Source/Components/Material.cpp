@@ -9,7 +9,8 @@
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
 	Renderer& renderer, TransformSystem& transforms, const char* shaderName) : 
-	System<Material>(cecsar), _renderer(renderer), _transforms(transforms)
+	System<Material>(cecsar), Dependency(renderer), 
+	_renderer(renderer), _transforms(transforms)
 {
 	_shader = renderer.GetShaderExt().Load(shaderName);
 
@@ -28,20 +29,28 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	auto& meshHandler = renderer.GetMeshHandler();
 	_mesh = meshHandler.Create(MeshHandler::GenerateQuad());
 
-	RecreateVulkanDependencies();
+	OnRecreateSwapChainAssets();
 }
 
 MaterialSystem::~MaterialSystem()
 {
-	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
+	DestroySwapChainAssets();
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
 	_renderer.GetShaderExt().DestroyShader(_shader);
 	_descriptorPool.Cleanup();
 	_renderer.GetMeshHandler().Destroy(_mesh);
 }
 
-void MaterialSystem::RecreateVulkanDependencies()
+VkDescriptorSetLayout MaterialSystem::GetLayout() const
 {
+	return _layout;
+}
+
+void MaterialSystem::OnRecreateSwapChainAssets()
+{
+	if (_pipeline)
+		DestroySwapChainAssets();
+
 	auto& swapChain = _renderer.GetSwapChain();
 
 	vi::VkPipelineHandler::Info pipelineInfo{};
@@ -57,9 +66,9 @@ void MaterialSystem::RecreateVulkanDependencies()
 	_renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
-VkDescriptorSetLayout MaterialSystem::GetLayout() const
+void MaterialSystem::DestroySwapChainAssets() const
 {
-	return _layout;
+	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
 }
 
 void MaterialSystem::Update()

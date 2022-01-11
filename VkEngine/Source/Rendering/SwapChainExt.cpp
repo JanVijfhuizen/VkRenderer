@@ -43,7 +43,7 @@ void SwapChainExt::Update() const
 	{
 		swapChain.Reconstruct();
 		for (auto& dependency : _dependencies)
-			dependency->OnRecreateAssets();
+			dependency->OnRecreateSwapChainAssets();
 	}
 }
 

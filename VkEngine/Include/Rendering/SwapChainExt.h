@@ -18,7 +18,7 @@ public:
 		virtual ~Dependency();
 
 	protected:
-		virtual void OnRecreateAssets() = 0;
+		virtual void OnRecreateSwapChainAssets() = 0;
 
 	private:
 		Renderer& _renderer;
