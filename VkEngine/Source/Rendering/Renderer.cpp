@@ -6,6 +6,11 @@ Renderer::Renderer(vi::VkCoreInfo& info) : VkCore(info)
 	
 }
 
+MeshHandler& Renderer::GetMeshHandler()
+{
+	return _meshHandler;
+}
+
 ShaderExt& Renderer::GetShaderExt()
 {
 	return _shaderExt;

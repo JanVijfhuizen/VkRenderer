@@ -17,7 +17,8 @@ int Engine::Run(const Info& info)
 
 	_cecsar = { GMEM, info.capacity };
 	_transforms = { GMEM, *_cecsar };
-	_materials = { GMEM, *_cecsar, *_renderer, "" };
+	_cameras = { GMEM, *_cecsar };
+	_materials = { GMEM, *_cecsar, *_renderer, *_transforms, "" };
 
 	if (info.awake)
 		info.awake();
@@ -71,6 +72,11 @@ bool Engine::IsRunning() const
 ce::Cecsar& Engine::GetCecsar() const
 {
 	return *_cecsar;
+}
+
+CameraSystem& Engine::GetCameras() const
+{
+	return *_cameras;
 }
 
 Renderer& Engine::GetRenderer() const

@@ -28,6 +28,7 @@ namespace ce
 	class ISystem
 	{
 	public:
+		virtual ~ISystem() = default;
 		explicit ISystem(Cecsar& cecsar);
 		virtual void RemoveAt(uint32_t index) = 0;
 
@@ -51,7 +52,7 @@ namespace ce
 		/// The main upside to subscribing is that when an entity is destroyed, the subscribed systems automatically remove any related component.
 		/// </summary>
 		void SubscribeSystem(ISystem* system);
-		Entity& Insert(const uint32_t sparseIndex, const Entity& value) override;
+		Entity& Insert(uint32_t sparseIndex, const Entity& value) override;
 		void RemoveAt(uint32_t sparseIndex) override;
 
 	private:
@@ -67,7 +68,7 @@ namespace ce
 	{
 	public:
 		explicit System(Cecsar& cecsar);
-		virtual void RemoveAt(uint32_t index);
+		void RemoveAt(uint32_t index) override;
 	};
 
 	/// <summary>
@@ -78,8 +79,9 @@ namespace ce
 	template <typename T>
 	class SmallSystem : public ISystem, public HashSet<T>
 	{
+	public:
 		explicit SmallSystem(Cecsar& cecsar, size_t size);
-		virtual void RemoveAt(uint32_t index);
+		void RemoveAt(uint32_t index) override;
 	};
 
 	template <typename T>

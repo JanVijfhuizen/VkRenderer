@@ -43,5 +43,14 @@ namespace vi
 
 	private:
 		explicit VkShaderHandler(VkCore& core);
+		void IntUpdatePushConstant(VkPipelineLayout layout, VkFlags flag, void const* input, size_t size);
 	};
+
+	template <typename T>
+	void VkShaderHandler::UpdatePushConstant(
+		const VkPipelineLayout layout,
+		const VkFlags flag, const T& input)
+	{
+		IntUpdatePushConstant(layout, flag, &input, sizeof(T));
+	}
 }

@@ -56,7 +56,7 @@ namespace vi
 	private:
 		explicit VkMemoryHandler(VkCore& core);
 
-		void ManualMap(VkDeviceMemory memory, void* input, VkDeviceSize offset, size_t size) const;
+		void IntMap(VkDeviceMemory memory, void* input, VkDeviceSize offset, size_t size) const;
 	};
 
 	template <typename T>
@@ -64,6 +64,6 @@ namespace vi
 		const VkDeviceMemory memory, T* input, 
 		const VkDeviceSize offset, const size_t size)
 	{
-		ManualMap(memory, input, offset, size);
+		IntMap(memory, input, offset, size);
 	}
 }

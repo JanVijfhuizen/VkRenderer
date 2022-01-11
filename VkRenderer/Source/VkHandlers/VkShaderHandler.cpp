@@ -186,16 +186,14 @@ namespace vi
 		vkDestroyBuffer(core.GetLogicalDevice(), buffer, nullptr);
 	}
 
-	template <typename T>
-	void VkShaderHandler::UpdatePushConstant(
-		const VkPipelineLayout layout, 
-		const VkFlags flag, const T& input)
-	{
-		vkCmdPushConstants(core.GetCommandBufferHandler().GetCurrent(), layout, flag, 0, sizeof(T), &input);
-	}
-
 	VkShaderHandler::VkShaderHandler(VkCore& core) : VkHandler(core)
 	{
 
+	}
+
+	void VkShaderHandler::IntUpdatePushConstant(const VkPipelineLayout layout, 
+		const VkFlags flag, void const * input, const size_t size)
+	{
+		vkCmdPushConstants(core.GetCommandBufferHandler().GetCurrent(), layout, flag, 0, size, input);
 	}
 }

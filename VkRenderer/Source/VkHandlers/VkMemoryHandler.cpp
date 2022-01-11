@@ -49,7 +49,7 @@ namespace vi
 		vkBindBufferMemory(core.GetLogicalDevice(), buffer, memory, offset);
 	}
 
-	void VkMemoryHandler::ManualMap(const VkDeviceMemory memory, 
+	void VkMemoryHandler::IntMap(const VkDeviceMemory memory, 
 		void* input, const VkDeviceSize offset, const size_t size) const
 	{
 		const auto logicalDevice = core.GetLogicalDevice();
