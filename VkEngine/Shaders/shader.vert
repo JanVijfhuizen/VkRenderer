@@ -28,18 +28,16 @@ layout(location = 0) out Data
 
 void main() 
 {
-    float clipFar = camera.clipFar;
-
     vec3 pos = pushConstants.position - camera.position;
     vec3 vertPos = inPosition * pushConstants.scale;
 
     // Scale 2d position based on distance.
     float dis = pos.z + vertPos.z;
     vec2 pos2d = pos.xy + vertPos.xy;
-    pos2d /= dis;
-
-    vec3 finalPos = vec3(pos2d, dis / clipFar);
-    gl_Position = vec4(finalPos, clipFar);
+    pos2d = inPosition.xy / dis;
+    // Add depth.
+    vec3 finalPos = vec3(pos2d, dis / camera.clipFar);
+    gl_Position = vec4(finalPos, 1);
 
     outData.normal = inNormal;
     outData.fragTexCoord = inTexCoords;

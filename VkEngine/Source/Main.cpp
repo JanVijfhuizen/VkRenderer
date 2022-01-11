@@ -26,10 +26,10 @@ int main()
 
 		static float f = 0;
 		f += 0.001f;
-		t.position.x = sin(f);
-		t.position.z = cos(f);
-		t2.position.x = cos(f);
-		t2.position.z = sin(f);
+		t.position.x = sin(f) * 5;
+		t.position.y = cos(f) * 5;
+		t.position.z = 10;
+		t2.position.z = 10 + sin(f) * -5;
 	};
 
 	vi::UniquePtr<Engine> engine{GMEM};
