@@ -10,9 +10,9 @@ CameraSystem::CameraSystem(ce::Cecsar& cecsar, Renderer& renderer) :
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
 	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uint32_t sizes = SWAPCHAIN_MAX_FRAMES;
+	uint32_t size = SWAPCHAIN_MAX_FRAMES * MAX_CAMERAS;
 
-	_descriptorPool.Construct(renderer, _layout, &types, &sizes, 1, SWAPCHAIN_MAX_FRAMES * MAX_CAMERAS);
+	_descriptorPool.Construct(renderer, _layout, &types, &size, 1, size);
 }
 
 CameraSystem::~CameraSystem()
