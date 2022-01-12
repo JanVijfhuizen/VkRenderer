@@ -11,19 +11,19 @@ int Engine::Run(const Info& info)
 	{
 		vi::VkCoreInfo vkInfo{};
 		vkInfo.windowHandler = _windowHandler;
-		vkInfo.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
+		//vkInfo.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
 		_renderer = { GMEM, vkInfo };
 	}
 
 	_cecsar = { GMEM, info.capacity };
 	_transforms = { GMEM, *_cecsar };
-	_cameras = { GMEM, *_cecsar };
-	_materials = { GMEM, *_cecsar, *_renderer, *_transforms, "" };
+	_cameras = { GMEM, *_cecsar, *_renderer, *_transforms };
+	_materials = { GMEM, *_cecsar, *_renderer, *_transforms, *_cameras, "" };
 
 	if (info.awake)
-		info.awake();
+		info.awake(*this);
 	if (info.start)
-		info.start();
+		info.start(*this);
 
 	auto& swapChain = _renderer->GetSwapChain();
 	auto& swapChainExt = _renderer->GetSwapChainExt();
@@ -36,31 +36,34 @@ int Engine::Run(const Info& info)
 			break;
 
 		if (info.update)
-			info.update(outQuit);
+			info.update(*this, outQuit);
 		if (outQuit)
 			break;
 		if (info.physicsUpdate)
-			info.physicsUpdate(outQuit);
+			info.physicsUpdate(*this, outQuit);
 		if (outQuit)
 			break;
 
 		if(info.preRenderUpdate)
-			info.preRenderUpdate(outQuit);
+			info.preRenderUpdate(*this, outQuit);
 		if (outQuit)
 			break;
 
 		swapChain.BeginFrame();
 
+		_cameras->Update();
 		_materials->Update();
 
 		if(info.renderUpdate)
-			info.renderUpdate(outQuit);
+			info.renderUpdate(*this, outQuit);
 		if (outQuit)
 			break;
 
 		swapChain.EndFrame();
 		swapChainExt.Update();
 	}
+
+	_renderer->DeviceWaitIdle();
 
 	_isRunning = false;
 	return EXIT_SUCCESS;

@@ -68,6 +68,7 @@ private:
 
 		Type type;
 		uint32_t index;
+		bool looped = false;
 	};
 
 	vi::Vector<Deleteable> _deleteables{32, GMEM_VOL};

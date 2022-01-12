@@ -41,6 +41,7 @@ namespace ce
 	{
 		auto& instance = SparseSet<Entity>::Insert(sparseIndex, value);
 		instance._identifier = _next++;
+		instance._index = sparseIndex;
 		return instance;
 	}
 

@@ -25,7 +25,6 @@ public:
 private:
 	vi::Vector<Instance> _instances;
 	vi::ArrayPtr<int32_t> _sparse;
-	vi::ArrayPtr<uint32_t> _dense;
 };
 
 template <typename T>
@@ -36,7 +35,7 @@ T& SparseSet<T>::operator[](const uint32_t sparseIndex) const
 
 template <typename T>
 SparseSet<T>::SparseSet(const size_t size, vi::FreeListAllocator& allocator) : 
-	_instances(size, allocator), _sparse(size, allocator, -1), _dense(size, allocator, -1)
+	_instances(size, allocator), _sparse(size, allocator, -1)
 {
 
 }
@@ -50,7 +49,6 @@ T& SparseSet<T>::Insert(const uint32_t sparseIndex, const T& value)
 
 	auto& denseId = _sparse[sparseIndex];
 	denseId = _instances.GetCount();
-	_dense[denseId] = sparseIndex;
 
 	auto& instance = _instances.Add({sparseIndex, value });
 	return instance.value;
@@ -66,9 +64,9 @@ void SparseSet<T>::RemoveAt(const uint32_t sparseIndex)
 
 	// Swap dense and values.
 	_instances.RemoveAt(denseIndex);
-	const uint32_t otherSparseIndex = _dense[denseIndex] = _dense[_instances.GetCount()];
 
 	// Update sparse.
+	const uint32_t otherSparseIndex = _instances[_instances.GetCount()].key;
 	_sparse[otherSparseIndex] = denseIndex;
 	denseIndex = -1;
 }

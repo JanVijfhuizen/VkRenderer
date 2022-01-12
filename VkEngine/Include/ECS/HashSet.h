@@ -33,20 +33,19 @@ private:
 
 	vi::Vector<Instance> _instances;
 	vi::HashMap<Hashable> _hashMap;
-	vi::ArrayPtr<uint32_t> _dense;
 };
 
 template <typename T>
 T& HashSet<T>::operator[](const uint32_t sparseIndex)
 {
-	Hashable* hashable = _hashMap.FindNode({ sparseIndex, -1 });
+	Hashable* hashable = _hashMap.Find({ sparseIndex, 0 });
 	assert(hashable);
 	return _instances[hashable->denseIndex].value;
 }
 
 template <typename T>
 HashSet<T>::HashSet(const size_t size, vi::FreeListAllocator& allocator) :
-	_instances(size, allocator), _hashMap(size, allocator), _dense(size, allocator)
+	_instances(size, allocator), _hashMap(size, allocator)
 {
 	
 }
@@ -57,7 +56,6 @@ T& HashSet<T>::Insert(const uint32_t sparseIndex, const T& value)
 	assert(_instances.GetCount() < _instances.GetLength());
 	const uint32_t count = _instances.GetCount();
 	_hashMap.Insert({ sparseIndex, count });
-	_dense[count] = sparseIndex;
 	return _instances.Add({ sparseIndex, value }).value;
 }
 
@@ -70,7 +68,6 @@ void HashSet<T>::RemoveAt(const uint32_t sparseIndex)
 
 	const uint32_t denseIndex = hashable->denseIndex;
 	_instances.RemoveAt(denseIndex);
-	_dense[denseIndex] = _dense[_instances.GetCount()];
 	_hashMap.Remove({ sparseIndex, 0});
 
 	// Decrement pointing index if it's higher than the one removed.

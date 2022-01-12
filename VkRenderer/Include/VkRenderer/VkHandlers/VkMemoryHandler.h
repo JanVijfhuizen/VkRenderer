@@ -8,6 +8,10 @@ namespace vi
 		friend VkCore;
 
 	public:
+		/// <returns>Memory requirements for target buffer.</returns>
+		[[nodiscard]] VkMemoryRequirements GetRequirements(VkBuffer buffer) const;
+		/// <returns>Memory requirements for target image.</returns>
+		[[nodiscard]] VkMemoryRequirements GetRequirements(VkImage image) const;
 		/// <param name="image">Image to allocate memory for.</param>
 		/// <param name="flags">Memory flags.</param>
 		/// <returns>Allocated memory on the GPU.</returns>

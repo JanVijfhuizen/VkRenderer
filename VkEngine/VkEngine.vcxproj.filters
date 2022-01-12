@@ -104,7 +104,7 @@
     <ClInclude Include="Include\Rendering\MeshHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Rendering\Shader.h">
+    <ClInclude Include="Include\Rendering\UboPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

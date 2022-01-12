@@ -10,7 +10,8 @@ layout (set = 0, binding = 0) uniform Camera
 {
     vec3 position;
     float rotation;
-    float depth;
+    float clipFar;
+    float aspectRatio;
 } camera;
 
 layout (push_constant) uniform PushConstants
@@ -28,8 +29,9 @@ layout(location = 0) out Data
 
 void main() 
 {
-    gl_Position = vec4(pushConstants.position + inPosition - camera.position, camera.depth);
-
     outData.normal = inNormal;
     outData.fragTexCoord = inTexCoords;
+
+    gl_Position = ToWorldPos(pushConstants.position, inPosition, camera.position, pushConstants.rotation, 
+        pushConstants.scale, camera.rotation, camera.aspectRatio, camera.clipFar);
 }
