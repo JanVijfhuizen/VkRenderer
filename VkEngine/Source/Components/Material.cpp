@@ -24,8 +24,8 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	uint32_t sizes[] = { blockSize, blockSize };
 	_descriptorPool.Construct(_renderer, _layout, uboTypes, sizes, 2, blockSize);
 
-	auto& meshHandler = renderer.GetMeshHandler();
-	_mesh = meshHandler.Create(MeshHandler::GenerateQuad());
+	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
+	_fallbackTexture = renderer.GetTextureHandler().Create("test", "png");
 
 	OnRecreateSwapChainAssets();
 }
@@ -35,6 +35,7 @@ MaterialSystem::~MaterialSystem()
 	DestroySwapChainAssets();
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
 	_renderer.GetShaderExt().DestroyShader(_shader);
+	_renderer.GetTextureHandler().Destroy(_fallbackTexture);
 	_renderer.GetMeshHandler().Destroy(_mesh);
 	_descriptorPool.Cleanup();
 }
@@ -86,4 +87,19 @@ void MaterialSystem::Update()
 			meshHandler.Draw();
 		}
 	}
+}
+
+Shader MaterialSystem::GetShader() const
+{
+	return _shader;
+}
+
+Mesh MaterialSystem::GetMesh() const
+{
+	return _mesh;
+}
+
+Texture MaterialSystem::GetFallbackTexture() const
+{
+	return _fallbackTexture;
 }

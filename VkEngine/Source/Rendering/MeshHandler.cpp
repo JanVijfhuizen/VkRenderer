@@ -30,7 +30,7 @@ MeshHandler::VertexData MeshHandler::GenerateQuad(vi::FreeListAllocator& allocat
 	return vertexData;
 }
 
-MeshHandler::Mesh MeshHandler::Create(const VertexData& vertexData) const
+Mesh MeshHandler::Create(const VertexData& vertexData) const
 {
 	auto& vertices = vertexData.vertices;
 	auto& indices = vertexData.indices;

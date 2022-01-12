@@ -22,6 +22,10 @@ public:
 
 	void Update();
 
+	[[nodiscard]] Shader GetShader() const;
+	[[nodiscard]] Mesh GetMesh() const;
+	[[nodiscard]] Texture GetFallbackTexture() const;
+
 protected:
 	void OnRecreateSwapChainAssets() override;
 
@@ -33,9 +37,10 @@ private:
 	VkDescriptorSetLayout _layout;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
-	ShaderExt::Shader _shader;
+	Shader _shader;
 	DescriptorPool _descriptorPool{};
-	MeshHandler::Mesh _mesh;
+	Mesh _mesh;
+	Texture _fallbackTexture;
 
 	void DestroySwapChainAssets() const;
 };

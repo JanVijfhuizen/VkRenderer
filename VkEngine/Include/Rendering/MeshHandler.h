@@ -2,6 +2,15 @@
 #include "VkRenderer/VkHandlers/VkHandler.h"
 #include "Vertex.h"
 
+struct Mesh final
+{
+	VkBuffer vertexBuffer;
+	VkDeviceMemory vertexMemory;
+	VkBuffer indexBuffer;
+	VkDeviceMemory indexMemory;
+	uint32_t indexCount;
+};
+
 class MeshHandler final : public vi::VkHandler
 {
 public:
@@ -9,15 +18,6 @@ public:
 	{
 		vi::ArrayPtr<Vertex> vertices{};
 		vi::ArrayPtr<Vertex::Index> indices{};
-	};
-
-	struct Mesh final
-	{
-		VkBuffer vertexBuffer;
-		VkDeviceMemory vertexMemory;
-		VkBuffer indexBuffer;
-		VkDeviceMemory indexMemory;
-		uint32_t indexCount;
 	};
 
 	explicit MeshHandler(vi::VkCore& core);
