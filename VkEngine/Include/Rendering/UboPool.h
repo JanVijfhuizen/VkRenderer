@@ -11,6 +11,8 @@ public:
 	[[nodiscard]] VkBuffer CreateBuffer() const;
 	[[nodiscard]] VkDeviceMemory GetMemory() const;
 
+	[[nodiscard]] size_t GetAlignment() const;
+
 private:
 	Renderer& _renderer;
 	VkDeviceMemory _memory;
@@ -51,4 +53,10 @@ template <typename T>
 VkDeviceMemory UboPool<T>::GetMemory() const
 {
 	return _memory;
+}
+
+template <typename T>
+size_t UboPool<T>::GetAlignment() const
+{
+	return _bufferMemoryRequirements.alignment;
 }

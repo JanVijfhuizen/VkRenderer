@@ -10,7 +10,7 @@ struct Camera final
 {
 	friend class CameraSystem;
 
-	struct Ubo final
+	struct alignas(256) Ubo final
 	{
 		glm::vec3 position;
 		float rotation;
@@ -20,7 +20,6 @@ struct Camera final
 	float clipFar = 100;
 
 private:
-	VkBuffer _buffer;
 	VkDescriptorSet _descriptors[SWAPCHAIN_MAX_FRAMES];
 };
 
@@ -47,4 +46,5 @@ private:
 	VkDescriptorSetLayout _layout;
 	DescriptorPool _descriptorPool{};
 	UboPool<Camera::Ubo> _uboPool;
+	vi::ArrayPtr<Camera::Ubo> _ubos;
 };

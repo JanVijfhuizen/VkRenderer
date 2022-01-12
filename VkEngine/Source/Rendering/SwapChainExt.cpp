@@ -35,8 +35,15 @@ void SwapChainExt::Update()
 	for (int32_t i = _deleteables.GetCount() - 1; i >= 0; --i)
 	{
 		auto& deleteable = _deleteables[i];
+
 		if (deleteable.index == index)
 		{
+			if(!deleteable.looped)
+			{
+				deleteable.looped = true;
+				continue;
+			}
+
 			Delete(deleteable, false);
 			_deleteables.RemoveAt(i);
 		}
