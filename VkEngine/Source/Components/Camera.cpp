@@ -7,7 +7,7 @@ CameraSystem::CameraSystem(ce::Cecsar& cecsar,
 	Renderer& renderer, TransformSystem& transforms) : 
 	SmallSystem<Camera>(cecsar, MAX_CAMERAS), 
 	_renderer(renderer), _transforms(transforms),
-	_uboPool(renderer, 1, MAX_CAMERAS * SWAPCHAIN_MAX_FRAMES)
+	_uboPool(renderer, MAX_CAMERAS, SWAPCHAIN_MAX_FRAMES)
 {
 	auto& swapChain = renderer.GetSwapChain();
 	const uint32_t swapChainLength = swapChain.GetLength();
@@ -41,6 +41,9 @@ void CameraSystem::Update()
 	const size_t memSize = sizeof(Camera::Ubo) * MAX_CAMERAS;
 	const size_t memOffset = memSize * imageIndex;
 
+	const auto buffer = _uboPool.CreateBuffer();
+	memoryHandler.Bind(buffer, memory, memOffset);
+
 	uint32_t i = 0;
 	for (auto& [index, camera] : *this)
 	{
@@ -52,19 +55,15 @@ void CameraSystem::Update()
 		ubo.rotation = transform.rotation;
 		ubo.clipFar = camera.clipFar;
 
-		const auto buffer = _uboPool.CreateBuffer();
 		auto& descriptor = camera._descriptors[imageIndex];
-
-		memoryHandler.Bind(buffer, memory, memOffset + sizeof(Camera::Ubo) * i);
-		shaderHandler.BindBuffer(descriptor, buffer, 0, sizeof(Camera::Ubo), 0, 0);
-
-		swapChainExt.Collect(buffer);
-
+		
+		shaderHandler.BindBuffer(descriptor, buffer, sizeof(Camera::Ubo) * i, sizeof(Camera::Ubo), 0, 0);
 		i++;
 	}
 
 	// Update all UBOs in one call.
 	memoryHandler.Map(memory, _ubos.GetData(), memOffset, memSize);
+	swapChainExt.Collect(buffer);
 }
 
 Camera& CameraSystem::Insert(const uint32_t sparseIndex, const Camera& value)
