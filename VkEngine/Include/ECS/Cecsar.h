@@ -42,7 +42,7 @@ namespace ce
 	/// <summary>
 	/// Cecsar is an Entity Component System (ECS) that focuses on avoiding data fragmentation as much as possible.
 	/// </summary>
-	class Cecsar final : public SparseSet<Entity>
+	class Cecsar final
 	{
 	public:
 		explicit Cecsar(size_t capacity);
@@ -52,11 +52,24 @@ namespace ce
 		/// The main upside to subscribing is that when an entity is destroyed, the subscribed systems automatically remove any related component.
 		/// </summary>
 		void SubscribeSystem(ISystem* system);
-		Entity& Insert(uint32_t sparseIndex, const Entity& value = {}) override;
-		void RemoveAt(uint32_t sparseIndex) override;
+		[[nodiscard]] Entity Add();
+		void RemoveAt(uint32_t sparseIndex);
+
+		[[nodiscard]] size_t GetCount() const;
+		[[nodiscard]] size_t GetCapacity() const;
 
 	private:
-		uint32_t _next = 0;
+		struct Instance final
+		{
+			Entity value;
+			uint32_t next = UINT32_MAX;
+		};
+
+		vi::ArrayPtr<uint32_t> _instances;
+		vi::BinTree<uint32_t> _open;
+		size_t _capacity;
+		size_t _count = 0;
+		size_t _numCreatedEntities = 0;
 		vi::Vector<ISystem*> _systems{ 32, GMEM_VOL };
 	};
 
@@ -85,7 +98,7 @@ namespace ce
 	};
 
 	template <typename T>
-	System<T>::System(Cecsar& cecsar) : ISystem(cecsar), SparseSet<T>(cecsar.GetLength())
+	System<T>::System(Cecsar& cecsar) : ISystem(cecsar), SparseSet<T>(cecsar.GetCapacity())
 	{
 	}
 

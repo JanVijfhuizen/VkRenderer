@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "eCS/Cecsar.h"
+#include "ECS/Cecsar.h"
 
 namespace ce
 {
@@ -28,8 +28,10 @@ namespace ce
 		return _cecsar;
 	}
 
-	Cecsar::Cecsar(const size_t capacity) : SparseSet<Entity>(capacity, GMEM)
+	Cecsar::Cecsar(const size_t capacity) : _capacity(capacity)
 	{
+		_instances = vi::ArrayPtr<uint32_t>{capacity, GMEM};
+		_open = vi::BinTree<uint32_t>{capacity, GMEM};
 	}
 
 	void Cecsar::SubscribeSystem(ISystem* system)
@@ -37,18 +39,36 @@ namespace ce
 		_systems.Add(system);
 	}
 
-	Entity& Cecsar::Insert(const uint32_t sparseIndex, const Entity& value)
+	Entity Cecsar::Add()
 	{
-		auto& instance = SparseSet<Entity>::Insert(sparseIndex, value);
-		instance._identifier = _next++;
-		instance._index = sparseIndex;
-		return instance;
+		assert(_count < _capacity);
+
+		uint32_t index = _count;
+		if(!_open.IsEmpty())
+			index = _open.Pop();
+
+		Entity entity{};
+		entity._index = index;
+		entity._identifier = _numCreatedEntities;
+		_count++;
+		return entity;
 	}
 
 	void Cecsar::RemoveAt(const uint32_t sparseIndex)
 	{
+		_count--;
 		for (auto& system : _systems)
 			system->RemoveAt(sparseIndex);
-		SparseSet<Entity>::RemoveAt(sparseIndex);
+		_open.Push({ static_cast<int32_t>(sparseIndex), sparseIndex });
+	}
+
+	size_t Cecsar::GetCount() const
+	{
+		return _count;
+	}
+
+	size_t Cecsar::GetCapacity() const
+	{
+		return _capacity;
 	}
 }
