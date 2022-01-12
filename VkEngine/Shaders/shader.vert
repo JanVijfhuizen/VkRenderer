@@ -32,5 +32,6 @@ void main()
     outData.normal = inNormal;
     outData.fragTexCoord = inTexCoords;
 
-    gl_Position = ToWorldPos(pushConstants.position, inPosition, camera.position, pushConstants.scale, camera.aspectRatio, camera.clipFar);
+    gl_Position = ToWorldPos(pushConstants.position, inPosition, camera.position, pushConstants.rotation, 
+        pushConstants.scale, camera.rotation, camera.aspectRatio, camera.clipFar);
 }
