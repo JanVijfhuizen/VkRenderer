@@ -6,19 +6,19 @@ int main()
 	Engine::Info info{};
 	info.start = [](Engine& engine)
 	{
-		const auto camera = engine.GetCecsar().Insert(0);
+		const auto camera = engine.GetCecsar().Add();
 		engine.GetTransforms().Insert(camera);
 		engine.GetCameras().Insert(camera);
 
-		const auto quad = engine.GetCecsar().Insert(1);
+		const auto quad = engine.GetCecsar().Add();
 		engine.GetTransforms().Insert(quad);
 		engine.GetMaterials().Insert(quad);
 
-		const auto quad2 = engine.GetCecsar().Insert(2);
+		const auto quad2 = engine.GetCecsar().Add();
 		engine.GetTransforms().Insert(quad2);
 		engine.GetMaterials().Insert(quad2);
 
-		const auto quad3 = engine.GetCecsar().Insert(3);
+		const auto quad3 = engine.GetCecsar().Add();
 		auto& quad3Transform = engine.GetTransforms().Insert(quad3);
 		engine.GetMaterials().Insert(quad3);
 		quad3Transform.position = { 3, 0, 8 };

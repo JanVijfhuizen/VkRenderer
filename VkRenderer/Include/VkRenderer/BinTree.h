@@ -12,6 +12,7 @@ namespace vi
 	public:
 		typedef KeyValue<int32_t, T> Node;
 
+		BinTree();
 		explicit BinTree(size_t size, FreeListAllocator& allocator);
 
 		void Push(const Node& node);
@@ -30,6 +31,9 @@ namespace vi
 		void HeapifyTopToBottom(uint32_t index);
 		void Swap(uint32_t a, uint32_t b);
 	};
+
+	template <typename T>
+	BinTree<T>::BinTree() = default;
 
 	template <typename T>
 	BinTree<T>::BinTree(const size_t size, FreeListAllocator& allocator) : ArrayPtr<Node>(size + 1, allocator)
