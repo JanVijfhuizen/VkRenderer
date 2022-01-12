@@ -16,13 +16,14 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	_shader = renderer.GetShaderExt().Load(shaderName);
 
 	vi::VkLayoutHandler::Info layoutInfo{};
-	layoutInfo.bindings.Add(CameraSystem::GetBindingInfo());
+	auto& materialBinding = layoutInfo.bindings.Add();
+	materialBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	materialBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
-	VkDescriptorType uboTypes[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	const uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
-	uint32_t sizes[] = { blockSize, blockSize };
-	_descriptorPool.Construct(_renderer, _layout, uboTypes, sizes, 2, blockSize);
+	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
+	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize);
 
 	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
 	_fallbackTexture = renderer.GetTextureHandler().Create("test", "png");
@@ -50,6 +51,7 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	vi::VkPipelineHandler::Info pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
+	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.modules.Add(_shader.vertex);
 	pipelineInfo.modules.Add(_shader.fragment);
@@ -71,20 +73,42 @@ void MaterialSystem::Update()
 	auto& shaderHandler = _renderer.GetShaderHandler();
 	auto& meshHandler = _renderer.GetMeshHandler();
 	auto& pipelineHandler = _renderer.GetPipelineHandler();
+	auto& swapChain = _renderer.GetSwapChain();
+	auto& swapChainext = _renderer.GetSwapChainExt();
+
+	const uint32_t imageIndex = swapChain.GetImageIndex();
 
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 	meshHandler.Bind(_mesh);
 
+	union
+	{
+		struct
+		{
+			VkDescriptorSet camera;
+			VkDescriptorSet material;
+		};
+		VkDescriptorSet values[2];
+	} sets{};
+
 	for (auto& [camIndex, camera] : _cameras)
 	{
-		auto set = _cameras.GetDescriptor(camera);
-		descriptorPoolHandler.BindSets(&set, 1);
+		sets.camera = _cameras.GetDescriptor(camera);
 
 		for (const auto& [matIndex, material] : *this)
 		{
+			sets.material = material._descriptors[imageIndex];
+
+			const auto sampler = shaderHandler.CreateSampler();
+			shaderHandler.BindSampler(sets.material, _fallbackTexture.imageView, _fallbackTexture.layout, sampler, 0, 0);
+			
+			descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
+
 			const auto& transform = _transforms[matIndex];
 			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, transform);
 			meshHandler.Draw();
+
+			swapChainext.Collect(sampler);
 		}
 	}
 }
@@ -102,4 +126,21 @@ Mesh MaterialSystem::GetMesh() const
 Texture MaterialSystem::GetFallbackTexture() const
 {
 	return _fallbackTexture;
+}
+
+Material& MaterialSystem::Insert(const uint32_t sparseIndex, const Material& value)
+{
+	auto& camera = System<Material>::Insert(sparseIndex, value);
+	for (auto& _descriptor : camera._descriptors)
+		_descriptor = _descriptorPool.Get();
+	return camera;
+}
+
+void MaterialSystem::RemoveAt(const uint32_t index)
+{
+	auto& swapChainExt = _renderer.GetSwapChainExt();
+	auto& camera = operator[](index);
+	for (auto& descriptor : camera._descriptors)
+		swapChainExt.Collect(descriptor, _descriptorPool);
+	System<Material>::RemoveAt(index);
 }

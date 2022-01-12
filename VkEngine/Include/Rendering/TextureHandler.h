@@ -9,6 +9,7 @@ struct Texture final
 	VkImage image;
 	VkImageView imageView;
 	VkDeviceMemory memory;
+	VkImageLayout layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 };
 
 class TextureHandler final : public vi::VkHandler

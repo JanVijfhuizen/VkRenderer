@@ -10,7 +10,9 @@ layout(location = 0) in Data
 
 layout(location = 0) out vec4 outColor;
 
+layout (set = 1, binding = 0) uniform sampler2D diffuseSampler;
+
 void main() 
 {
-    outColor = vec4(1, 0, 0, 1);
+    outColor = texture(diffuseSampler, inData.fragTexCoord);
 }

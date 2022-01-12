@@ -91,6 +91,11 @@ VkDescriptorSet CameraSystem::GetDescriptor(const Camera& value) const
 	return value._descriptors[_renderer.GetSwapChain().GetImageIndex()];
 }
 
+VkDescriptorSetLayout CameraSystem::GetLayout() const
+{
+	return _layout;
+}
+
 vi::VkLayoutHandler::Info::Binding CameraSystem::GetBindingInfo()
 {
 	vi::VkLayoutHandler::Info::Binding camBinding{};
