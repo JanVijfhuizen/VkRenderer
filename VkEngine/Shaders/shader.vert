@@ -34,7 +34,9 @@ void main()
     // Scale 2d position based on distance.
     float dis = pos.z + vertPos.z;
     vec2 pos2d = pos.xy + vertPos.xy;
-    pos2d = inPosition.xy / dis;
+    pos2d += inPosition.xy;
+    pos2d /= dis;
+
     // Add depth.
     vec3 finalPos = vec3(pos2d, dis / camera.clipFar);
     gl_Position = vec4(finalPos, 1);

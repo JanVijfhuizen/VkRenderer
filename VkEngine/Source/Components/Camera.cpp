@@ -51,7 +51,6 @@ void CameraSystem::Update()
 		ubo.position = transform.position;
 		ubo.rotation = transform.rotation;
 		ubo.clipFar = camera.clipFar;
-		i++;
 
 		const auto buffer = _uboPool.CreateBuffer();
 		auto& descriptor = camera._descriptors[imageIndex];
@@ -60,6 +59,8 @@ void CameraSystem::Update()
 		shaderHandler.BindBuffer(descriptor, buffer, 0, sizeof(Camera::Ubo), 0, 0);
 
 		swapChainExt.Collect(buffer);
+
+		i++;
 	}
 
 	// Update all UBOs in one call.
