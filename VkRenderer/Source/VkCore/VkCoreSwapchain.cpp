@@ -202,8 +202,11 @@ namespace vi
 		auto& syncHandler = _core.GetSyncHandler();
 
 		for (auto& fence : _inFlight)
+		{
 			if (fence)
 				syncHandler.WaitForFence(fence);
+			fence = VK_NULL_HANDLE;
+		}
 
 		_core.GetRenderPassHandler().Destroy(_renderPass);
 		vkDestroySwapchainKHR(_core.GetLogicalDevice(), _swapChain, nullptr);
@@ -260,6 +263,8 @@ namespace vi
 		VkSwapchainKHR newSwapchain;
 		const auto result = vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &newSwapchain);
 		assert(!result);
+
+		_core.DeviceWaitIdle();
 
 		if (executeCleanup)
 			Cleanup();
