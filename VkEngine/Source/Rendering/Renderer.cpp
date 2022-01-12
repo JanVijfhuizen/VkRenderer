@@ -20,3 +20,8 @@ SwapChainExt& Renderer::GetSwapChainExt()
 {
 	return _swapChainGC;
 }
+
+TextureHandler& Renderer::GetTextureHandler()
+{
+	return _textureHandler;
+}

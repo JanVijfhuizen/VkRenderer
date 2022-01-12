@@ -38,6 +38,7 @@ public:
 	void RemoveAt(uint32_t index) override;
 
 	[[nodiscard]] VkDescriptorSet GetDescriptor(const Camera& value) const;
+	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
 	[[nodiscard]] static vi::VkLayoutHandler::Info::Binding GetBindingInfo();
 
 private:

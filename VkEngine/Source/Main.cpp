@@ -33,6 +33,7 @@ int main()
 		static float f = 0;
 		f += 0.001f;
 		c.rotation = f * 360 / 8;
+		c.position.y = sin(f) * 4;
 		t.position.x = sin(f) * 5;
 		t.position.y = cos(f) * 5;
 		t.rotation = f * 360;

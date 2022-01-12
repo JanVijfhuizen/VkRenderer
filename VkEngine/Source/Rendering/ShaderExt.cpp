@@ -7,7 +7,7 @@ ShaderExt::ShaderExt(vi::VkCore& core) : VkHandler(core)
 {
 }
 
-ShaderExt::Shader ShaderExt::Load(const char* name) const
+Shader ShaderExt::Load(const char* name) const
 {
 	vi::String vertPostFix{ "vert.spv", GMEM_TEMP };
 	vi::String fragPostFix{ "frag.spv", GMEM_TEMP };

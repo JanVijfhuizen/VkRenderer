@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\TextureHandler.cpp" />
     <ClCompile Include="Source\Rendering\MeshHandler.cpp" />
     <ClCompile Include="Source\Engine\Engine.cpp" />
     <ClCompile Include="Source\Rendering\SwapChainExt.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="Include\Rendering\Renderer.h" />
     <ClInclude Include="Include\Rendering\ShaderExt.h" />
     <ClInclude Include="Include\Rendering\MeshHandler.h" />
+    <ClInclude Include="Include\Rendering\TextureHandler.h" />
     <ClInclude Include="Include\Utils\FileReader.h" />
     <ClInclude Include="Include\pch.h" />
     <ClInclude Include="Include\ECS\SparseSet.h" />

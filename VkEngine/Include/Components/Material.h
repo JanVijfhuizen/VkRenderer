@@ -10,7 +10,13 @@ class Renderer;
 
 struct Material
 {
-	
+	friend class MaterialSystem;
+
+public:
+	Texture* texture = nullptr;
+
+private:
+	VkDescriptorSet _descriptors[SWAPCHAIN_MAX_FRAMES];
 };
 
 class MaterialSystem final : public ce::System<Material>, SwapChainExt::Dependency
@@ -21,6 +27,13 @@ public:
 	~MaterialSystem();
 
 	void Update();
+
+	[[nodiscard]] Shader GetShader() const;
+	[[nodiscard]] Mesh GetMesh() const;
+	[[nodiscard]] Texture GetFallbackTexture() const;
+
+	[[nodiscard]] Material& Insert(uint32_t sparseIndex, const Material& value = {}) override;
+	void RemoveAt(uint32_t index) override;
 
 protected:
 	void OnRecreateSwapChainAssets() override;
@@ -33,9 +46,10 @@ private:
 	VkDescriptorSetLayout _layout;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
-	ShaderExt::Shader _shader;
+	Shader _shader;
 	DescriptorPool _descriptorPool{};
-	MeshHandler::Mesh _mesh;
+	Mesh _mesh;
+	Texture _fallbackTexture;
 
 	void DestroySwapChainAssets() const;
 };
