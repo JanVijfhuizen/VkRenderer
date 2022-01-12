@@ -15,6 +15,7 @@ struct Camera final
 		glm::vec3 position;
 		float rotation;
 		float clipFar;
+		float aspectRatio;
 	};
 
 	float clipFar = 100;

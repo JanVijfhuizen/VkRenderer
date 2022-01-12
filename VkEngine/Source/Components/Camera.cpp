@@ -33,6 +33,7 @@ void CameraSystem::Update()
 {
 	auto& memoryHandler = _renderer.GetMemoryHandler();
 	auto& shaderHandler = _renderer.GetShaderHandler();
+	auto& swapChain = _renderer.GetSwapChain();
 	auto& swapChainExt = _renderer.GetSwapChainExt();
 
 	const uint32_t imageIndex = _renderer.GetSwapChain().GetImageIndex();
@@ -40,6 +41,7 @@ void CameraSystem::Update()
 
 	const size_t memSize = sizeof(Camera::Ubo) * MAX_CAMERAS;
 	const size_t memOffset = memSize * imageIndex;
+	const float aspectRatio = static_cast<float>(swapChain.GetExtent().width) / swapChain.GetExtent().height;
 
 	const auto buffer = _uboPool.CreateBuffer();
 	memoryHandler.Bind(buffer, memory, memOffset);
@@ -54,6 +56,7 @@ void CameraSystem::Update()
 		ubo.position = transform.position;
 		ubo.rotation = transform.rotation;
 		ubo.clipFar = camera.clipFar;
+		ubo.aspectRatio = aspectRatio;
 
 		auto& descriptor = camera._descriptors[imageIndex];
 		
