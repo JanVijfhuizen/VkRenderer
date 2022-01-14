@@ -20,9 +20,15 @@ public:
 		vi::ArrayPtr<Vertex::Index> indices{};
 	};
 
+	enum ForwardAxis
+	{
+		x, y, z
+	};
+
 	explicit MeshHandler(vi::VkCore& core);
 
-	[[nodiscard]] static VertexData GenerateQuad(vi::FreeListAllocator& allocator = GMEM_TEMP);
+	[[nodiscard]] static VertexData GenerateQuad(ForwardAxis axis = z, vi::FreeListAllocator& allocator = GMEM_TEMP);
+	[[nodiscard]] static VertexData GenerateCube(vi::FreeListAllocator& allocator = GMEM_TEMP);
 
 	[[nodiscard]] Mesh Create(const VertexData& vertexData) const;
 	void Bind(Mesh& mesh);

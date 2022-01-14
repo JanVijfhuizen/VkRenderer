@@ -25,7 +25,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
 	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize);
 
-	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
+	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateCube());
 	_fallbackTexture = renderer.GetTextureHandler().Create("test", "png");
 
 	OnRecreateSwapChainAssets();
@@ -100,7 +100,8 @@ void MaterialSystem::Update()
 			sets.material = material._descriptors[imageIndex];
 
 			const auto sampler = shaderHandler.CreateSampler();
-			shaderHandler.BindSampler(sets.material, _fallbackTexture.imageView, _fallbackTexture.layout, sampler, 0, 0);
+			const auto texture = material.texture ? material.texture : &_fallbackTexture;
+			shaderHandler.BindSampler(sets.material, texture->imageView, texture->layout, sampler, 0, 0);
 			
 			descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
 
