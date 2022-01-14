@@ -25,7 +25,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
 	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize);
 
-	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateCube());
+	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
 	_fallbackTexture = renderer.GetTextureHandler().Create("test", "png");
 
 	OnRecreateSwapChainAssets();

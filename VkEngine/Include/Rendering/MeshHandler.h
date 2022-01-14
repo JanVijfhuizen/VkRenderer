@@ -27,7 +27,7 @@ public:
 
 	explicit MeshHandler(vi::VkCore& core);
 
-	[[nodiscard]] static VertexData GenerateQuad(ForwardAxis axis = z, vi::FreeListAllocator& allocator = GMEM_TEMP);
+	[[nodiscard]] static VertexData GenerateQuad(ForwardAxis axis = z, bool counterClockwise = false, vi::FreeListAllocator& allocator = GMEM_TEMP);
 	[[nodiscard]] static VertexData GenerateCube(vi::FreeListAllocator& allocator = GMEM_TEMP);
 
 	[[nodiscard]] Mesh Create(const VertexData& vertexData) const;

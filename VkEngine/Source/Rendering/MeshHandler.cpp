@@ -6,29 +6,44 @@ MeshHandler::MeshHandler(vi::VkCore& core): VkHandler(core)
 {
 }
 
-MeshHandler::VertexData MeshHandler::GenerateQuad(const ForwardAxis axis, vi::FreeListAllocator& allocator)
+MeshHandler::VertexData MeshHandler::GenerateQuad(const ForwardAxis axis, 
+	const bool counterClockwise, vi::FreeListAllocator& allocator)
 {
 	VertexData vertexData{};
 
+	const float xMul = static_cast<float>(axis == x) * -2.f + 1.f;
+
 	vertexData.vertices = vi::ArrayPtr<Vertex>(4, allocator);
 	auto& lBot = vertexData.vertices[0];
-	lBot.position = { -1, -1 * (axis == z), -1 * (axis == y) };
+	lBot.position = { -1 * (axis != x), -1 * (axis != y), -1 * (axis != z) * xMul };
 	lBot.textureCoordinates = { 0, 0 };
 	auto& lTop = vertexData.vertices[1];
-	lTop.position = { -1, 1 * (axis == z), 1 * (axis == y) };
+	lTop.position = { -1 * (axis != x), 1 * (axis != y), 1 * (axis != z) };
 	lTop.textureCoordinates = { 0, 1 };
 	auto& rTop = vertexData.vertices[2];
-	rTop.position = { 1, 1 * (axis == z), 1 * (axis == y) };
+	rTop.position = { 1 * (axis != x), 1 * (axis != y), 1 * (axis != z) * xMul };
 	rTop.textureCoordinates = { 1, 1 };
 	auto& rBot = vertexData.vertices[3];
-	rBot.position = { 1, -1 * (axis == z), -1 * (axis == y) };
+	rBot.position = { 1 * (axis != x), -1 * (axis != y), -1 * (axis != z) };
 	rBot.textureCoordinates = { 1, 0 };
 
-	const glm::vec3 forward = glm::vec3(axis == x, axis == y, axis == z);
+	const float dir = 2.f * static_cast<float>(counterClockwise) - 1.f;
+	const glm::vec3 forward = glm::vec3(axis == x, axis == y, axis == z) * dir;
 	for (auto& vertex : vertexData.vertices)
 		vertex.normal = forward;
 
-	Vertex::Index indices[] = { 0, 1, 2, 0, 2, 3 };
+	Vertex::Index indices[6] = { 0, 1, 2, 0, 2, 3 };
+	if(counterClockwise)
+	{
+		auto a = indices[1];
+		indices[1] = indices[2];
+		indices[2] = a;
+
+		auto b = indices[4];
+		indices[4] = indices[5];
+		indices[5] = b;
+	}
+
 	vertexData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 6, allocator };
 
 	return vertexData;
@@ -36,36 +51,43 @@ MeshHandler::VertexData MeshHandler::GenerateQuad(const ForwardAxis axis, vi::Fr
 
 MeshHandler::VertexData MeshHandler::GenerateCube(vi::FreeListAllocator& allocator)
 {
-	VertexData quads[4];
+	VertexData quads[6];
 
-	auto& top = quads[0] = GenerateQuad(y, allocator);
+	auto& top = quads[0] = GenerateQuad(y, false, allocator);
 	for (auto& vertex : top.vertices)
 		vertex.position.y = 1;
 
-	auto& bot = quads[1] = GenerateQuad(y, allocator);
+	auto& bot = quads[1] = GenerateQuad(y, true, allocator);
 	for (auto& vertex : bot.vertices)
-	{
 		vertex.position.y = -1;
-		vertex.normal.y *= -1;
-	}
 
-	auto& front = quads[2] = GenerateQuad(z, allocator);
+	auto& front = quads[2] = GenerateQuad(z, true, allocator);
 	for (auto& vertex : front.vertices)
 		vertex.position.z = 1;
 
-	auto& back = quads[3] = GenerateQuad(z, allocator);
+	auto& back = quads[3] = GenerateQuad(z, false, allocator);
 	for (auto& vertex : back.vertices)
-	{
 		vertex.position.z = -1;
-		vertex.normal.z *= -1;
+
+	auto& right = quads[4] = GenerateQuad(x, true, allocator);
+	for (auto& vertex : right.vertices)
+		vertex.position.x = 1;
+
+	for (auto index : right.indices)
+	{
+		std::cout << index << " " << right.vertices[index].position.x << " " << right.vertices[index].position.y << " " << right.vertices[index].position.z << std::endl;
 	}
+
+	auto& left = quads[5] = GenerateQuad(x, false, allocator);
+	for (auto& vertex : left.vertices)
+		vertex.position.x = -1;
 
 	VertexData cubeData{};
 	const size_t size = sizeof quads / sizeof(VertexData);
 	const size_t vertLength = quads[0].vertices.GetLength();
 	const size_t indLength = quads[0].indices.GetLength();
-	cubeData.vertices.Reallocate(sizeof(Vertex) * vertLength * size, allocator);
-	cubeData.indices.Reallocate(sizeof(Vertex::Index) * indLength * size, allocator);
+	cubeData.vertices.Reallocate(vertLength * size, allocator);
+	cubeData.indices.Reallocate(indLength * size, allocator);
 
 	size_t vertOffset = 0;
 	size_t indOffset = 0;
