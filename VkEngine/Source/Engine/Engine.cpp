@@ -20,14 +20,17 @@ int Engine::Run(const Info& info)
 	_cameras = { GMEM, *_cecsar, *_renderer, *_transforms };
 	_materials = { GMEM, *_cecsar, *_renderer, *_transforms, *_cameras, "" };
 
+	auto& postEffectHandler = _renderer->GetPostEffectHandler();
+	auto& swapChain = _renderer->GetSwapChain();
+	auto& swapChainExt = _renderer->GetSwapChainExt();
+
+	const auto msaa = GMEM.New<MSAA>(*_renderer);
+	postEffectHandler.Add(msaa);
+
 	if (info.awake)
 		info.awake(*this);
 	if (info.start)
 		info.start(*this);
-
-	auto& postEffectHandler = _renderer->GetPostEffectHandler();
-	auto& swapChain = _renderer->GetSwapChain();
-	auto& swapChainExt = _renderer->GetSwapChainExt();
 
 	while (true)
 	{
@@ -71,6 +74,7 @@ int Engine::Run(const Info& info)
 	}
 
 	_renderer->DeviceWaitIdle();
+	GMEM.Delete(msaa);
 
 	_isRunning = false;
 	return EXIT_SUCCESS;

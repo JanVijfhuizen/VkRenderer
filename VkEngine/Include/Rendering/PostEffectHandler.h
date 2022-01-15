@@ -5,26 +5,14 @@
 #include "DescriptorPool.h"
 #include "MeshHandler.h"
 
+class PostEffectHandler;
 class Renderer;
 
-class PostEffectHandler final : public vi::VkHandler, public SwapChainExt::Dependency
+class PostEffect
 {
+	friend PostEffectHandler;
+
 public:
-	explicit PostEffectHandler(Renderer& renderer);
-	~PostEffectHandler();
-
-	void BeginFrame();
-	void EndFrame();
-
-	void Draw();
-
-	[[nodiscard]] VkRenderPass GetRenderPass() const;
-	[[nodiscard]] VkExtent2D GetExtent() const;
-
-protected:
-	void OnRecreateSwapChainAssets() override;
-
-private:
 	struct Frame final
 	{
 		VkImage colorImage;
@@ -52,11 +40,64 @@ private:
 		VkDescriptorSet descriptorSet;
 	};
 
+	virtual void Draw(Frame& frame) = 0;
+
+protected:
+	Renderer& renderer;
+
+	explicit PostEffect(Renderer& renderer);
+	virtual void OnRecreateAssets() = 0;
+};
+
+class MSAA final : public PostEffect
+{
+public:
+	explicit MSAA(Renderer& renderer);
+	~MSAA();
+
+	void Draw(Frame& frame) override;
+
+private:
+	Shader _shader;
+	VkPipeline _pipeline = VK_NULL_HANDLE;
+	VkPipelineLayout _pipelineLayout;
+
+	void OnRecreateAssets() override;
+	void DestroyAssets();
+};
+
+class PostEffectHandler final : public vi::VkHandler, public SwapChainExt::Dependency
+{
+public:
+	explicit PostEffectHandler(Renderer& renderer);
+	~PostEffectHandler();
+
+	void BeginFrame();
+	void EndFrame();
+
+	void Draw() const;
+
+	[[nodiscard]] VkRenderPass GetRenderPass() const;
+	[[nodiscard]] VkExtent2D GetExtent() const;
+	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
+	[[nodiscard]] Mesh& GetMesh();
+
+	void Add(PostEffect* postEffect);
+
+protected:
+	void OnRecreateSwapChainAssets() override;
+
+private:
+	struct Layer final
+	{
+		PostEffect* postEffect = nullptr;
+		PostEffect::Frame frames[SWAPCHAIN_MAX_FRAMES];
+	};
+
 	Renderer& _renderer;
 	VkRenderPass _renderPass = VK_NULL_HANDLE;
 	VkExtent2D _extent;
 
-	Frame _frames[SWAPCHAIN_MAX_FRAMES];
 	uint32_t _imageIndex;
 
 	Shader _shader;
@@ -64,8 +105,9 @@ private:
 	Mesh _mesh;
 	DescriptorPool _descriptorPool{};
 
-	VkPipeline _pipeline;
-	VkPipelineLayout _pipelineLayout;
+	vi::Vector<Layer> _layers{ 4, GMEM_VOL };
 
+	void RecreateLayerAssets(Layer& layer);
+	void DestroyLayerAssets(Layer& layer) const;
 	void DestroySwapChainAssets() const;
 };
