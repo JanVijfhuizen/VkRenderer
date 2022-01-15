@@ -28,6 +28,8 @@ namespace vi
 	}
 
 	VkSampler VkShaderHandler::CreateSampler(
+		const float minLod, 
+		const float maxLod,
 		const VkFilter magFilter, 
 		const VkFilter minFilter, 
 		const VkBorderColor borderColor,
@@ -51,8 +53,8 @@ namespace vi
 		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		samplerInfo.mipLodBias = 0.0f;
-		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = 0.0f;
+		samplerInfo.minLod = minLod;
+		samplerInfo.maxLod = maxLod;
 
 		VkSampler sampler;
 		const auto result = vkCreateSampler(core.GetLogicalDevice(), &samplerInfo, nullptr, &sampler);
