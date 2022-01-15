@@ -10,6 +10,9 @@ public:
 	explicit PostEffectHandler(Renderer& renderer);
 	~PostEffectHandler();
 
+	void BeginFrame();
+	void EndFrame();
+
 	[[nodiscard]] VkRenderPass GetRenderPass() const;
 	[[nodiscard]] VkExtent2D GetExtent() const;
 
@@ -21,11 +24,25 @@ private:
 	{
 		VkImage colorImage;
 		VkImage depthImage;
-		VkImageView colorView;
-		VkImageView depthView;
 		VkDeviceMemory colorMemory;
 		VkDeviceMemory depthMemory;
 		VkFramebuffer frameBuffer;
+		VkCommandBuffer commandBuffer;
+		VkFence fence;
+
+		union
+		{
+			struct
+			{
+				VkImageView imageView;
+				VkImageView depthImageView;
+			};
+			VkImageView imageViews[2]
+			{
+				VK_NULL_HANDLE,
+				VK_NULL_HANDLE
+			};
+		};
 	};
 
 	Renderer& _renderer;
@@ -33,6 +50,7 @@ private:
 	VkExtent2D _extent;
 
 	Frame _frames[SWAPCHAIN_MAX_FRAMES];
+	uint32_t _imageIndex;
 
 	void DestroySwapChainAssets() const;
 };

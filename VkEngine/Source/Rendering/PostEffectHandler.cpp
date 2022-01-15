@@ -10,8 +10,48 @@ PostEffectHandler::PostEffectHandler(Renderer& renderer) : VkHandler(renderer), 
 
 PostEffectHandler::~PostEffectHandler()
 {
+	DestroySwapChainAssets();
+}
+
+void PostEffectHandler::BeginFrame()
+{
+	auto& commandBufferHandler = core.GetCommandBufferHandler();
 	auto& renderPassHandler = core.GetRenderPassHandler();
-	renderPassHandler.Destroy(_renderPass);
+	auto& swapChain = core.GetSwapChain();
+
+	_imageIndex = swapChain.GetImageIndex();
+	auto& frame = _frames[_imageIndex];
+
+	commandBufferHandler.BeginRecording(frame.commandBuffer);
+
+	VkClearValue clearColors[2];
+	clearColors[0].color = {0, 0, 0, 1};
+	clearColors[1].depthStencil = {1, 0};
+
+	renderPassHandler.Begin(frame.frameBuffer, _renderPass, {},
+		{_extent.width, _extent.height}, clearColors, 2);
+}
+
+void PostEffectHandler::EndFrame()
+{
+	auto& commandBufferHandler = core.GetCommandBufferHandler();
+	auto& renderPassHandler = core.GetRenderPassHandler();
+	auto& syncHandler = _renderer.GetSyncHandler();
+
+	auto& frame = _frames[_imageIndex];
+
+	renderPassHandler.End();
+	commandBufferHandler.EndRecording();
+
+	vi::VkCommandBufferHandler::SubmitInfo info{};
+	info.buffers = &frame.commandBuffer;
+	info.buffersCount = 1;
+	info.waitSemaphore = VK_NULL_HANDLE;
+	info.signalSemaphore = VK_NULL_HANDLE;
+	info.fence = frame.fence;
+	commandBufferHandler.Submit(info);
+
+	syncHandler.WaitForFence(frame.fence);
 }
 
 VkRenderPass PostEffectHandler::GetRenderPass() const
@@ -29,10 +69,13 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 	if (_renderPass)
 		DestroySwapChainAssets();
 
+	auto& commandBufferHandler = core.GetCommandBufferHandler();
+	auto& frameBufferHandler = core.GetFrameBufferHandler();
 	auto& imageHandler = _renderer.GetImageHandler();
 	auto& memoryHandler = _renderer.GetMemoryHandler();
 	auto& renderPassHandler = _renderer.GetRenderPassHandler();
 	auto& swapChainHandler = _renderer.GetSwapChain();
+	auto& syncHandler = _renderer.GetSyncHandler();
 
 	vi::VkRenderPassHandler::CreateInfo renderPassCreateInfo{};
 	renderPassCreateInfo.useColorAttachment = true;
@@ -45,10 +88,13 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 
 	for (auto& frame : _frames)
 	{
+		frame.commandBuffer = commandBufferHandler.Create();
+		frame.fence = syncHandler.CreateFence();
+
 		vi::VkImageHandler::CreateInfo colorImageCreateInfo{};
 		colorImageCreateInfo.resolution = { _extent.width, _extent.height };
 		colorImageCreateInfo.format = swapChainHandler.GetFormat();
-		colorImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		colorImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		frame.colorImage = imageHandler.Create(colorImageCreateInfo);
 
 		vi::VkImageHandler::CreateInfo depthImageCreateInfo{};
@@ -62,21 +108,47 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 
 		memoryHandler.Bind(frame.colorImage, frame.colorMemory);
 		memoryHandler.Bind(frame.depthImage, frame.depthMemory);
+
+		vi::VkImageHandler::ViewCreateInfo colorViewCreateInfo{};
+		colorViewCreateInfo.image = frame.colorImage;
+		colorViewCreateInfo.format = swapChainHandler.GetFormat();
+		frame.imageView = imageHandler.CreateView(colorViewCreateInfo);
+
+		vi::VkImageHandler::ViewCreateInfo depthViewCreateInfo{};
+		depthViewCreateInfo.image = frame.depthImage;
+		depthViewCreateInfo.format = swapChainHandler.GetDepthBufferFormat();
+		depthViewCreateInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+		frame.depthImageView = imageHandler.CreateView(depthViewCreateInfo);
+
+		vi::VkFrameBufferHandler::CreateInfo frameBufferCreateInfo{};
+		frameBufferCreateInfo.imageViews = frame.imageViews;
+		frameBufferCreateInfo.imageViewCount = 2;
+		frameBufferCreateInfo.renderPass = _renderPass;
+		frameBufferCreateInfo.extent = _extent;
+		frame.frameBuffer = frameBufferHandler.Create(frameBufferCreateInfo);
 	}
 }
 
 void PostEffectHandler::DestroySwapChainAssets() const
 {
+	auto& commandBufferHandler = core.GetCommandBufferHandler();
+	auto& frameBufferHandler = core.GetFrameBufferHandler();
 	auto& imageHandler = _renderer.GetImageHandler();
 	auto& memoryHandler = _renderer.GetMemoryHandler();
 	auto& renderPassHandler = _renderer.GetRenderPassHandler();
+	auto& syncHandler = _renderer.GetSyncHandler();
 
 	renderPassHandler.Destroy(_renderPass);
 
 	for (auto& frame : _frames)
 	{
-		imageHandler.DestroyView(frame.colorView);
-		imageHandler.DestroyView(frame.depthView);
+		commandBufferHandler.Destroy(frame.commandBuffer);
+		syncHandler.DestroyFence(frame.fence);
+
+		frameBufferHandler.Destroy(frame.frameBuffer);
+
+		imageHandler.DestroyView(frame.imageView);
+		imageHandler.DestroyView(frame.depthImageView);
 
 		imageHandler.Destroy(frame.colorImage);
 		imageHandler.Destroy(frame.depthImage);
