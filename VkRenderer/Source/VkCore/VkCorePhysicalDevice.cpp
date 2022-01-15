@@ -63,6 +63,7 @@ namespace vi
 
 		assert(!candidates.IsEmpty());
 		_value = candidates.Peek();
+		_msaaSamples = Ut::Min(info.msaaSamples, GetMaxUsableSampleCount());
 	}
 
 	VkCorePhysicalDevice::operator VkPhysicalDevice_T* () const
@@ -147,5 +148,28 @@ namespace vi
 			hashMap.Remove(extension.extensionName);
 
 		return hashMap.IsEmpty();
+	}
+
+	VkSampleCountFlagBits VkCorePhysicalDevice::GetMaxUsableSampleCount() const
+	{
+		VkPhysicalDeviceProperties physicalDeviceProperties;
+		vkGetPhysicalDeviceProperties(_value, &physicalDeviceProperties);
+
+		const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts
+			& physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+		VkSampleCountFlagBits ret = VK_SAMPLE_COUNT_1_BIT;
+		for (int32_t i = VK_SAMPLE_COUNT_2_BIT; i != VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM; i++)
+		{
+			const auto flags = static_cast<VkSampleCountFlagBits>(i);
+			if (counts & flags)
+			{
+				ret = flags;
+				continue;
+			}
+			break;
+		}
+
+		return ret;
 	}
 }

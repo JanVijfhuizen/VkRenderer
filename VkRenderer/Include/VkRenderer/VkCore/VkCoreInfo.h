@@ -15,5 +15,8 @@ namespace vi
 		Vector<const char*> validationLayers{ 1, GMEM_TEMP };
 		// Optional extensions for the vulkan instance.
 		Vector<const char*> additionalExtensions{ 0, GMEM_TEMP };
+
+		// Anti aliasing
+		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_8_BIT;
 	};
 }
