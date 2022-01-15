@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Rendering\PostEffectHandler.cpp" />
     <ClCompile Include="Source\Rendering\TextureHandler.cpp" />
     <ClCompile Include="Source\Rendering\MeshHandler.cpp" />
     <ClCompile Include="Source\Engine\Engine.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="Include\ECS\HashSet.h" />
     <ClInclude Include="Include\Engine\Engine.h" />
     <ClInclude Include="Include\Rendering\DescriptorPool.h" />
+    <ClInclude Include="Include\Rendering\PostEffectHandler.h" />
     <ClInclude Include="Include\Rendering\SwapChainExt.h" />
     <ClInclude Include="Include\Rendering\Renderer.h" />
     <ClInclude Include="Include\Rendering\ShaderExt.h" />

@@ -25,3 +25,8 @@ TextureHandler& Renderer::GetTextureHandler()
 {
 	return _textureHandler;
 }
+
+PostEffectHandler& Renderer::GetPostEffectHandler()
+{
+	return _postEffectHandler;
+}
