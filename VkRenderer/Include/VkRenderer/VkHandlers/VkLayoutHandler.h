@@ -11,7 +11,7 @@ namespace vi
 		/// <summary>
 		/// Struct that is used when creating a new descriptor set layout.
 		/// </summary>
-		struct Info final
+		struct CreateInfo final
 		{
 			/// <summary>
 			/// Binding information that is used when creating a new descriptor set layout.
@@ -30,7 +30,7 @@ namespace vi
 		};
 
 		/// <returns>Object that can be used to create a render pipeline and to create descriptor sets from.</returns>
-		[[nodiscard]] VkDescriptorSetLayout CreateLayout(const Info& info) const;
+		[[nodiscard]] VkDescriptorSetLayout CreateLayout(const CreateInfo& info) const;
 		void DestroyLayout(VkDescriptorSetLayout layout) const;
 
 	private:

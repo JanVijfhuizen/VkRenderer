@@ -4,11 +4,11 @@
 
 struct Shader final
 {
-	vi::VkPipelineHandler::Info::Module vertex
+	vi::VkPipelineHandler::CreateInfo::Module vertex
 	{
 		{}, VK_SHADER_STAGE_VERTEX_BIT
 	};
-	vi::VkPipelineHandler::Info::Module fragment
+	vi::VkPipelineHandler::CreateInfo::Module fragment
 	{
 		{}, VK_SHADER_STAGE_FRAGMENT_BIT
 	};

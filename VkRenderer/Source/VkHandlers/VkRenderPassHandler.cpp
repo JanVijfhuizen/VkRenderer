@@ -4,7 +4,7 @@
 
 namespace vi
 {
-	VkRenderPass VkRenderPassHandler::Create(const Info& info) const
+	VkRenderPass VkRenderPassHandler::Create(const CreateInfo& info) const
 	{
 		VkAttachmentReference colorAttachmentRef{};
 		colorAttachmentRef.attachment = 0;

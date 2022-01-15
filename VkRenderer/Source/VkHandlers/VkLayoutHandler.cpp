@@ -4,7 +4,7 @@
 
 namespace vi
 {
-	VkDescriptorSetLayout VkLayoutHandler::CreateLayout(const Info& info) const
+	VkDescriptorSetLayout VkLayoutHandler::CreateLayout(const CreateInfo& info) const
 	{
 		const uint32_t bindingsCount = info.bindings.GetCount();
 		const ArrayPtr<VkDescriptorSetLayoutBinding> layoutBindings(bindingsCount, GMEM_TEMP);

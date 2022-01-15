@@ -394,7 +394,12 @@ namespace vi
 			commandBufferHandler.Destroy(cmdBuffer);
 			syncHandler.DestroyFence(fence);
 
-			image.frameBuffer = frameBufferHandler.Create(image.imageViews, 2, _renderPass, _extent);
+			VkFrameBufferHandler::CreateInfo frameBufferCreateInfo{};
+			frameBufferCreateInfo.imageViews = image.imageViews;
+			frameBufferCreateInfo.imageViewCount = 2;
+			frameBufferCreateInfo.renderPass = _renderPass;
+			frameBufferCreateInfo.extent = _extent;
+			image.frameBuffer = frameBufferHandler.Create(frameBufferCreateInfo);
 			image.commandBuffer = commandBuffers[i];
 		}
 	}

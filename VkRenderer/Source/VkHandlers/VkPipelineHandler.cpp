@@ -4,7 +4,7 @@
 
 namespace vi
 {
-	void VkPipelineHandler::Create(const Info& info, 
+	void VkPipelineHandler::Create(const CreateInfo& info, 
 		VkPipeline& outPipeline, VkPipelineLayout& outLayout) const
 	{
 		const auto logicalDevice = core.GetLogicalDevice();

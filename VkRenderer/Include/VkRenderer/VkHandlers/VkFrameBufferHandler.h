@@ -8,12 +8,19 @@ namespace vi
 		friend VkCore;
 
 	public:
-		/// <param name="imageViews">Image views to use.</param>
-		/// <param name="renderPass">Render pass to use.</param>
-		/// <param name="extent">Resolution of the image.</param>
+		struct CreateInfo final
+		{
+			// Image views to use.
+			VkImageView* imageViews;
+			uint32_t imageViewCount;
+			// Render pass to use.
+			VkRenderPass renderPass;
+			// Resolution of the image.
+			VkExtent2D extent;
+		};
+
 		/// <returns>Object that can be used as a render target.</returns>
-		[[nodiscard]] VkFramebuffer Create(const VkImageView* imageViews,
-			uint32_t imageViewCount, VkRenderPass renderPass, VkExtent2D extent) const;
+		[[nodiscard]] VkFramebuffer Create(const CreateInfo& info) const;
 		void Destroy(VkFramebuffer frameBuffer) const;
 
 	private:

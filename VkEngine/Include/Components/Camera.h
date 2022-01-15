@@ -39,7 +39,7 @@ public:
 
 	[[nodiscard]] VkDescriptorSet GetDescriptor(const Camera& value) const;
 	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
-	[[nodiscard]] static vi::VkLayoutHandler::Info::Binding GetBindingInfo();
+	[[nodiscard]] static vi::VkLayoutHandler::CreateInfo::Binding GetBindingInfo();
 
 private:
 	Renderer& _renderer;
