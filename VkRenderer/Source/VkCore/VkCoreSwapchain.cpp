@@ -321,7 +321,7 @@ namespace vi
 		{
 			auto& image = _images[i];
 			image.image = vkImages[i];
-			image.imageView = imageHandler.CreateView(image.image, _format);
+			image.imageView = imageHandler.CreateView(image.image, 1, _format);
 		}
 	}
 
@@ -364,17 +364,17 @@ namespace vi
 		{
 			auto& image = _images[i];
 
-			image.depthImage = imageHandler.Create({ _extent.width, _extent.height }, _depthBufferFormat,
+			image.depthImage = imageHandler.Create({ _extent.width, _extent.height }, 1, _depthBufferFormat,
 				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
 			image.depthImageMemory = memoryHandler.Allocate(image.depthImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 			memoryHandler.Bind(image.depthImage, image.depthImageMemory);
-			image.depthImageView = imageHandler.CreateView(image.depthImage, _depthBufferFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+			image.depthImageView = imageHandler.CreateView(image.depthImage, 1, _depthBufferFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 			auto cmdBuffer = commandBufferHandler.Create();
 			const auto fence = syncHandler.CreateFence();
 
 			commandBufferHandler.BeginRecording(cmdBuffer);
-			imageHandler.TransitionLayout(image.depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
+			imageHandler.TransitionLayout(image.depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, VK_IMAGE_ASPECT_DEPTH_BIT);
 			commandBufferHandler.EndRecording();
 			commandBufferHandler.Submit(&cmdBuffer, 1, nullptr, nullptr, fence);
 			syncHandler.WaitForFence(fence);

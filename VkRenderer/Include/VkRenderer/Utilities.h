@@ -10,20 +10,20 @@ namespace vi
 	public:
 		/// <returns>Minimum of the two values.</returns>
 		template <typename T>
-		static T Min(const T& a, const T& b);
+		[[nodiscard]] static T Min(const T& a, const T& b);
 		/// <returns>Maximum of the two values.</returns>
 		template <typename T>
-		static T Max(const T& a, const T& b);
+		[[nodiscard]] static T Max(const T& a, const T& b);
 		/// <summary>
 		/// Clamps value t in between the range of min and max.
 		/// </summary>
 		template <typename T>
-		static T Clamp(const T& t, const T& min, const T& max);
+		[[nodiscard]] static T Clamp(const T& t, const T& min, const T& max);
 		/// <summary>
 		/// Linearly interpolates between a and b by t, where t is unclamped.
 		/// </summary>
 		template <typename T>
-		static T Lerp(const T& t, const T& a, const T& b);
+		[[nodiscard]] static T Lerp(const T& t, const T& a, const T& b);
 
 		static size_t StrLen(const char* cStr);
 	};

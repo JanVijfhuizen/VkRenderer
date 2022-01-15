@@ -9,11 +9,13 @@ namespace vi
 
 	public:
 		/// <param name="resolution">The resolution of the image.</param>
+		/// <param name="mipLevels">The depth of the mipmap chain.</param>
 		/// <param name="format">The format of the image (i.e. (S)RGB).</param>
 		/// <param name="tiling">How should the image function when going outside the borders.</param>
 		/// <param name="usage">What the image will be used for.</param>
 		/// <returns>Object that can be used as textures, depth buffers, render targets and more.</returns>
 		[[nodiscard]] VkImage Create(glm::ivec2 resolution,
+			uint32_t mipLevels = 1,
 			VkFormat format = VK_FORMAT_R8G8B8A8_SRGB,
 			VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL,
 			VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT) const;
@@ -21,16 +23,19 @@ namespace vi
 		/// Transition the layout of an image. Used when the application of the image changes (render target to texture for instance).
 		/// </summary>
 		/// <param name="image">Image to be transitioned.</param>
+		/// <param name="mipLevels">The depth of the mipmap chain.</param>	
 		/// <param name="aspectFlags">Image aspects.</param>
 		void TransitionLayout(VkImage image, VkImageLayout oldLayout,
-			VkImageLayout newLayout, VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT) const;
+			VkImageLayout newLayout, uint32_t mipLevels = 1, 
+			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT) const;
 		void Destroy(VkImage image) const;
 
 		/// <param name="image">Image to read from.</param>
 		/// <param name="format">Format of the image.</param>
 		/// <param name="aspectFlags">Image aspect flags.</param>
+		/// <param name="mipLevels">The depth of the mipmap chain.</param>
 		/// <returns>Object that can read an image a certain way.</returns>
-		[[nodiscard]] VkImageView CreateView(VkImage image, 
+		[[nodiscard]] VkImageView CreateView(VkImage image, uint32_t mipLevels = 1,
 			VkFormat format = VK_FORMAT_R8G8B8A8_SRGB,
 			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT) const;
 		void DestroyView(VkImageView imageView) const;
