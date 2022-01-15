@@ -8,14 +8,29 @@ namespace vi
 		friend VkCore;
 
 	public:
-		/// <param name="types">All the types of buffers the sets can have.</param>
-		/// <param name="capacities">The amount of each type of buffer present in the pool.</param>
+		struct PoolCreateInfo final
+		{
+			// All the types of buffers the sets can have.
+			VkDescriptorType* types;
+			// The amount of each type of buffer present in the pool.
+			const uint32_t* capacities;
+			uint32_t typeCount;
+		};
+
+		struct SetCreateInfo final
+		{
+			// Pool to be allocated from.
+			VkDescriptorPool pool;
+			// Descriptor layout which to replicate.
+			VkDescriptorSetLayout layout;
+			uint32_t setCount;
+			// Parses allocated sets in here.
+			VkDescriptorSet* outSets;
+		};
+
 		/// <returns>Object that can allocate new descriptor sets.</returns>
-		[[nodiscard]] VkDescriptorPool Create(const VkDescriptorType* types, const uint32_t* capacities, uint32_t typeCount) const;
-		/// <param name="pool">Pool to be allocated from.</param>
-		/// <param name="layout">Descriptor layout which to replicate.</param>
-		/// <param name="outSets">Parses allocated sets in here.</param>
-		void CreateSets(VkDescriptorPool pool, VkDescriptorSetLayout layout, uint32_t setCount, VkDescriptorSet* outSets) const;
+		[[nodiscard]] VkDescriptorPool Create(const PoolCreateInfo& info) const;
+		void CreateSets(const SetCreateInfo& info) const;
 		/// <summary>
 		/// Binds any number of sets (soft cap on most hardware is 4) to be used to forward data to the GPU.
 		/// </summary>

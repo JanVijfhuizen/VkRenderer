@@ -108,7 +108,14 @@ namespace vi
 
 		renderPassHandler.End();
 		commandBufferHandler.EndRecording();
-		commandBufferHandler.Submit(&image.commandBuffer, 1, frame.imageAvailableSemaphore, frame.renderFinishedSemaphore, frame.inFlightFence);
+
+		VkCommandBufferHandler::SubmitInfo info{};
+		info.buffers = &image.commandBuffer;
+		info.buffersCount = 1;
+		info.waitSemaphore = frame.imageAvailableSemaphore;
+		info.signalSemaphore = frame.renderFinishedSemaphore;
+		info.fence = frame.inFlightFence;
+		commandBufferHandler.Submit(info);
 
 		const auto result = Present();
 		_shouldRecreateAssets = result;
@@ -376,7 +383,12 @@ namespace vi
 			commandBufferHandler.BeginRecording(cmdBuffer);
 			imageHandler.TransitionLayout(image.depthImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, VK_IMAGE_ASPECT_DEPTH_BIT);
 			commandBufferHandler.EndRecording();
-			commandBufferHandler.Submit(&cmdBuffer, 1, nullptr, nullptr, fence);
+
+			VkCommandBufferHandler::SubmitInfo submitInfo{};
+			submitInfo.buffers = &cmdBuffer;
+			submitInfo.buffersCount = 1;
+			submitInfo.fence = fence;
+			commandBufferHandler.Submit(submitInfo);
 			syncHandler.WaitForFence(fence);
 
 			commandBufferHandler.Destroy(cmdBuffer);

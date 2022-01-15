@@ -38,10 +38,21 @@ void DescriptorPool::Add(const VkDescriptorSet set)
 void DescriptorPool::AddBlock()
 {
     auto& handler = _renderer->GetDescriptorPoolHandler();
-    const auto pool = handler.Create(_types.GetData(), _capacities.GetData(), _types.GetLength());
+
+    vi::VkDescriptorPoolHandler::PoolCreateInfo poolCreateInfo{};
+    poolCreateInfo.types = _types.GetData();
+    poolCreateInfo.capacities = _capacities.GetData();
+    poolCreateInfo.typeCount = _types.GetLength();
+    const auto pool = handler.Create(poolCreateInfo);
     _pools.Add(pool);
 
     const uint32_t startIndex = _open.GetCount();
     _open.Resize(startIndex + _blockSize);
-    handler.CreateSets(pool, _layout, _blockSize, &_open[startIndex]);
+
+    vi::VkDescriptorPoolHandler::SetCreateInfo setCreateInfo{};
+    setCreateInfo.pool = pool;
+    setCreateInfo.layout = _layout;
+    setCreateInfo.setCount = _blockSize;
+    setCreateInfo.outSets = &_open[startIndex];
+    handler.CreateSets(setCreateInfo);
 }

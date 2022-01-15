@@ -44,13 +44,18 @@ Texture TextureHandler::Create(const char* name, const char* extension) const
 	commandBufferHandler.EndRecording();
 
 	const auto imgFence = syncHandler.CreateFence();
-	commandBufferHandler.Submit(&imgCmd, 1, VK_NULL_HANDLE, VK_NULL_HANDLE, imgFence);
+
+	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
+	submitInfo.buffers = &imgCmd;
+	submitInfo.buffersCount = 1;
+	submitInfo.fence = imgFence;
+	commandBufferHandler.Submit(submitInfo);
 	syncHandler.WaitForFence(imgFence);
 
 	commandBufferHandler.BeginRecording(imgCmd);
 	shaderHandler.CopyBuffer(texStagingBuffer, img, {w, h});
 	commandBufferHandler.EndRecording();
-	commandBufferHandler.Submit(&imgCmd, 1, VK_NULL_HANDLE, VK_NULL_HANDLE, imgFence);
+	commandBufferHandler.Submit(submitInfo);
 	syncHandler.WaitForFence(imgFence);
 
 	syncHandler.DestroyFence(imgFence);
@@ -176,7 +181,12 @@ void TextureHandler::GenerateMipMaps(
 		1, &barrier);
 
 	commandBufferHandler.EndRecording();
-	commandBufferHandler.Submit(&commandBuffer, 1, VK_NULL_HANDLE, VK_NULL_HANDLE, fence);
+
+	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
+	submitInfo.buffers = &commandBuffer;
+	submitInfo.buffersCount = 1;
+	submitInfo.fence = fence;
+	commandBufferHandler.Submit(submitInfo);
 	syncHandler.WaitForFence(fence);
 
 	commandBufferHandler.Destroy(commandBuffer);

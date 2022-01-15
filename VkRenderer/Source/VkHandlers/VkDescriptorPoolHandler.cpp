@@ -4,25 +4,22 @@
 
 namespace vi
 {
-	VkDescriptorPool VkDescriptorPoolHandler::Create(
-		const VkDescriptorType* types, 
-		const uint32_t* capacities,
-		const uint32_t typeCount) const
+	VkDescriptorPool VkDescriptorPoolHandler::Create(const PoolCreateInfo& info) const
 	{
-		const ArrayPtr<VkDescriptorPoolSize> sizes(typeCount, GMEM_TEMP);
+		const ArrayPtr<VkDescriptorPoolSize> sizes(info.typeCount, GMEM_TEMP);
 		uint32_t maxSets = 0;
 
-		for (uint32_t i = 0; i < typeCount; ++i)
+		for (uint32_t i = 0; i < info.typeCount; ++i)
 		{
 			auto& size = sizes[i];
-			size.type = types[i];
-			size.descriptorCount = capacities[i];
+			size.type = info.types[i];
+			size.descriptorCount = info.capacities[i];
 			maxSets += size.descriptorCount;
 		}
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = typeCount;
+		poolInfo.poolSizeCount = info.typeCount;
 		poolInfo.pPoolSizes = sizes.GetData();
 		poolInfo.maxSets = maxSets;
 
@@ -32,21 +29,17 @@ namespace vi
 		return pool;
 	}
 
-	void VkDescriptorPoolHandler::CreateSets(
-		const VkDescriptorPool pool, 
-		const VkDescriptorSetLayout layout, 
-		const uint32_t setCount,
-		VkDescriptorSet* outSets) const
+	void VkDescriptorPoolHandler::CreateSets(const SetCreateInfo& info) const
 	{
-		const ArrayPtr<VkDescriptorSetLayout> layouts{ setCount, GMEM_TEMP, layout };
+		const ArrayPtr<VkDescriptorSetLayout> layouts{ info.setCount, GMEM_TEMP, info.layout };
 
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = pool;
-		allocInfo.descriptorSetCount = setCount;
+		allocInfo.descriptorPool = info.pool;
+		allocInfo.descriptorSetCount = info.setCount;
 		allocInfo.pSetLayouts = layouts.GetData();
 
-		const auto result = vkAllocateDescriptorSets(core.GetLogicalDevice(), &allocInfo, outSets);
+		const auto result = vkAllocateDescriptorSets(core.GetLogicalDevice(), &allocInfo, info.outSets);
 		assert(!result);
 	}
 
