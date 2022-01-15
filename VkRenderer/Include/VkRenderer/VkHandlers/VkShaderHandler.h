@@ -8,6 +8,16 @@ namespace vi
 		friend VkCore;
 
 	public:
+		struct SamplerCreateInfo final
+		{
+			float minLod = 0;
+			float maxLod = 0;
+			VkFilter magFilter = VK_FILTER_LINEAR;
+			VkFilter minFilter = VK_FILTER_LINEAR;
+			VkBorderColor borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+			VkSamplerAddressMode adressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		};
+
 		/// <summary> Draws a list of vertices based on the given pipeline.</summary>
 		void Draw(uint32_t indexCount) const;
 
@@ -16,9 +26,7 @@ namespace vi
 		void DestroyModule(VkShaderModule module) const;
 
 		/// <returns>Object that can be used to use images as attachments during shader stages.</returns>
-		[[nodiscard]] VkSampler CreateSampler(float minLod = 0, float maxLod = 0, VkFilter magFilter = VK_FILTER_LINEAR,
-			VkFilter minFilter = VK_FILTER_LINEAR, VkBorderColor borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-			VkSamplerAddressMode adressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT) const;
+		[[nodiscard]] VkSampler CreateSampler(const SamplerCreateInfo& info = {}) const;
 		void BindSampler(VkDescriptorSet set, VkImageView imageView, VkImageLayout layout, VkSampler sampler, uint32_t bindingIndex, uint32_t arrayIndex) const;
 		void DestroySampler(VkSampler sampler) const;
 
