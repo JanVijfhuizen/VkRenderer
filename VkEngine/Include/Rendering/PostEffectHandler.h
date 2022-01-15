@@ -17,9 +17,22 @@ protected:
 	void OnRecreateSwapChainAssets() override;
 
 private:
+	struct Frame final
+	{
+		VkImage colorImage;
+		VkImage depthImage;
+		VkImageView colorView;
+		VkImageView depthView;
+		VkDeviceMemory colorMemory;
+		VkDeviceMemory depthMemory;
+		VkFramebuffer frameBuffer;
+	};
+
 	Renderer& _renderer;
 	VkRenderPass _renderPass = VK_NULL_HANDLE;
 	VkExtent2D _extent;
+
+	Frame _frames[SWAPCHAIN_MAX_FRAMES];
 
 	void DestroySwapChainAssets() const;
 };

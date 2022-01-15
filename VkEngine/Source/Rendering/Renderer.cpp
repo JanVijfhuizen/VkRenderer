@@ -3,7 +3,12 @@
 
 Renderer::Renderer(vi::VkCoreInfo& info) : VkCore(info)
 {
-	
+	_postEffectHandler = GMEM.New<PostEffectHandler>(*this);
+}
+
+Renderer::~Renderer()
+{
+	GMEM.Delete(_postEffectHandler);
 }
 
 MeshHandler& Renderer::GetMeshHandler()
@@ -26,7 +31,7 @@ TextureHandler& Renderer::GetTextureHandler()
 	return _textureHandler;
 }
 
-PostEffectHandler& Renderer::GetPostEffectHandler()
+PostEffectHandler& Renderer::GetPostEffectHandler() const
 {
-	return _postEffectHandler;
+	return *_postEffectHandler;
 }
