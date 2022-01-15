@@ -209,9 +209,6 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 
 void PostEffectHandler::RecreateLayerAssets(Layer& layer)
 {
-	if (layer.postEffect)
-		DestroyLayerAssets(layer);
-
 	auto& commandBufferHandler = core.GetCommandBufferHandler();
 	auto& frameBufferHandler = core.GetFrameBufferHandler();
 	auto& imageHandler = _renderer.GetImageHandler();
@@ -228,8 +225,7 @@ void PostEffectHandler::RecreateLayerAssets(Layer& layer)
 		vi::VkImageHandler::CreateInfo colorImageCreateInfo{};
 		colorImageCreateInfo.resolution = { _extent.width, _extent.height };
 		colorImageCreateInfo.format = swapChainHandler.GetFormat();
-		colorImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-			VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		colorImageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		frame.colorImage = imageHandler.Create(colorImageCreateInfo);
 
 		vi::VkImageHandler::CreateInfo depthImageCreateInfo{};

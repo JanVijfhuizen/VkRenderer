@@ -11,7 +11,7 @@ int Engine::Run(const Info& info)
 	{
 		vi::VkCoreInfo vkInfo{};
 		vkInfo.windowHandler = _windowHandler;
-		vkInfo.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
+		//vkInfo.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
 		_renderer = { GMEM, vkInfo };
 	}
 
