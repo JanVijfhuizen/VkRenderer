@@ -5,12 +5,34 @@
 
 PostEffectHandler::PostEffectHandler(Renderer& renderer) : VkHandler(renderer), Dependency(renderer), _renderer(renderer)
 {
+	auto& shaderExt = renderer.GetShaderExt();
+	_shader = shaderExt.Load("post-");
+
+	vi::VkLayoutHandler::CreateInfo layoutInfo{};
+	auto& samplerBinding = layoutInfo.bindings.Add();
+	samplerBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	layoutInfo.bindings.Add(samplerBinding);
+	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
+
+	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	uint32_t blockSize = 8 * SWAPCHAIN_MAX_FRAMES;
+	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize / 2);
+
+	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
+
 	OnRecreateSwapChainAssets();
 }
 
 PostEffectHandler::~PostEffectHandler()
 {
+	_renderer.GetLayoutHandler().DestroyLayout(_layout);
+	_renderer.GetMeshHandler().Destroy(_mesh);
 	DestroySwapChainAssets();
+	_descriptorPool.Cleanup();
+
+	auto& shaderExt = _renderer.GetShaderExt();
+	shaderExt.DestroyShader(_shader);
 }
 
 void PostEffectHandler::BeginFrame()
@@ -56,7 +78,28 @@ void PostEffectHandler::EndFrame()
 
 void PostEffectHandler::Draw()
 {
+	auto& descriptorPoolHandler = _renderer.GetDescriptorPoolHandler();
+	auto& shaderHandler = _renderer.GetShaderHandler();
+	auto& meshHandler = _renderer.GetMeshHandler();
+	auto& pipelineHandler = _renderer.GetPipelineHandler();
+	auto& swapChainext = _renderer.GetSwapChainExt();
 
+	auto& frame = _frames[_imageIndex];
+
+	pipelineHandler.Bind(_pipeline, _pipelineLayout);
+	meshHandler.Bind(_mesh);
+
+	const auto sampler = shaderHandler.CreateSampler();
+	shaderHandler.BindSampler(frame.descriptorSet, frame.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, sampler, 0, 0);
+
+	const auto depthSampler = shaderHandler.CreateSampler();
+	shaderHandler.BindSampler(frame.descriptorSet, frame.depthImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, depthSampler, 1, 0);
+
+	descriptorPoolHandler.BindSets(&frame.descriptorSet, 1);
+	meshHandler.Draw();
+
+	swapChainext.Collect(sampler);
+	swapChainext.Collect(depthSampler);
 }
 
 VkRenderPass PostEffectHandler::GetRenderPass() const
@@ -132,6 +175,20 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 		frameBufferCreateInfo.extent = _extent;
 		frame.frameBuffer = frameBufferHandler.Create(frameBufferCreateInfo);
 	}
+
+	auto& swapChain = _renderer.GetSwapChain();
+	auto& pipelineHandler = _renderer.GetPipelineHandler();
+
+	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
+	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
+	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
+	pipelineInfo.setLayouts.Add(_layout);
+	pipelineInfo.modules.Add(_shader.vertex);
+	pipelineInfo.modules.Add(_shader.fragment);
+	pipelineInfo.renderPass = swapChain.GetRenderPass();
+	pipelineInfo.extent = swapChain.GetExtent();
+
+	pipelineHandler.Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
 void PostEffectHandler::DestroySwapChainAssets() const
@@ -161,4 +218,7 @@ void PostEffectHandler::DestroySwapChainAssets() const
 		memoryHandler.Free(frame.colorMemory);
 		memoryHandler.Free(frame.depthMemory);
 	}
+
+	auto& pipelineHandler = _renderer.GetPipelineHandler();
+	pipelineHandler.Destroy(_pipeline, _pipelineLayout);
 }

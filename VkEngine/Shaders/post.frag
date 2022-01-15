@@ -4,6 +4,7 @@
 layout(location = 0) out vec4 outColor;
 
 layout (set = 0, binding = 0) uniform sampler2D diffuseSampler;
+layout (set = 0, binding = 1) uniform sampler2D depthSampler;
 
 layout(location = 0) in Data
 {
@@ -12,5 +13,6 @@ layout(location = 0) in Data
 
 void main() 
 {
+    gl_FragDepth = texture(depthSampler, inData.fragTexCoord).x;
     outColor = texture(diffuseSampler, inData.fragTexCoord);
 }

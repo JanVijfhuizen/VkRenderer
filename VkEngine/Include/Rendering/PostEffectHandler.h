@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include "VkRenderer/VkHandlers/VkHandler.h"
 #include "SwapChainExt.h"
+#include "ShaderExt.h"
+#include "DescriptorPool.h"
+#include "MeshHandler.h"
 
 class Renderer;
 
@@ -45,6 +48,8 @@ private:
 				VK_NULL_HANDLE
 			};
 		};
+
+		VkDescriptorSet descriptorSet;
 	};
 
 	Renderer& _renderer;
@@ -53,6 +58,14 @@ private:
 
 	Frame _frames[SWAPCHAIN_MAX_FRAMES];
 	uint32_t _imageIndex;
+
+	Shader _shader;
+	VkDescriptorSetLayout _layout;
+	Mesh _mesh;
+	DescriptorPool _descriptorPool{};
+
+	VkPipeline _pipeline;
+	VkPipelineLayout _pipelineLayout;
 
 	void DestroySwapChainAssets() const;
 };
