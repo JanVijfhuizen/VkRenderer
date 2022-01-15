@@ -92,7 +92,10 @@ void PostEffectHandler::Draw()
 	const auto sampler = shaderHandler.CreateSampler();
 	shaderHandler.BindSampler(frame.descriptorSet, frame.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, sampler, 0, 0);
 
-	const auto depthSampler = shaderHandler.CreateSampler();
+	vi::VkShaderHandler::SamplerCreateInfo depthSamplerCreateInfo{};
+	depthSamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+	depthSamplerCreateInfo.adressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+	const auto depthSampler = shaderHandler.CreateSampler(depthSamplerCreateInfo);
 	shaderHandler.BindSampler(frame.descriptorSet, frame.depthImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, depthSampler, 1, 0);
 
 	descriptorPoolHandler.BindSets(&frame.descriptorSet, 1);
@@ -136,19 +139,21 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 
 	for (auto& frame : _frames)
 	{
+		frame.descriptorSet = _descriptorPool.Get();
 		frame.commandBuffer = commandBufferHandler.Create();
 		frame.fence = syncHandler.CreateFence();
 
 		vi::VkImageHandler::CreateInfo colorImageCreateInfo{};
 		colorImageCreateInfo.resolution = { _extent.width, _extent.height };
 		colorImageCreateInfo.format = swapChainHandler.GetFormat();
-		colorImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		colorImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | 
+			VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		frame.colorImage = imageHandler.Create(colorImageCreateInfo);
 
 		vi::VkImageHandler::CreateInfo depthImageCreateInfo{};
 		depthImageCreateInfo.resolution = { _extent.width, _extent.height };
 		depthImageCreateInfo.format = swapChainHandler.GetDepthBufferFormat();
-		depthImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		depthImageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		frame.depthImage = imageHandler.Create(depthImageCreateInfo);
 
 		frame.colorMemory = memoryHandler.Allocate(frame.colorImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);

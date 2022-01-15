@@ -11,7 +11,7 @@ int Engine::Run(const Info& info)
 	{
 		vi::VkCoreInfo vkInfo{};
 		vkInfo.windowHandler = _windowHandler;
-		//vkInfo.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
+		vkInfo.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
 		_renderer = { GMEM, vkInfo };
 	}
 
@@ -25,6 +25,7 @@ int Engine::Run(const Info& info)
 	if (info.start)
 		info.start(*this);
 
+	auto& postEffectHandler = _renderer->GetPostEffectHandler();
 	auto& swapChain = _renderer->GetSwapChain();
 	auto& swapChainExt = _renderer->GetSwapChainExt();
 
@@ -49,17 +50,23 @@ int Engine::Run(const Info& info)
 		if (outQuit)
 			break;
 
-		swapChain.BeginFrame();
+		swapChain.WaitForImage();
+		postEffectHandler.BeginFrame();
 
 		_cameras->Update();
 		_materials->Update();
 
-		if(info.renderUpdate)
+		if (info.renderUpdate)
 			info.renderUpdate(*this, outQuit);
 		if (outQuit)
 			break;
 
+		postEffectHandler.EndFrame();
+
+		swapChain.BeginFrame(false);
+		postEffectHandler.Draw();
 		swapChain.EndFrame();
+
 		swapChainExt.Update();
 	}
 
