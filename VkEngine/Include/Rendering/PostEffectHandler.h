@@ -13,6 +13,8 @@ public:
 	void BeginFrame();
 	void EndFrame();
 
+	void Draw();
+
 	[[nodiscard]] VkRenderPass GetRenderPass() const;
 	[[nodiscard]] VkExtent2D GetExtent() const;
 

@@ -54,6 +54,11 @@ void PostEffectHandler::EndFrame()
 	syncHandler.WaitForFence(frame.fence);
 }
 
+void PostEffectHandler::Draw()
+{
+
+}
+
 VkRenderPass PostEffectHandler::GetRenderPass() const
 {
 	return _renderPass;
