@@ -8,10 +8,7 @@ namespace vi
 		friend VkCore;
 
 	public:
-		/// <summary>
-		/// Struct that is used when creating a new render pass.
-		/// </summary>
-		struct Info final
+		struct CreateInfo final
 		{
 			bool useColorAttachment = true;
 			VkAttachmentLoadOp colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -23,7 +20,8 @@ namespace vi
 			VkImageLayout depthFinalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		};
 
-		[[nodiscard]] VkRenderPass Create(const Info& info = {}) const;
+		/// <summary>Object that can be used to render a scene.</summary>
+		[[nodiscard]] VkRenderPass Create(const CreateInfo& info = {}) const;
 		void Begin(VkFramebuffer frameBuffer, VkRenderPass renderPass,
 			glm::ivec2 offset, glm::ivec2 extent,
 			VkClearValue* clearColors, uint32_t clearColorsCount) const;

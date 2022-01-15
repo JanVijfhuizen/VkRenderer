@@ -12,7 +12,7 @@ CameraSystem::CameraSystem(ce::Cecsar& cecsar,
 	auto& swapChain = renderer.GetSwapChain();
 	const uint32_t swapChainLength = swapChain.GetLength();
 
-	vi::VkLayoutHandler::Info layoutInfo{};
+	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	layoutInfo.bindings.Add(GetBindingInfo());
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
@@ -96,9 +96,9 @@ VkDescriptorSetLayout CameraSystem::GetLayout() const
 	return _layout;
 }
 
-vi::VkLayoutHandler::Info::Binding CameraSystem::GetBindingInfo()
+vi::VkLayoutHandler::CreateInfo::Binding CameraSystem::GetBindingInfo()
 {
-	vi::VkLayoutHandler::Info::Binding camBinding{};
+	vi::VkLayoutHandler::CreateInfo::Binding camBinding{};
 	camBinding.size = sizeof(Camera::Ubo);
 	camBinding.flag = VK_SHADER_STAGE_VERTEX_BIT;
 	return camBinding;

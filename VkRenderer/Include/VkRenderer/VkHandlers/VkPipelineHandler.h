@@ -11,7 +11,7 @@ namespace vi
 		/// <summary>
 		/// Struct that is used when creating a new pipeline.
 		/// </summary>
-		struct Info final
+		struct CreateInfo final
 		{
 			// Struct used to define a shader module used by a pipeline.
 			struct Module final
@@ -61,7 +61,7 @@ namespace vi
 			int32_t basePipelineIndex = -1;
 		};
 
-		void Create(const Info& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout) const;
+		void Create(const CreateInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout) const;
 		void Bind(VkPipeline pipeline, VkPipelineLayout layout);
 		void Destroy(VkPipeline pipeline, VkPipelineLayout layout) const;
 

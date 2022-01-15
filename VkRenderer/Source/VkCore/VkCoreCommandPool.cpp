@@ -17,18 +17,18 @@ namespace vi
 		poolInfo.queueFamilyIndex = families.graphics;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-		const auto result = vkCreateCommandPool(logicalDevice, &poolInfo, nullptr, &value);
+		const auto result = vkCreateCommandPool(logicalDevice, &poolInfo, nullptr, &_value);
 		assert(!result);
 	}
 
 	void VkCoreCommandPool::Cleanup(const VkCoreLogicalDevice& logicalDevice) const
 	{
-		vkDestroyCommandPool(logicalDevice, value, nullptr);
+		vkDestroyCommandPool(logicalDevice, _value, nullptr);
 	}
 
 	VkCoreCommandPool::operator VkCommandPool_T*() const
 	{
-		return value;
+		return _value;
 	}
 
 	VkCoreCommandPool::VkCoreCommandPool() = default;

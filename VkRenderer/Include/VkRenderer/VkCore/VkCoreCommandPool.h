@@ -15,7 +15,7 @@ namespace vi
 		operator VkCommandPool() const;
 
 	private:
-		VkCommandPool value;
+		VkCommandPool _value;
 
 		VkCoreCommandPool();
 	};

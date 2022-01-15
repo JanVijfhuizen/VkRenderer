@@ -48,24 +48,22 @@ namespace vi
 		return _current;
 	}
 
-	void VkCommandBufferHandler::Submit(VkCommandBuffer* buffers, 
-		const uint32_t buffersCount, const VkSemaphore waitSemaphore,
-		const VkSemaphore signalSemaphore, const VkFence fence)
+	void VkCommandBufferHandler::Submit(const SubmitInfo& info) const
 	{
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 		VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		submitInfo.waitSemaphoreCount = waitSemaphore ? 1 : 0;
-		submitInfo.pWaitSemaphores = &waitSemaphore;
+		submitInfo.waitSemaphoreCount = info.waitSemaphore ? 1 : 0;
+		submitInfo.pWaitSemaphores = &info.waitSemaphore;
 		submitInfo.pWaitDstStageMask = &waitStage;
-		submitInfo.commandBufferCount = buffersCount;
-		submitInfo.pCommandBuffers = buffers;
-		submitInfo.signalSemaphoreCount = signalSemaphore ? 1 : 0;
-		submitInfo.pSignalSemaphores = &signalSemaphore;
+		submitInfo.commandBufferCount = info.buffersCount;
+		submitInfo.pCommandBuffers = info.buffers;
+		submitInfo.signalSemaphoreCount = info.signalSemaphore ? 1 : 0;
+		submitInfo.pSignalSemaphores = &info.signalSemaphore;
 
-		vkResetFences(core.GetLogicalDevice(), 1, &fence);
-		const auto result = vkQueueSubmit(core.GetQueues().graphics, 1, &submitInfo, fence);
+		vkResetFences(core.GetLogicalDevice(), 1, &info.fence);
+		const auto result = vkQueueSubmit(core.GetQueues().graphics, 1, &submitInfo, info.fence);
 		assert(!result);
 	}
 

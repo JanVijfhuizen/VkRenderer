@@ -15,7 +15,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 {
 	_shader = renderer.GetShaderExt().Load(shaderName);
 
-	vi::VkLayoutHandler::Info layoutInfo{};
+	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	auto& materialBinding = layoutInfo.bindings.Add();
 	materialBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	materialBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -48,7 +48,7 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 
 	auto& swapChain = _renderer.GetSwapChain();
 
-	vi::VkPipelineHandler::Info pipelineInfo{};
+	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
@@ -100,7 +100,11 @@ void MaterialSystem::Update()
 			sets.material = material._descriptors[imageIndex];
 
 			const auto texture = material.texture ? material.texture : &_fallbackTexture;
-			const auto sampler = shaderHandler.CreateSampler(0, texture->mipLevels);
+
+			vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
+			samplerCreateInfo.minLod = 0;
+			samplerCreateInfo.maxLod = texture->mipLevels;
+			const auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
 			shaderHandler.BindSampler(sets.material, texture->imageView, texture->layout, sampler, 0, 0);
 			
 			descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));

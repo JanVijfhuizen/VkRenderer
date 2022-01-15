@@ -33,24 +33,36 @@ Texture TextureHandler::Create(const char* name, const char* extension) const
 	memoryHandler.Bind(texStagingBuffer, texStagingMem);
 	memoryHandler.Map(texStagingMem, tex, 0, w * h * d);
 
-	const auto img = imageHandler.Create({ w, h }, mipLevels, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, 
-		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+	vi::VkImageHandler::CreateInfo imgCreateInfo{};
+	imgCreateInfo.resolution = { w, h };
+	imgCreateInfo.mipLevels = mipLevels;
+	imgCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	const auto img = imageHandler.Create(imgCreateInfo);
 	const auto imgMem = memoryHandler.Allocate(img, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	memoryHandler.Bind(img, imgMem);
 
+	vi::VkImageHandler::TransitionInfo transitionInfo{};
+	transitionInfo.image = img;
+	transitionInfo.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	transitionInfo.mipLevels = mipLevels;
 	auto imgCmd = commandBufferHandler.Create();
 	commandBufferHandler.BeginRecording(imgCmd);
-	imageHandler.TransitionLayout(img, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+	imageHandler.TransitionLayout(transitionInfo);
 	commandBufferHandler.EndRecording();
 
 	const auto imgFence = syncHandler.CreateFence();
-	commandBufferHandler.Submit(&imgCmd, 1, VK_NULL_HANDLE, VK_NULL_HANDLE, imgFence);
+
+	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
+	submitInfo.buffers = &imgCmd;
+	submitInfo.buffersCount = 1;
+	submitInfo.fence = imgFence;
+	commandBufferHandler.Submit(submitInfo);
 	syncHandler.WaitForFence(imgFence);
 
 	commandBufferHandler.BeginRecording(imgCmd);
 	shaderHandler.CopyBuffer(texStagingBuffer, img, {w, h});
 	commandBufferHandler.EndRecording();
-	commandBufferHandler.Submit(&imgCmd, 1, VK_NULL_HANDLE, VK_NULL_HANDLE, imgFence);
+	commandBufferHandler.Submit(submitInfo);
 	syncHandler.WaitForFence(imgFence);
 
 	syncHandler.DestroyFence(imgFence);
@@ -62,13 +74,17 @@ Texture TextureHandler::Create(const char* name, const char* extension) const
 
 	GenerateMipMaps(img, { w, h }, mipLevels, VK_FORMAT_R8G8B8A8_SRGB);
 
+	vi::VkImageHandler::ViewCreateInfo viewCreateInfo{};
+	viewCreateInfo.image = img;
+	viewCreateInfo.mipLevels = mipLevels;
+
 	Texture texture{};
 	texture.resolution = { w, h };
 	texture.channels = d;
 	texture.mipLevels = mipLevels;
 	texture.image = img;
 	texture.memory = imgMem;
-	texture.imageView = imageHandler.CreateView(img, mipLevels);
+	texture.imageView = imageHandler.CreateView(viewCreateInfo);
 
 	return texture;
 }
@@ -176,7 +192,12 @@ void TextureHandler::GenerateMipMaps(
 		1, &barrier);
 
 	commandBufferHandler.EndRecording();
-	commandBufferHandler.Submit(&commandBuffer, 1, VK_NULL_HANDLE, VK_NULL_HANDLE, fence);
+
+	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
+	submitInfo.buffers = &commandBuffer;
+	submitInfo.buffersCount = 1;
+	submitInfo.fence = fence;
+	commandBufferHandler.Submit(submitInfo);
 	syncHandler.WaitForFence(fence);
 
 	commandBufferHandler.Destroy(commandBuffer);

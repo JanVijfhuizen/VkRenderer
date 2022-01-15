@@ -152,7 +152,11 @@ Mesh MeshHandler::Create(const VertexData& vertexData) const
 	shaderHandler.CopyBuffer(indStagingBuffer, indBuffer, indices.GetLength() * sizeof(Vertex::Index));
 	commandBufferHandler.EndRecording();
 
-	commandBufferHandler.Submit(&cpyCommandBuffer, 1, VK_NULL_HANDLE, VK_NULL_HANDLE, cpyFence);
+	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
+	submitInfo.buffers = &cpyCommandBuffer;
+	submitInfo.buffersCount = 1;
+	submitInfo.fence = cpyFence;
+	commandBufferHandler.Submit(submitInfo);
 	syncHandler.WaitForFence(cpyFence);
 
 	// Free staging buffers/memory.

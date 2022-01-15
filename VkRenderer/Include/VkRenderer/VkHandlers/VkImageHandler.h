@@ -8,36 +8,54 @@ namespace vi
 		friend VkCore;
 
 	public:
-		/// <param name="resolution">The resolution of the image.</param>
-		/// <param name="mipLevels">The depth of the mipmap chain.</param>
-		/// <param name="format">The format of the image (i.e. (S)RGB).</param>
-		/// <param name="tiling">How should the image function when going outside the borders.</param>
-		/// <param name="usage">What the image will be used for.</param>
+		struct CreateInfo final
+		{
+			// The resolution of the image.
+			glm::ivec2 resolution;
+			// The depth of the mipmap chain.
+			uint32_t mipLevels = 1;
+			// The format of the image (i.e. (S)RGB).
+			VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+			// How should the image function when going outside the borders.
+			VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
+			// What the image will be used for.
+			VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		};
+
+		struct ViewCreateInfo final
+		{
+			// Image to read from.
+			VkImage image;
+			// The depth of the mipmap chain.
+			uint32_t mipLevels = 1;
+			// Format of the image.
+			VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+			// Image aspect flags.
+			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+		};
+
+		struct TransitionInfo final
+		{
+			// Image to be transitioned.
+			VkImage image;
+			VkImageLayout oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			VkImageLayout newLayout;
+			// The depth of the mipmap chain.
+			uint32_t mipLevels = 1;
+			// Image aspects.
+			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+		};
+
 		/// <returns>Object that can be used as textures, depth buffers, render targets and more.</returns>
-		[[nodiscard]] VkImage Create(glm::ivec2 resolution,
-			uint32_t mipLevels = 1,
-			VkFormat format = VK_FORMAT_R8G8B8A8_SRGB,
-			VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL,
-			VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT) const;
+		[[nodiscard]] VkImage Create(const CreateInfo& info) const;
 		/// <summary>
 		/// Transition the layout of an image. Used when the application of the image changes (render target to texture for instance).
 		/// </summary>
-		/// <param name="image">Image to be transitioned.</param>
-		/// <param name="mipLevels">The depth of the mipmap chain.</param>	
-		/// <param name="aspectFlags">Image aspects.</param>
-		void TransitionLayout(VkImage image, VkImageLayout oldLayout,
-			VkImageLayout newLayout, uint32_t mipLevels = 1, 
-			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT) const;
+		void TransitionLayout(const TransitionInfo& info) const;
 		void Destroy(VkImage image) const;
 
-		/// <param name="image">Image to read from.</param>
-		/// <param name="format">Format of the image.</param>
-		/// <param name="aspectFlags">Image aspect flags.</param>
-		/// <param name="mipLevels">The depth of the mipmap chain.</param>
 		/// <returns>Object that can read an image a certain way.</returns>
-		[[nodiscard]] VkImageView CreateView(VkImage image, uint32_t mipLevels = 1,
-			VkFormat format = VK_FORMAT_R8G8B8A8_SRGB,
-			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT) const;
+		[[nodiscard]] VkImageView CreateView(const ViewCreateInfo& info) const;
 		void DestroyView(VkImageView imageView) const;
 
 		/// <summary>

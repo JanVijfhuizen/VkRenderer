@@ -4,19 +4,15 @@
 
 namespace vi
 {
-	VkFramebuffer VkFrameBufferHandler::Create(
-		const VkImageView* imageViews, 
-		const uint32_t imageViewCount,
-		const VkRenderPass renderPass, 
-		const VkExtent2D extent) const
+	VkFramebuffer VkFrameBufferHandler::Create(const CreateInfo& info) const
 	{
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = renderPass;
-		framebufferInfo.attachmentCount = imageViewCount;
-		framebufferInfo.pAttachments = imageViews;
-		framebufferInfo.width = extent.width;
-		framebufferInfo.height = extent.height;
+		framebufferInfo.renderPass = info.renderPass;
+		framebufferInfo.attachmentCount = info.imageViewCount;
+		framebufferInfo.pAttachments = info.imageViews;
+		framebufferInfo.width = info.extent.width;
+		framebufferInfo.height = info.extent.height;
 		framebufferInfo.layers = 1;
 
 		VkFramebuffer frameBuffer;

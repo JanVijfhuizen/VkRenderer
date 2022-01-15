@@ -4,25 +4,20 @@
 
 namespace vi
 {
-	VkImage VkImageHandler::Create(
-		const glm::ivec2 resolution,
-		const uint32_t mipLevels,
-		const VkFormat format, 
-		const VkImageTiling tiling,
-		const VkImageUsageFlags usage) const
+	VkImage VkImageHandler::Create(const CreateInfo& info) const
 	{
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = static_cast<uint32_t>(resolution.x);
-		imageInfo.extent.height = static_cast<uint32_t>(resolution.y);
+		imageInfo.extent.width = static_cast<uint32_t>(info.resolution.x);
+		imageInfo.extent.height = static_cast<uint32_t>(info.resolution.y);
 		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = mipLevels;
+		imageInfo.mipLevels = info.mipLevels;
 		imageInfo.arrayLayers = 1;
-		imageInfo.format = format;
-		imageInfo.tiling = tiling;
+		imageInfo.format = info.format;
+		imageInfo.tiling = info.tiling;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = usage;
+		imageInfo.usage = info.usage;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -32,31 +27,26 @@ namespace vi
 		return image;
 	}
 
-	void VkImageHandler::TransitionLayout(
-		const VkImage image,
-		const VkImageLayout oldLayout,
-		const VkImageLayout newLayout,
-		const uint32_t mipLevels,
-		const VkImageAspectFlags aspectFlags) const
+	void VkImageHandler::TransitionLayout(const TransitionInfo& info) const
 	{
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = oldLayout;
-		barrier.newLayout = newLayout;
+		barrier.oldLayout = info.oldLayout;
+		barrier.newLayout = info.newLayout;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = image;
-		barrier.subresourceRange.aspectMask = aspectFlags;
+		barrier.image = info.image;
+		barrier.subresourceRange.aspectMask = info.aspectFlags;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = mipLevels; 
+		barrier.subresourceRange.levelCount = info.mipLevels;
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = 1;
 
 		VkPipelineStageFlags srcStage = 0;
 		VkPipelineStageFlags dstStage = 0;
 
-		GetLayoutMasks(oldLayout, barrier.srcAccessMask, srcStage);
-		GetLayoutMasks(newLayout, barrier.dstAccessMask, dstStage);
+		GetLayoutMasks(info.oldLayout, barrier.srcAccessMask, srcStage);
+		GetLayoutMasks(info.newLayout, barrier.dstAccessMask, dstStage);
 
 		vkCmdPipelineBarrier(core.GetCommandBufferHandler().GetCurrent(),
 			srcStage, dstStage,
@@ -72,25 +62,23 @@ namespace vi
 		vkDestroyImage(core.GetLogicalDevice(), image, nullptr);
 	}
 
-	VkImageView VkImageHandler::CreateView(
-		const VkImage image, const uint32_t mipLevels,
-		const VkFormat format, const VkImageAspectFlags aspectFlags) const
+	VkImageView VkImageHandler::CreateView(const ViewCreateInfo& info) const
 	{
 		VkImageViewCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		createInfo.image = image;
+		createInfo.image = info.image;
 
 		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		createInfo.format = format;
+		createInfo.format = info.format;
 
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-		createInfo.subresourceRange.aspectMask = aspectFlags;
+		createInfo.subresourceRange.aspectMask = info.aspectFlags;
 		createInfo.subresourceRange.baseMipLevel = 0;
-		createInfo.subresourceRange.levelCount = mipLevels;
+		createInfo.subresourceRange.levelCount = info.mipLevels;
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
 
