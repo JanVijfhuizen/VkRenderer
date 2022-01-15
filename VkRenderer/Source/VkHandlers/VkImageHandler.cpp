@@ -5,7 +5,8 @@
 namespace vi
 {
 	VkImage VkImageHandler::Create(
-		const glm::ivec2 resolution, 
+		const glm::ivec2 resolution,
+		const uint32_t mipLevels,
 		const VkFormat format, 
 		const VkImageTiling tiling,
 		const VkImageUsageFlags usage) const
@@ -16,7 +17,7 @@ namespace vi
 		imageInfo.extent.width = static_cast<uint32_t>(resolution.x);
 		imageInfo.extent.height = static_cast<uint32_t>(resolution.y);
 		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = 1;
+		imageInfo.mipLevels = mipLevels;
 		imageInfo.arrayLayers = 1;
 		imageInfo.format = format;
 		imageInfo.tiling = tiling;
@@ -32,9 +33,10 @@ namespace vi
 	}
 
 	void VkImageHandler::TransitionLayout(
-		const VkImage image, 
-		const VkImageLayout oldLayout, 
+		const VkImage image,
+		const VkImageLayout oldLayout,
 		const VkImageLayout newLayout,
+		const uint32_t mipLevels,
 		const VkImageAspectFlags aspectFlags) const
 	{
 		VkImageMemoryBarrier barrier{};
@@ -46,7 +48,7 @@ namespace vi
 		barrier.image = image;
 		barrier.subresourceRange.aspectMask = aspectFlags;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.levelCount = mipLevels; 
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = 1;
 
@@ -70,7 +72,8 @@ namespace vi
 		vkDestroyImage(core.GetLogicalDevice(), image, nullptr);
 	}
 
-	VkImageView VkImageHandler::CreateView(const VkImage image, 
+	VkImageView VkImageHandler::CreateView(
+		const VkImage image, const uint32_t mipLevels,
 		const VkFormat format, const VkImageAspectFlags aspectFlags) const
 	{
 		VkImageViewCreateInfo createInfo{};
@@ -87,7 +90,7 @@ namespace vi
 
 		createInfo.subresourceRange.aspectMask = aspectFlags;
 		createInfo.subresourceRange.baseMipLevel = 0;
-		createInfo.subresourceRange.levelCount = 1;
+		createInfo.subresourceRange.levelCount = mipLevels;
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
 

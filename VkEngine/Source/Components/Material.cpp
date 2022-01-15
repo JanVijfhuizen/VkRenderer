@@ -99,8 +99,8 @@ void MaterialSystem::Update()
 		{
 			sets.material = material._descriptors[imageIndex];
 
-			const auto sampler = shaderHandler.CreateSampler();
 			const auto texture = material.texture ? material.texture : &_fallbackTexture;
+			const auto sampler = shaderHandler.CreateSampler(0, texture->mipLevels);
 			shaderHandler.BindSampler(sets.material, texture->imageView, texture->layout, sampler, 0, 0);
 			
 			descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
