@@ -51,7 +51,7 @@ namespace vi
 		[[nodiscard]] static uint32_t RateDevice(const DeviceInfo& deviceInfo);
 		[[nodiscard]] static bool CheckDeviceExtensionSupport(VkPhysicalDevice device, const ArrayPtr<const char*>& extensions);
 
-		[[nodiscard]] VkSampleCountFlagBits GetMaxUsableSampleCount() const;
+		[[nodiscard]] static VkSampleCountFlagBits GetMaxUsableSampleCount(VkPhysicalDevice device);
 
 	private:
 		VkPhysicalDevice _value;

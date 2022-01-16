@@ -59,6 +59,8 @@ namespace vi
 			// Optional pipeline this one is inspired by. Useful when recreating assets, since construction can be faster.
 			VkPipeline basePipeline = VK_NULL_HANDLE;
 			int32_t basePipelineIndex = -1;
+			// Multisampling.
+			VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
 		};
 
 		void Create(const CreateInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout) const;
