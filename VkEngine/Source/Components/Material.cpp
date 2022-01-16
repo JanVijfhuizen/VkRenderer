@@ -46,7 +46,7 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	if (_pipeline)
 		DestroySwapChainAssets();
 
-	auto& swapChain = _renderer.GetSwapChain();
+	auto& postEffectHandler = _renderer.GetPostEffectHandler();
 
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
@@ -56,8 +56,8 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.modules.Add(_shader.vertex);
 	pipelineInfo.modules.Add(_shader.fragment);
 	pipelineInfo.pushConstants.Add({ sizeof(Transform), VK_SHADER_STAGE_VERTEX_BIT });
-	pipelineInfo.renderPass = swapChain.GetRenderPass();
-	pipelineInfo.extent = swapChain.GetExtent();
+	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
+	pipelineInfo.extent = postEffectHandler.GetExtent();
 
 	_renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }

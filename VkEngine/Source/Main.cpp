@@ -4,6 +4,7 @@
 int main()
 {
 	Engine::Info info{};
+
 	info.start = [](Engine& engine)
 	{
 		const auto camera = engine.GetCecsar().Add();

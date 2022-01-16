@@ -20,13 +20,19 @@ int Engine::Run(const Info& info)
 	_cameras = { GMEM, *_cecsar, *_renderer, *_transforms };
 	_materials = { GMEM, *_cecsar, *_renderer, *_transforms, *_cameras, "" };
 
+	auto& postEffectHandler = _renderer->GetPostEffectHandler();
+	auto& swapChain = _renderer->GetSwapChain();
+	auto& swapChainExt = _renderer->GetSwapChainExt();
+
+	const auto msaa = GMEM.New<BasicPostEffect>(*_renderer, "post-");
+	const auto msaa2 = GMEM.New<BasicPostEffect>(*_renderer, "post-");
+	postEffectHandler.Add(msaa);
+	postEffectHandler.Add(msaa2);
+
 	if (info.awake)
 		info.awake(*this);
 	if (info.start)
 		info.start(*this);
-
-	auto& swapChain = _renderer->GetSwapChain();
-	auto& swapChainExt = _renderer->GetSwapChainExt();
 
 	while (true)
 	{
@@ -49,21 +55,29 @@ int Engine::Run(const Info& info)
 		if (outQuit)
 			break;
 
-		swapChain.BeginFrame();
+		swapChain.WaitForImage();
+		postEffectHandler.BeginFrame();
 
 		_cameras->Update();
 		_materials->Update();
 
-		if(info.renderUpdate)
+		if (info.renderUpdate)
 			info.renderUpdate(*this, outQuit);
 		if (outQuit)
 			break;
 
+		postEffectHandler.EndFrame();
+
+		swapChain.BeginFrame(false);
+		postEffectHandler.Draw();
 		swapChain.EndFrame();
+
 		swapChainExt.Update();
 	}
 
 	_renderer->DeviceWaitIdle();
+	GMEM.Delete(msaa);
+	GMEM.Delete(msaa2);
 
 	_isRunning = false;
 	return EXIT_SUCCESS;
