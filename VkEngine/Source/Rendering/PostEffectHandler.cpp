@@ -12,8 +12,6 @@ BasicPostEffect::BasicPostEffect(Renderer& renderer, const char* shaderName) : P
 {
 	auto& shaderExt = renderer.GetShaderExt();
 	_shader = shaderExt.Load(shaderName);
-
-	OnRecreateAssets();
 }
 
 BasicPostEffect::~BasicPostEffect()
