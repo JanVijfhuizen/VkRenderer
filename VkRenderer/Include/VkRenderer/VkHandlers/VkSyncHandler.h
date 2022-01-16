@@ -5,9 +5,9 @@ namespace vi
 {
 	class VkSyncHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
+		explicit VkSyncHandler(VkCore& core);
+
 		/// <returns>Object that can act as a wait handle for GPU operations.</returns>
 		[[nodiscard]] VkSemaphore CreateSemaphore() const;
 		void DestroySemaphore(VkSemaphore semaphore) const;
@@ -16,8 +16,5 @@ namespace vi
 		[[nodiscard]] VkFence CreateFence() const;
 		void WaitForFence(VkFence fence) const;
 		void DestroyFence(VkFence fence) const;
-		
-	private:
-		explicit VkSyncHandler(VkCore& core);
 	};
 }

@@ -5,9 +5,9 @@ namespace vi
 {
 	class VkMemoryHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
+		explicit VkMemoryHandler(VkCore& core);
+
 		/// <returns>Memory requirements for target buffer.</returns>
 		[[nodiscard]] VkMemoryRequirements GetRequirements(VkBuffer buffer) const;
 		/// <returns>Memory requirements for target image.</returns>
@@ -58,8 +58,6 @@ namespace vi
 		[[nodiscard]] uint32_t FindType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 
 	private:
-		explicit VkMemoryHandler(VkCore& core);
-
 		void IntMap(VkDeviceMemory memory, void* input, VkDeviceSize offset, size_t size) const;
 	};
 

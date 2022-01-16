@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkImageHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
 		struct CreateInfo final
 		{
@@ -48,6 +46,8 @@ namespace vi
 			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
 		};
 
+		explicit VkImageHandler(VkCore& core);
+
 		/// <returns>Object that can be used as textures, depth buffers, render targets and more.</returns>
 		[[nodiscard]] VkImage Create(const CreateInfo& info) const;
 		/// <summary>
@@ -75,8 +75,5 @@ namespace vi
 		/// <returns>A supported format if found, otherwise returns null.</returns>
 		[[nodiscard]] VkFormat FindSupportedFormat(const ArrayPtr<VkFormat>& candidates,
 			VkImageTiling tiling, VkFormatFeatureFlags features) const;
-
-	private:
-		explicit VkImageHandler(VkCore& core);
 	};
 }

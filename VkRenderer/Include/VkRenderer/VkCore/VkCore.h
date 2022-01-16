@@ -48,16 +48,16 @@ namespace vi
 		[[nodiscard]] WindowHandler& GetWindowHandler() const;
 		[[nodiscard]] VkCoreSwapchain& GetSwapChain() const;
 
-		[[nodiscard]] VkCommandBufferHandler& GetCommandBufferHandler();
-		[[nodiscard]] VkDescriptorPoolHandler& GetDescriptorPoolHandler();
-		[[nodiscard]] VkFrameBufferHandler& GetFrameBufferHandler();
-		[[nodiscard]] VkImageHandler& GetImageHandler();
-		[[nodiscard]] VkLayoutHandler& GetLayoutHandler();
-		[[nodiscard]] VkMemoryHandler& GetMemoryHandler();
-		[[nodiscard]] VkPipelineHandler& GetPipelineHandler();
-		[[nodiscard]] VkRenderPassHandler& GetRenderPassHandler();
-		[[nodiscard]] VkShaderHandler& GetShaderHandler();
-		[[nodiscard]] VkSyncHandler& GetSyncHandler();
+		[[nodiscard]] VkCommandBufferHandler& GetCommandBufferHandler() const;
+		[[nodiscard]] VkDescriptorPoolHandler& GetDescriptorPoolHandler() const;
+		[[nodiscard]] VkFrameBufferHandler& GetFrameBufferHandler() const;
+		[[nodiscard]] VkImageHandler& GetImageHandler() const;
+		[[nodiscard]] VkLayoutHandler& GetLayoutHandler() const;
+		[[nodiscard]] VkMemoryHandler& GetMemoryHandler() const;
+		[[nodiscard]] VkPipelineHandler& GetPipelineHandler() const;
+		[[nodiscard]] VkRenderPassHandler& GetRenderPassHandler() const;
+		[[nodiscard]] VkShaderHandler& GetShaderHandler() const;
+		[[nodiscard]] VkSyncHandler& GetSyncHandler() const;
 
 	private:
 		WindowHandler* _windowHandler;
@@ -70,15 +70,15 @@ namespace vi
 		VkCoreCommandPool* _commandPool;
 		VkCoreSwapchain* _swapChain;
 
-		VkCommandBufferHandler _commandBufferHandler{ *this };
-		VkDescriptorPoolHandler _descriptorPoolHandler{ *this };
-		VkFrameBufferHandler _frameBufferHandler{ *this };
-		VkImageHandler _imageHandler{ *this };
-		VkLayoutHandler _layoutHandler{ *this };
-		VkMemoryHandler _memoryHandler{ *this };
-		VkPipelineHandler _pipelineHandler{ *this };
-		VkRenderPassHandler _renderPassHandler{ *this };
-		VkShaderHandler _shaderHandler{ *this };
-		VkSyncHandler _syncHandler{ *this };
+		VkCommandBufferHandler* _commandBufferHandler;
+		VkDescriptorPoolHandler* _descriptorPoolHandler;
+		VkFrameBufferHandler* _frameBufferHandler;
+		VkImageHandler* _imageHandler;
+		VkLayoutHandler* _layoutHandler;
+		VkMemoryHandler* _memoryHandler;
+		VkPipelineHandler* _pipelineHandler;
+		VkRenderPassHandler* _renderPassHandler;
+		VkShaderHandler* _shaderHandler;
+		VkSyncHandler* _syncHandler;
 	};
 }

@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkShaderHandler final : VkHandler
 	{
-		friend VkCore;
-
 	public:
 		struct SamplerCreateInfo final
 		{
@@ -17,6 +15,8 @@ namespace vi
 			VkBorderColor borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 			VkSamplerAddressMode adressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		};
+
+		explicit VkShaderHandler(VkCore& core);
 
 		/// <summary> Draws a list of vertices based on the given pipeline.</summary>
 		void Draw(uint32_t indexCount) const;
@@ -50,7 +50,6 @@ namespace vi
 		void UpdatePushConstant(VkPipelineLayout layout, VkFlags flag, const T& input);
 
 	private:
-		explicit VkShaderHandler(VkCore& core);
 		void IntUpdatePushConstant(VkPipelineLayout layout, VkFlags flag, void const* input, size_t size);
 	};
 

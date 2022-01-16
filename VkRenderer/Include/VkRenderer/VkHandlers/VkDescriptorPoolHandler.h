@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkDescriptorPoolHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
 		struct PoolCreateInfo final
 		{
@@ -28,6 +26,8 @@ namespace vi
 			VkDescriptorSet* outSets;
 		};
 
+		explicit VkDescriptorPoolHandler(VkCore& core);
+
 		/// <returns>Object that can allocate new descriptor sets.</returns>
 		[[nodiscard]] VkDescriptorPool Create(const PoolCreateInfo& info) const;
 		void CreateSets(const SetCreateInfo& info) const;
@@ -37,8 +37,5 @@ namespace vi
 		/// <param name="sets">Sets which to bind.</param>
 		void BindSets(VkDescriptorSet* sets, uint32_t setCount) const;
 		void Destroy(VkDescriptorPool pool) const;
-
-	private:
-		explicit VkDescriptorPoolHandler(VkCore& core);
 	};
 }

@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkFrameBufferHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
 		struct CreateInfo final
 		{
@@ -19,11 +17,10 @@ namespace vi
 			VkExtent2D extent;
 		};
 
+		explicit VkFrameBufferHandler(VkCore& core);
+
 		/// <returns>Object that can be used as a render target.</returns>
 		[[nodiscard]] VkFramebuffer Create(const CreateInfo& info) const;
 		void Destroy(VkFramebuffer frameBuffer) const;
-
-	private:
-		explicit VkFrameBufferHandler(VkCore& core);
 	};
 }

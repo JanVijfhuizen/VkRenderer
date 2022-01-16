@@ -15,6 +15,17 @@ namespace vi
 		_commandPool = GMEM.New<VkCoreCommandPool>();
 		_swapChain = GMEM.New<VkCoreSwapchain>(*this);
 
+		_commandBufferHandler = GMEM.New<VkCommandBufferHandler>(*this);
+		_descriptorPoolHandler = GMEM.New<VkDescriptorPoolHandler>(*this);
+		_frameBufferHandler = GMEM.New<VkFrameBufferHandler>(*this);
+		_imageHandler = GMEM.New<VkImageHandler>(*this);
+		_layoutHandler = GMEM.New<VkLayoutHandler>(*this);
+		_memoryHandler = GMEM.New<VkMemoryHandler>(*this);
+		_pipelineHandler = GMEM.New<VkPipelineHandler>(*this);
+		_renderPassHandler = GMEM.New<VkRenderPassHandler>(*this);
+		_shaderHandler = GMEM.New<VkShaderHandler>(*this);
+		_syncHandler = GMEM.New<VkSyncHandler>(*this);
+
 		// Add required tags.
 		info.deviceExtensions.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 		info.validationLayers.Add("VK_LAYER_KHRONOS_validation");
@@ -46,6 +57,17 @@ namespace vi
 		vkDestroySurfaceKHR(*_instance, _surface, nullptr);
 		_debugger->Cleanup(*_instance);
 		_instance->Cleanup();
+
+		GMEM.Delete(_commandBufferHandler);
+		GMEM.Delete(_descriptorPoolHandler);
+		GMEM.Delete(_frameBufferHandler);
+		GMEM.Delete(_imageHandler);
+		GMEM.Delete(_layoutHandler);
+		GMEM.Delete(_memoryHandler);
+		GMEM.Delete(_pipelineHandler);
+		GMEM.Delete(_renderPassHandler);
+		GMEM.Delete(_shaderHandler);
+		GMEM.Delete(_syncHandler);
 
 		GMEM.Delete(_debugger);
 		GMEM.Delete(_instance);
@@ -100,53 +122,53 @@ namespace vi
 		return *_swapChain;
 	}
 
-	VkCommandBufferHandler& VkCore::GetCommandBufferHandler()
+	VkCommandBufferHandler& VkCore::GetCommandBufferHandler() const
 	{
-		return _commandBufferHandler;
+		return *_commandBufferHandler;
 	}
 
-	VkDescriptorPoolHandler& VkCore::GetDescriptorPoolHandler()
+	VkDescriptorPoolHandler& VkCore::GetDescriptorPoolHandler() const
 	{
-		return _descriptorPoolHandler;
+		return *_descriptorPoolHandler;
 	}
 
-	VkFrameBufferHandler& VkCore::GetFrameBufferHandler()
+	VkFrameBufferHandler& VkCore::GetFrameBufferHandler() const
 	{
-		return _frameBufferHandler;
+		return *_frameBufferHandler;
 	}
 
-	VkImageHandler& VkCore::GetImageHandler()
+	VkImageHandler& VkCore::GetImageHandler() const
 	{
-		return _imageHandler;
+		return *_imageHandler;
 	}
 
-	VkLayoutHandler& VkCore::GetLayoutHandler()
+	VkLayoutHandler& VkCore::GetLayoutHandler() const
 	{
-		return _layoutHandler;
+		return *_layoutHandler;
 	}
 
-	VkMemoryHandler& VkCore::GetMemoryHandler()
+	VkMemoryHandler& VkCore::GetMemoryHandler() const
 	{
-		return _memoryHandler;
+		return *_memoryHandler;
 	}
 
-	VkPipelineHandler& VkCore::GetPipelineHandler()
+	VkPipelineHandler& VkCore::GetPipelineHandler() const
 	{
-		return _pipelineHandler;
+		return *_pipelineHandler;
 	}
 
-	VkRenderPassHandler& VkCore::GetRenderPassHandler()
+	VkRenderPassHandler& VkCore::GetRenderPassHandler() const
 	{
-		return _renderPassHandler;
+		return *_renderPassHandler;
 	}
 
-	VkShaderHandler& VkCore::GetShaderHandler()
+	VkShaderHandler& VkCore::GetShaderHandler() const
 	{
-		return _shaderHandler;
+		return *_shaderHandler;
 	}
 
-	VkSyncHandler& VkCore::GetSyncHandler()
+	VkSyncHandler& VkCore::GetSyncHandler() const
 	{
-		return _syncHandler;
+		return *_syncHandler;
 	}
 }

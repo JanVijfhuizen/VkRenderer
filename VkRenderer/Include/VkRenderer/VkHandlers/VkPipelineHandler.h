@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkPipelineHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
 		/// <summary>
 		/// Struct that is used when creating a new pipeline.
@@ -63,6 +61,8 @@ namespace vi
 			VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
 		};
 
+		explicit VkPipelineHandler(VkCore& core);
+
 		void Create(const CreateInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout) const;
 		void Bind(VkPipeline pipeline, VkPipelineLayout layout);
 		void Destroy(VkPipeline pipeline, VkPipelineLayout layout) const;
@@ -73,7 +73,5 @@ namespace vi
 	private:
 		VkPipeline _current;
 		VkPipelineLayout _currentLayout;
-
-		explicit VkPipelineHandler(VkCore& core);
 	};
 }

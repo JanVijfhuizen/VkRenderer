@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkLayoutHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
 		/// <summary>
 		/// Struct that is used when creating a new descriptor set layout.
@@ -29,11 +27,10 @@ namespace vi
 			Vector<Binding> bindings{4, GMEM_TEMP};
 		};
 
+		explicit VkLayoutHandler(VkCore& core);
+
 		/// <returns>Object that can be used to create a render pipeline and to create descriptor sets from.</returns>
 		[[nodiscard]] VkDescriptorSetLayout CreateLayout(const CreateInfo& info) const;
 		void DestroyLayout(VkDescriptorSetLayout layout) const;
-
-	private:
-		explicit VkLayoutHandler(VkCore& core);
 	};
 }
