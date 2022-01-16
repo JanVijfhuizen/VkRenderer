@@ -76,7 +76,8 @@ void BasicPostEffect::DestroyAssets()
 	pipelineHandler.Destroy(_pipeline, _pipelineLayout);
 }
 
-PostEffectHandler::PostEffectHandler(Renderer& renderer) : VkHandler(renderer), Dependency(renderer), _renderer(renderer)
+PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlagBits msaaSamples) : 
+	VkHandler(renderer), Dependency(renderer), _renderer(renderer), _msaaSamples(msaaSamples)
 {
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	auto& samplerBinding = layoutInfo.bindings.Add();

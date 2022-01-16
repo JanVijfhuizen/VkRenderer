@@ -13,6 +13,7 @@ public:
 	{
 		size_t capacity = 1e2f;
 		bool useRenderDoc = false;
+		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		typedef void (*Awake)(Engine& engine, GameState& gameState);
 		typedef void (*Start)(Engine& engine, GameState& gameState);
@@ -59,10 +60,12 @@ int Engine<GameState>::Run(const Info& info)
 
 	{
 		vi::VkCoreInfo vkInfo{};
+		Renderer::Info addInfo{};
+		addInfo.msaaSamples = info.msaaSamples;
 		vkInfo.windowHandler = _windowHandler;
 		if(info.useRenderDoc)
 			vkInfo.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
-		_renderer = GMEM.New<Renderer>(vkInfo);
+		_renderer = GMEM.New<Renderer>(vkInfo, addInfo);
 	}
 
 	_cecsar = GMEM.New<ce::Cecsar>(info.capacity);

@@ -70,7 +70,7 @@ private:
 class PostEffectHandler final : public vi::VkHandler, public SwapChainExt::Dependency
 {
 public:
-	explicit PostEffectHandler(Renderer& renderer);
+	explicit PostEffectHandler(Renderer& renderer, VkSampleCountFlagBits msaaSamples);
 	~PostEffectHandler();
 
 	void BeginFrame();
@@ -98,6 +98,7 @@ private:
 	};
 
 	Renderer& _renderer;
+	VkSampleCountFlagBits _msaaSamples;
 	VkRenderPass _renderPass = VK_NULL_HANDLE;
 	VkExtent2D _extent;
 
