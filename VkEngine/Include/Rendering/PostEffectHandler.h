@@ -114,7 +114,7 @@ private:
 	void LayerBeginFrame(uint32_t index);
 	void LayerEndFrame(uint32_t index) const;
 
-	void RecreateLayerAssets(Layer& layer);
+	void RecreateLayerAssets(Layer& layer, uint32_t index);
 	void DestroyLayerAssets(Layer& layer, bool calledByDestructor) const;
 	void DestroySwapChainAssets(bool calledByDestructor) const;
 };
