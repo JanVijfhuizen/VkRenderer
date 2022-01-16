@@ -57,9 +57,6 @@ void MSAA::Draw(Frame& frame)
 
 void MSAA::OnRecreateAssets()
 {
-	if(_pipeline)
-		DestroyAssets();
-
 	auto& swapChain = renderer.GetSwapChain();
 	auto& pipelineHandler = renderer.GetPipelineHandler();
 	auto& postEffectHandler = renderer.GetPostEffectHandler();
@@ -182,8 +179,8 @@ Mesh& PostEffectHandler::GetMesh()
 void PostEffectHandler::Add(PostEffect* postEffect)
 {
 	auto& layer = _layers.Add();
-	RecreateLayerAssets(layer);
 	layer.postEffect = postEffect;
+	RecreateLayerAssets(layer);
 }
 
 void PostEffectHandler::OnRecreateSwapChainAssets()
@@ -258,6 +255,8 @@ void PostEffectHandler::RecreateLayerAssets(Layer& layer)
 		frameBufferCreateInfo.extent = _extent;
 		frame.frameBuffer = frameBufferHandler.Create(frameBufferCreateInfo);
 	}
+
+	layer.postEffect->OnRecreateAssets();
 }
 
 void PostEffectHandler::DestroyLayerAssets(Layer& layer) const
@@ -284,6 +283,8 @@ void PostEffectHandler::DestroyLayerAssets(Layer& layer) const
 		memoryHandler.Free(frame.colorMemory);
 		memoryHandler.Free(frame.depthMemory);
 	}
+
+	layer.postEffect->DestroyAssets();
 }
 
 void PostEffectHandler::DestroySwapChainAssets() const

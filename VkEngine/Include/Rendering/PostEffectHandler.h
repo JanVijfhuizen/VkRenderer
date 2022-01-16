@@ -47,6 +47,7 @@ protected:
 
 	explicit PostEffect(Renderer& renderer);
 	virtual void OnRecreateAssets() = 0;
+	virtual void DestroyAssets() = 0;
 };
 
 class MSAA final : public PostEffect
