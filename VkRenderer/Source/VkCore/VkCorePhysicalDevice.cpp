@@ -63,7 +63,6 @@ namespace vi
 
 		assert(!candidates.IsEmpty());
 		_value = candidates.Peek();
-		_msaaSamples = Ut::Min(info.msaaSamples, GetMaxUsableSampleCount(_value));
 	}
 
 	VkCorePhysicalDevice::operator VkPhysicalDevice_T* () const

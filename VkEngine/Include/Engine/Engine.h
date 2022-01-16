@@ -46,6 +46,7 @@ private:
 	CameraSystem* _cameras;
 	MaterialSystem* _materials;
 	GameState* _gameState;
+	BasicPostEffect* _defaultPostEffect = nullptr;
 };
 
 template <typename GameState>
@@ -79,6 +80,12 @@ int Engine<GameState>::Run(const Info& info)
 	if (info.start)
 		info.start(*this, *_gameState);
 
+	if(postEffectHandler.IsEmpty())
+	{
+		_defaultPostEffect = GMEM.New<BasicPostEffect>(*_renderer, "post-");
+		postEffectHandler.Add(_defaultPostEffect);
+	}
+
 	while (true)
 	{
 		bool outQuit = false;
@@ -102,10 +109,7 @@ int Engine<GameState>::Run(const Info& info)
 
 		swapChain.WaitForImage();
 
-		if(postEffectHandler.IsEmpty())
-			swapChain.BeginFrame(false);
-		else
-			postEffectHandler.BeginFrame();
+		postEffectHandler.BeginFrame();
 
 		_cameras->Update();
 		_materials->Update();
@@ -115,12 +119,9 @@ int Engine<GameState>::Run(const Info& info)
 		if (outQuit)
 			break;
 
-		if (!postEffectHandler.IsEmpty())
-		{
-			postEffectHandler.EndFrame();
-			swapChain.BeginFrame(false);
-			postEffectHandler.Draw();
-		}
+		postEffectHandler.EndFrame();
+		swapChain.BeginFrame(false);
+		postEffectHandler.Draw();
 		
 		swapChain.EndFrame();
 		swapChainExt.Update();
@@ -132,6 +133,7 @@ int Engine<GameState>::Run(const Info& info)
 		info.cleanup(*this, *_gameState);
 
 	GMEM.Delete(_gameState);
+	GMEM.Delete(_defaultPostEffect);
 	GMEM.Delete(_materials);
 	GMEM.Delete(_cameras);
 	GMEM.Delete(_transforms);

@@ -55,7 +55,6 @@ namespace vi
 
 	private:
 		VkPhysicalDevice _value;
-		uint32_t _msaaSamples;
 
 		VkCorePhysicalDevice();
 	};

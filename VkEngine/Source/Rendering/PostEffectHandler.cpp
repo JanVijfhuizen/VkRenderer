@@ -242,6 +242,9 @@ void PostEffectHandler::RecreateLayerAssets(Layer& layer)
 	auto& swapChainHandler = _renderer.GetSwapChain();
 	auto& syncHandler = _renderer.GetSyncHandler();
 
+	auto msaaMaxSamples = vi::VkCorePhysicalDevice::GetMaxUsableSampleCount(_renderer.GetPhysicalDevice());
+
+
 	for (auto& frame : layer.frames)
 	{
 		frame.descriptorSet = _descriptorPool.Get();

@@ -15,7 +15,7 @@ int main()
 
 	info.awake = [](Engine<GameState>& engine, GameState& gameState)
 	{
-		gameState.msaa = GMEM.New<BasicPostEffect>(engine.GetRenderer(), "post-");
+		//gameState.msaa = GMEM.New<BasicPostEffect>(engine.GetRenderer(), "post-");
 	};
 
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
@@ -57,7 +57,7 @@ int main()
 
 	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)
 	{
-		GMEM.Delete(gameState.msaa);
+		//GMEM.Delete(gameState.msaa);
 	};
 
 	auto engine = GMEM.New<Engine<GameState>>();
