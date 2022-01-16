@@ -75,6 +75,4 @@ namespace vi
 	{
 		return _value;
 	}
-
-	VkCoreLogicalDevice::VkCoreLogicalDevice() = default;
 }

@@ -46,7 +46,7 @@ namespace vi
 		[[nodiscard]] VkCommandPool GetCommandPool() const;
 
 		[[nodiscard]] WindowHandler& GetWindowHandler() const;
-		[[nodiscard]] VkCoreSwapchain& GetSwapChain();
+		[[nodiscard]] VkCoreSwapchain& GetSwapChain() const;
 
 		[[nodiscard]] VkCommandBufferHandler& GetCommandBufferHandler();
 		[[nodiscard]] VkDescriptorPoolHandler& GetDescriptorPoolHandler();
@@ -63,12 +63,12 @@ namespace vi
 		WindowHandler* _windowHandler;
 		VkSurfaceKHR _surface;
 
-		VkCoreDebugger _debugger;
-		VkCoreInstance _instance;
-		VkCorePhysicalDevice _physicalDevice;
-		VkCoreLogicalDevice _logicalDevice;
-		VkCoreCommandPool _commandPool;
-		VkCoreSwapchain _swapChain{*this};
+		VkCoreDebugger* _debugger;
+		VkCoreInstance* _instance;
+		VkCorePhysicalDevice* _physicalDevice;
+		VkCoreLogicalDevice* _logicalDevice;
+		VkCoreCommandPool* _commandPool;
+		VkCoreSwapchain* _swapChain;
 
 		VkCommandBufferHandler _commandBufferHandler{ *this };
 		VkDescriptorPoolHandler _descriptorPoolHandler{ *this };

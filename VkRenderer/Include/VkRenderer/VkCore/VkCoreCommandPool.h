@@ -16,7 +16,5 @@ namespace vi
 
 	private:
 		VkCommandPool _value;
-
-		VkCoreCommandPool();
 	};
 }

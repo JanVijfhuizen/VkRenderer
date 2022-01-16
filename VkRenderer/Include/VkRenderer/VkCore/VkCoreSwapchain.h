@@ -11,10 +11,12 @@ namespace vi
 	/// </summary>
 	class VkCoreSwapchain final
 	{
-		friend class VkCore;
+	public:
+		friend VkCore;
 		friend VkCorePhysicalDevice;
 
-	public:
+		explicit VkCoreSwapchain(VkCore& core);
+
 		/// <summary>
 		/// Call this at the start of the frame.
 		/// </summary>
@@ -109,8 +111,6 @@ namespace vi
 		uint32_t _frameIndex = 0;
 		uint32_t _imageIndex;
 		VkResult _shouldRecreateAssets;
-
-		explicit VkCoreSwapchain(VkCore& core);
 
 		void Construct();
 		void Cleanup() const;

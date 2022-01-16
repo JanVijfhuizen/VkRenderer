@@ -18,8 +18,6 @@ namespace vi
 		[[nodiscard]] static ArrayPtr<const char*> GetExtensions(const VkCoreInfo& info);
 
 	private:
-		VkInstance value;
-
-		VkCoreInstance();
+		VkInstance _value;
 	};
 }

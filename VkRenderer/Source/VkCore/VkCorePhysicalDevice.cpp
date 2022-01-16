@@ -6,8 +6,6 @@
 
 namespace vi
 {
-	VkCorePhysicalDevice::VkCorePhysicalDevice() = default;
-
 	VkCorePhysicalDevice::QueueFamilies::operator bool() const
 	{
 		for (const auto& family : values)

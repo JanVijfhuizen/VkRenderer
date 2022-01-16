@@ -34,7 +34,5 @@ namespace vi
 
 	private:
 		VkDevice _value;
-
-		VkCoreLogicalDevice();
 	};
 }

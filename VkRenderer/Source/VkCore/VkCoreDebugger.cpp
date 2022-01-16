@@ -5,8 +5,6 @@
 
 namespace vi
 {
-	VkCoreDebugger::VkCoreDebugger() = default;
-
 	void VkCoreDebugger::Setup(const VkCoreInstance& instance)
 	{
 #ifdef NDEBUG

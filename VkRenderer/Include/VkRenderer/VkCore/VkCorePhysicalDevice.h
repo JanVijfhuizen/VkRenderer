@@ -55,7 +55,5 @@ namespace vi
 
 	private:
 		VkPhysicalDevice _value;
-
-		VkCorePhysicalDevice();
 	};
 }
