@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkPipelineHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
 		/// <summary>
 		/// Struct that is used when creating a new pipeline.
@@ -59,7 +57,14 @@ namespace vi
 			// Optional pipeline this one is inspired by. Useful when recreating assets, since construction can be faster.
 			VkPipeline basePipeline = VK_NULL_HANDLE;
 			int32_t basePipelineIndex = -1;
+			// Multisampling.
+			VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+			// Shader sampling.
+			bool shaderSamplingEnabled = true;
+			float minSampleShading = .2f;
 		};
+
+		explicit VkPipelineHandler(VkCore& core);
 
 		void Create(const CreateInfo& info, VkPipeline& outPipeline, VkPipelineLayout& outLayout) const;
 		void Bind(VkPipeline pipeline, VkPipelineLayout layout);
@@ -71,7 +76,5 @@ namespace vi
 	private:
 		VkPipeline _current;
 		VkPipelineLayout _currentLayout;
-
-		explicit VkPipelineHandler(VkCore& core);
 	};
 }

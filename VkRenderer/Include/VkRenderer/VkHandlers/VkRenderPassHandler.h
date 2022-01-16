@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkRenderPassHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
 		struct CreateInfo final
 		{
@@ -20,6 +18,8 @@ namespace vi
 			VkImageLayout depthFinalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		};
 
+		explicit VkRenderPassHandler(VkCore& core);
+
 		/// <summary>Object that can be used to render a scene.</summary>
 		[[nodiscard]] VkRenderPass Create(const CreateInfo& info = {}) const;
 		void Begin(VkFramebuffer frameBuffer, VkRenderPass renderPass,
@@ -27,8 +27,5 @@ namespace vi
 			VkClearValue* clearColors, uint32_t clearColorsCount) const;
 		void End() const;
 		void Destroy(VkRenderPass renderPass) const;
-
-	private:
-		explicit VkRenderPassHandler(VkCore& core);
 	};
 }

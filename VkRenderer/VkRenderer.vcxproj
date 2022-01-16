@@ -28,7 +28,6 @@
     <ClInclude Include="Include\VkRenderer\CStrRef.h" />
     <ClInclude Include="Include\VkRenderer\ViString.h" />
     <ClInclude Include="Include\VkRenderer\pch.h" />
-    <ClInclude Include="Include\VkRenderer\UniquePtr.h" />
     <ClInclude Include="Include\VkRenderer\Utilities.h" />
     <ClInclude Include="Include\VkRenderer\ViVector.h" />
     <ClInclude Include="Include\VkRenderer\VkCore\VkCore.h" />

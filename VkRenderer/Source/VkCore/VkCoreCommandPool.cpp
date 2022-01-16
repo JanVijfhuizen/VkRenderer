@@ -30,6 +30,4 @@ namespace vi
 	{
 		return _value;
 	}
-
-	VkCoreCommandPool::VkCoreCommandPool() = default;
 }

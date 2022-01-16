@@ -36,6 +36,7 @@ namespace vi
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.sampleRateShading = VK_TRUE;
 
 		const auto& deviceExtensions = info.deviceExtensions;
 
@@ -75,6 +76,4 @@ namespace vi
 	{
 		return _value;
 	}
-
-	VkCoreLogicalDevice::VkCoreLogicalDevice() = default;
 }

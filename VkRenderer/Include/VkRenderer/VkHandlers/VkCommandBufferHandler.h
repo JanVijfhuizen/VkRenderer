@@ -5,8 +5,6 @@ namespace vi
 {
 	class VkCommandBufferHandler final : public VkHandler
 	{
-		friend VkCore;
-
 	public:
 		struct SubmitInfo final
 		{
@@ -17,6 +15,8 @@ namespace vi
 			VkSemaphore signalSemaphore = VK_NULL_HANDLE;
 			VkFence fence = VK_NULL_HANDLE;
 		};
+
+		explicit VkCommandBufferHandler(VkCore& core);
 
 		/// <returns>Handle that can be used to record and execute render commands, like drawing.</returns>
 		[[nodiscard]] VkCommandBuffer Create() const;
@@ -33,7 +33,5 @@ namespace vi
 
 	private:
 		VkCommandBuffer _current = VK_NULL_HANDLE;
-
-		explicit VkCommandBufferHandler(VkCore& core);
 	};
 }

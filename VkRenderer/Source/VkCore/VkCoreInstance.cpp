@@ -20,18 +20,18 @@ namespace vi
 		auto validationCreateInfo = VkCoreDebugger::CreateInfo();
 		VkCoreDebugger::EnableValidationLayers(info, validationCreateInfo, createInfo);
 
-		const auto result = vkCreateInstance(&createInfo, nullptr, &value);
+		const auto result = vkCreateInstance(&createInfo, nullptr, &_value);
 		assert(!result);
 	}
 
 	void VkCoreInstance::Cleanup() const
 	{
-		vkDestroyInstance(value, nullptr);
+		vkDestroyInstance(_value, nullptr);
 	}
 
 	VkCoreInstance::operator VkInstance_T*() const
 	{
-		return value;
+		return _value;
 	}
 
 	VkApplicationInfo VkCoreInstance::CreateApplicationInfo(const VkCoreInfo& info)
@@ -73,6 +73,4 @@ namespace vi
 
 		return extensions;
 	}
-
-	VkCoreInstance::VkCoreInstance() = default;
 }

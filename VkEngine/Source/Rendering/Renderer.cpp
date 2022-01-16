@@ -1,34 +1,42 @@
 ﻿#include "pch.h"
 #include "Rendering/Renderer.h"
 
-Renderer::Renderer(vi::VkCoreInfo& info) : VkCore(info)
+Renderer::Renderer(vi::VkCoreInfo& info, const Info& addInfo) : VkCore(info)
 {
-	_postEffectHandler = GMEM.New<PostEffectHandler>(*this);
+	_meshHandler = GMEM.New<MeshHandler>(*this);
+	_shaderExt = GMEM.New<ShaderExt>(*this);
+	_textureHandler = GMEM.New<TextureHandler>(*this);
+	_swapChainExt = GMEM.New<SwapChainExt>(*this);
+	_postEffectHandler = GMEM.New<PostEffectHandler>(*this, addInfo.msaaSamples);
 }
 
 Renderer::~Renderer()
 {
 	GMEM.Delete(_postEffectHandler);
+	GMEM.Delete(_textureHandler);
+	GMEM.Delete(_shaderExt);
+	GMEM.Delete(_meshHandler);
+	GMEM.Delete(_swapChainExt);
 }
 
-MeshHandler& Renderer::GetMeshHandler()
+MeshHandler& Renderer::GetMeshHandler() const
 {
-	return _meshHandler;
+	return *_meshHandler;
 }
 
-ShaderExt& Renderer::GetShaderExt()
+ShaderExt& Renderer::GetShaderExt() const
 {
-	return _shaderExt;
+	return *_shaderExt;
 }
 
-SwapChainExt& Renderer::GetSwapChainExt()
+SwapChainExt& Renderer::GetSwapChainExt() const
 {
-	return _swapChainGC;
+	return *_swapChainExt;
 }
 
-TextureHandler& Renderer::GetTextureHandler()
+TextureHandler& Renderer::GetTextureHandler() const
 {
-	return _textureHandler;
+	return *_textureHandler;
 }
 
 PostEffectHandler& Renderer::GetPostEffectHandler() const

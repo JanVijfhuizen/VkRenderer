@@ -154,7 +154,6 @@
     <ClCompile Include="Source\Rendering\PostEffectHandler.cpp" />
     <ClCompile Include="Source\Rendering\TextureHandler.cpp" />
     <ClCompile Include="Source\Rendering\MeshHandler.cpp" />
-    <ClCompile Include="Source\Engine\Engine.cpp" />
     <ClCompile Include="Source\Rendering\SwapChainExt.cpp" />
     <ClCompile Include="Source\Rendering\DescriptorPool.cpp" />
     <ClCompile Include="Source\Components\Camera.cpp" />

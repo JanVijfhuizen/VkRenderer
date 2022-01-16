@@ -33,9 +33,6 @@
     <ClInclude Include="Include\VkRenderer\Utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\VkRenderer\UniquePtr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Include\VkRenderer\ViString.h">
       <Filter>Header Files</Filter>
     </ClInclude>

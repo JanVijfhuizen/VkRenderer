@@ -6,8 +6,6 @@
 
 namespace vi
 {
-	VkCorePhysicalDevice::VkCorePhysicalDevice() = default;
-
 	VkCorePhysicalDevice::QueueFamilies::operator bool() const
 	{
 		for (const auto& family : values)
@@ -63,7 +61,6 @@ namespace vi
 
 		assert(!candidates.IsEmpty());
 		_value = candidates.Peek();
-		_msaaSamples = Ut::Min(info.msaaSamples, GetMaxUsableSampleCount());
 	}
 
 	VkCorePhysicalDevice::operator VkPhysicalDevice_T* () const
@@ -150,10 +147,10 @@ namespace vi
 		return hashMap.IsEmpty();
 	}
 
-	VkSampleCountFlagBits VkCorePhysicalDevice::GetMaxUsableSampleCount() const
+	VkSampleCountFlagBits VkCorePhysicalDevice::GetMaxUsableSampleCount(const VkPhysicalDevice device)
 	{
 		VkPhysicalDeviceProperties physicalDeviceProperties;
-		vkGetPhysicalDeviceProperties(_value, &physicalDeviceProperties);
+		vkGetPhysicalDeviceProperties(device, &physicalDeviceProperties);
 
 		const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts
 			& physicalDeviceProperties.limits.framebufferDepthSampleCounts;

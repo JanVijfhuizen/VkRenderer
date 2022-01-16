@@ -33,7 +33,5 @@ namespace vi
 
 	private:
 		VkDebugUtilsMessengerEXT _value;
-
-		VkCoreDebugger();
 	};
 }
