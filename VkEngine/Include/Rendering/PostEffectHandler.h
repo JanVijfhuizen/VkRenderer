@@ -50,11 +50,11 @@ protected:
 	virtual void DestroyAssets() = 0;
 };
 
-class MSAA final : public PostEffect
+class BasicPostEffect final : public PostEffect
 {
 public:
-	explicit MSAA(Renderer& renderer);
-	~MSAA();
+	explicit BasicPostEffect(Renderer& renderer, const char* shaderName);
+	~BasicPostEffect();
 
 	void Draw(Frame& frame) override;
 
@@ -109,6 +109,6 @@ private:
 	vi::Vector<Layer> _layers{ 4, GMEM_VOL };
 
 	void RecreateLayerAssets(Layer& layer);
-	void DestroyLayerAssets(Layer& layer) const;
-	void DestroySwapChainAssets() const;
+	void DestroyLayerAssets(Layer& layer, bool calledByDestructor) const;
+	void DestroySwapChainAssets(bool calledByDestructor) const;
 };

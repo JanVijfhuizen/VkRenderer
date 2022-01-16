@@ -24,7 +24,7 @@ int Engine::Run(const Info& info)
 	auto& swapChain = _renderer->GetSwapChain();
 	auto& swapChainExt = _renderer->GetSwapChainExt();
 
-	const auto msaa = GMEM.New<MSAA>(*_renderer);
+	const auto msaa = GMEM.New<BasicPostEffect>(*_renderer, "post-");
 	postEffectHandler.Add(msaa);
 
 	if (info.awake)

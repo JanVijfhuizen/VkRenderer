@@ -8,15 +8,15 @@ PostEffect::PostEffect(Renderer& renderer) : renderer(renderer)
 
 }
 
-MSAA::MSAA(Renderer& renderer) : PostEffect(renderer)
+BasicPostEffect::BasicPostEffect(Renderer& renderer, const char* shaderName) : PostEffect(renderer)
 {
 	auto& shaderExt = renderer.GetShaderExt();
-	_shader = shaderExt.Load("post-");
+	_shader = shaderExt.Load(shaderName);
 
 	OnRecreateAssets();
 }
 
-MSAA::~MSAA()
+BasicPostEffect::~BasicPostEffect()
 {
 	DestroyAssets();
 
@@ -24,7 +24,7 @@ MSAA::~MSAA()
 	shaderExt.DestroyShader(_shader);
 }
 
-void MSAA::Draw(Frame& frame)
+void BasicPostEffect::Draw(Frame& frame)
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& shaderHandler = renderer.GetShaderHandler();
@@ -52,10 +52,9 @@ void MSAA::Draw(Frame& frame)
 
 	swapChainext.Collect(sampler);
 	swapChainext.Collect(depthSampler);
-
 }
 
-void MSAA::OnRecreateAssets()
+void BasicPostEffect::OnRecreateAssets()
 {
 	auto& swapChain = renderer.GetSwapChain();
 	auto& pipelineHandler = renderer.GetPipelineHandler();
@@ -73,7 +72,7 @@ void MSAA::OnRecreateAssets()
 	pipelineHandler.Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
-void MSAA::DestroyAssets()
+void BasicPostEffect::DestroyAssets()
 {
 	auto& pipelineHandler = renderer.GetPipelineHandler();
 	pipelineHandler.Destroy(_pipeline, _pipelineLayout);
@@ -101,7 +100,7 @@ PostEffectHandler::~PostEffectHandler()
 {
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
 	_renderer.GetMeshHandler().Destroy(_mesh);
-	DestroySwapChainAssets();
+	DestroySwapChainAssets(true);
 	_descriptorPool.Cleanup();
 }
 
@@ -186,7 +185,7 @@ void PostEffectHandler::Add(PostEffect* postEffect)
 void PostEffectHandler::OnRecreateSwapChainAssets()
 {
 	if (_renderPass)
-		DestroySwapChainAssets();
+		DestroySwapChainAssets(false);
 
 	auto& renderPassHandler = _renderer.GetRenderPassHandler();
 	auto& swapChainHandler = _renderer.GetSwapChain();
@@ -259,7 +258,7 @@ void PostEffectHandler::RecreateLayerAssets(Layer& layer)
 	layer.postEffect->OnRecreateAssets();
 }
 
-void PostEffectHandler::DestroyLayerAssets(Layer& layer) const
+void PostEffectHandler::DestroyLayerAssets(Layer& layer, const bool calledByDestructor) const
 {
 	auto& commandBufferHandler = core.GetCommandBufferHandler();
 	auto& frameBufferHandler = core.GetFrameBufferHandler();
@@ -284,14 +283,15 @@ void PostEffectHandler::DestroyLayerAssets(Layer& layer) const
 		memoryHandler.Free(frame.depthMemory);
 	}
 
-	layer.postEffect->DestroyAssets();
+	if(!calledByDestructor)
+		layer.postEffect->DestroyAssets();
 }
 
-void PostEffectHandler::DestroySwapChainAssets() const
+void PostEffectHandler::DestroySwapChainAssets(const bool calledByDestructor) const
 {
 	auto& renderPassHandler = _renderer.GetRenderPassHandler();
 	renderPassHandler.Destroy(_renderPass);
 
 	for (auto& layer : _layers)
-		DestroyLayerAssets(layer);
+		DestroyLayerAssets(layer, calledByDestructor);
 }
