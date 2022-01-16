@@ -163,6 +163,11 @@ void PostEffectHandler::Add(PostEffect* postEffect)
 	RecreateLayerAssets(layer);
 }
 
+bool PostEffectHandler::IsEmpty() const
+{
+	return _layers.GetCount() == 0;
+}
+
 void PostEffectHandler::OnRecreateSwapChainAssets()
 {
 	if (_renderPass)

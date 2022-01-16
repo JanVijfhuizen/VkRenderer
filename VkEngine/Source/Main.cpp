@@ -1,11 +1,24 @@
 #include "pch.h"
 #include "Engine/Engine.h"
 
+class GameState final
+{
+public:
+	BasicPostEffect* msaa;
+};
+
+typedef Engine<GameState> GameEngine;
+
 int main()
 {
-	Engine::Info info{};
+	Engine<GameState>::Info info{};
 
-	info.start = [](Engine& engine)
+	info.awake = [](Engine<GameState>& engine, GameState& gameState)
+	{
+		gameState.msaa = GMEM.New<BasicPostEffect>(engine.GetRenderer(), "post-");
+	};
+
+	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{
 		const auto camera = engine.GetCecsar().Add();
 		engine.GetTransforms().Insert(camera);
@@ -25,7 +38,7 @@ int main()
 		quad3Transform.position = { 3, 0, 8 };
 	};
 
-	info.update = [](Engine& engine, bool& outQuit)
+	info.update = [](Engine<GameState>& engine, GameState& gameState, bool& outQuit)
 	{
 		auto& c = engine.GetTransforms()[0];
 		auto& t = engine.GetTransforms()[1];
@@ -42,6 +55,13 @@ int main()
 		t2.position.z = 10 + sin(f) * -5;
 	};
 
-	vi::UniquePtr<Engine> engine{GMEM};
-	return engine->Run(info);
+	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)
+	{
+		GMEM.Delete(gameState.msaa);
+	};
+
+	auto engine = GMEM.New<Engine<GameState>>();
+	const int result = engine->Run(info);
+	GMEM.Delete(engine);
+	return result;
 }

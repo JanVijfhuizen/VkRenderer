@@ -51,9 +51,6 @@
     <ClCompile Include="Source\Rendering\SwapChainExt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Rendering\MeshHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

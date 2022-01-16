@@ -85,6 +85,8 @@ public:
 
 	void Add(PostEffect* postEffect);
 
+	[[nodiscard]] bool IsEmpty() const;
+
 protected:
 	void OnRecreateSwapChainAssets() override;
 
