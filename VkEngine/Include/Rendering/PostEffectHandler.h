@@ -108,6 +108,9 @@ private:
 
 	vi::Vector<Layer> _layers{ 4, GMEM_VOL };
 
+	void LayerBeginFrame(uint32_t index);
+	void LayerEndFrame(uint32_t index) const;
+
 	void RecreateLayerAssets(Layer& layer);
 	void DestroyLayerAssets(Layer& layer, bool calledByDestructor) const;
 	void DestroySwapChainAssets(bool calledByDestructor) const;

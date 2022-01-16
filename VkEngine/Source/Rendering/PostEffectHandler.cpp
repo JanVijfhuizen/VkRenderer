@@ -106,53 +106,34 @@ PostEffectHandler::~PostEffectHandler()
 
 void PostEffectHandler::BeginFrame()
 {
-	assert(_layers.GetCount() > 0);
-
-	auto& commandBufferHandler = core.GetCommandBufferHandler();
-	auto& renderPassHandler = core.GetRenderPassHandler();
-	auto& swapChain = core.GetSwapChain();
-
-	_imageIndex = swapChain.GetImageIndex();
-
-	auto& firstLayer = _layers[0];
-	auto& frame = firstLayer.frames[_imageIndex];
-
-	commandBufferHandler.BeginRecording(frame.commandBuffer);
-
-	VkClearValue clearColors[2];
-	clearColors[0].color = {0, 0, 0, 1};
-	clearColors[1].depthStencil = {1, 0};
-
-	renderPassHandler.Begin(frame.frameBuffer, _renderPass, {},
-		{_extent.width, _extent.height}, clearColors, 2);
+	LayerBeginFrame(0);
 }
 
 void PostEffectHandler::EndFrame()
 {
-	auto& commandBufferHandler = core.GetCommandBufferHandler();
-	auto& renderPassHandler = core.GetRenderPassHandler();
-	auto& syncHandler = _renderer.GetSyncHandler();
+	auto& swapChain = core.GetSwapChain();
 
-	auto& firstLayer = _layers[0];
-	auto& frame = firstLayer.frames[_imageIndex];
+	_imageIndex = swapChain.GetImageIndex();
 
-	renderPassHandler.End();
-	commandBufferHandler.EndRecording();
+	const uint32_t count = _layers.GetCount();
+	for (uint32_t i = 0; i < count; ++i)
+	{
+		auto& layer = _layers[i];
+		auto& frame = layer.frames[_imageIndex];
 
-	vi::VkCommandBufferHandler::SubmitInfo info{};
-	info.buffers = &frame.commandBuffer;
-	info.buffersCount = 1;
-	info.waitSemaphore = VK_NULL_HANDLE;
-	info.signalSemaphore = VK_NULL_HANDLE;
-	info.fence = frame.fence;
-	commandBufferHandler.Submit(info);
-
-	syncHandler.WaitForFence(frame.fence);
+		LayerEndFrame(i);
+		if (i < count - 1)
+		{
+			LayerBeginFrame(i + 1);
+			layer.postEffect->Draw(frame);
+		}
+	}
 }
 
 void PostEffectHandler::Draw() const
 {
-	_layers[0].postEffect->Draw(_layers[0].frames[_imageIndex]);
+	auto& finalLayer = _layers[_layers.GetCount() - 1];
+	finalLayer.postEffect->Draw(finalLayer.frames[_imageIndex]);
 }
 
 VkRenderPass PostEffectHandler::GetRenderPass() const
@@ -188,7 +169,7 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 		DestroySwapChainAssets(false);
 
 	auto& renderPassHandler = _renderer.GetRenderPassHandler();
-	auto& swapChainHandler = _renderer.GetSwapChain();
+	auto& swapChain = _renderer.GetSwapChain();
 
 	vi::VkRenderPassHandler::CreateInfo renderPassCreateInfo{};
 	renderPassCreateInfo.useColorAttachment = true;
@@ -197,10 +178,54 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 	renderPassCreateInfo.depthStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 	renderPassCreateInfo.depthFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	_renderPass = renderPassHandler.Create(renderPassCreateInfo);
-	_extent = swapChainHandler.GetExtent();
+	_extent = swapChain.GetExtent();
 
 	for (auto& layer : _layers)
 		RecreateLayerAssets(layer);
+}
+
+void PostEffectHandler::LayerBeginFrame(const uint32_t index)
+{
+	auto& commandBufferHandler = core.GetCommandBufferHandler();
+	auto& renderPassHandler = core.GetRenderPassHandler();
+	auto& swapChain = core.GetSwapChain();
+
+	_imageIndex = swapChain.GetImageIndex();
+
+	auto& firstLayer = _layers[index];
+	auto& frame = firstLayer.frames[_imageIndex];
+
+	commandBufferHandler.BeginRecording(frame.commandBuffer);
+
+	VkClearValue clearColors[2];
+	clearColors[0].color = { 0, 0, 0, 1 };
+	clearColors[1].depthStencil = { 1, 0 };
+
+	renderPassHandler.Begin(frame.frameBuffer, _renderPass, {},
+		{ _extent.width, _extent.height }, clearColors, 2);
+}
+
+void PostEffectHandler::LayerEndFrame(const uint32_t index) const
+{
+	auto& commandBufferHandler = core.GetCommandBufferHandler();
+	auto& renderPassHandler = core.GetRenderPassHandler();
+	auto& syncHandler = _renderer.GetSyncHandler();
+
+	auto& layer = _layers[index];
+	auto& frame = layer.frames[_imageIndex];
+
+	renderPassHandler.End();
+	commandBufferHandler.EndRecording();
+
+	vi::VkCommandBufferHandler::SubmitInfo info{};
+	info.buffers = &frame.commandBuffer;
+	info.buffersCount = 1;
+	info.waitSemaphore = VK_NULL_HANDLE;
+	info.signalSemaphore = VK_NULL_HANDLE;
+	info.fence = frame.fence;
+	commandBufferHandler.Submit(info);
+
+	syncHandler.WaitForFence(frame.fence);
 }
 
 void PostEffectHandler::RecreateLayerAssets(Layer& layer)

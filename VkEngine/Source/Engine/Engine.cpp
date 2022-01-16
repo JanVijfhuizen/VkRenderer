@@ -25,7 +25,9 @@ int Engine::Run(const Info& info)
 	auto& swapChainExt = _renderer->GetSwapChainExt();
 
 	const auto msaa = GMEM.New<BasicPostEffect>(*_renderer, "post-");
+	const auto msaa2 = GMEM.New<BasicPostEffect>(*_renderer, "post-");
 	postEffectHandler.Add(msaa);
+	postEffectHandler.Add(msaa2);
 
 	if (info.awake)
 		info.awake(*this);
@@ -75,6 +77,7 @@ int Engine::Run(const Info& info)
 
 	_renderer->DeviceWaitIdle();
 	GMEM.Delete(msaa);
+	GMEM.Delete(msaa2);
 
 	_isRunning = false;
 	return EXIT_SUCCESS;
