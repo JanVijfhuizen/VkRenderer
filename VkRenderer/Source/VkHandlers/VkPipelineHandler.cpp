@@ -65,7 +65,8 @@ namespace vi
 
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multisampling.sampleShadingEnable = VK_FALSE;
+		multisampling.sampleShadingEnable = info.shaderSamplingEnabled;
+		multisampling.minSampleShading = info.minSampleShading;
 		multisampling.rasterizationSamples = info.samples;
 
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};

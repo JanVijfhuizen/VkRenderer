@@ -59,6 +59,9 @@ namespace vi
 			int32_t basePipelineIndex = -1;
 			// Multisampling.
 			VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+			// Shader sampling.
+			bool shaderSamplingEnabled = true;
+			float minSampleShading = .2f;
 		};
 
 		explicit VkPipelineHandler(VkCore& core);
