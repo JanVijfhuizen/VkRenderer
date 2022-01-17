@@ -13,6 +13,8 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	System<Material>(cecsar), Dependency(renderer), 
 	_renderer(renderer), _transforms(transforms), _cameras(cameras)
 {
+	auto& swapChain = renderer.GetSwapChain();
+
 	_shader = renderer.GetShaderExt().Load(shaderName);
 
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
@@ -22,7 +24,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
 	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
+	uint32_t blockSize = 32 * swapChain.GetLength();
 	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize);
 
 	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
@@ -93,7 +95,7 @@ void MaterialSystem::Update()
 
 	for (auto& [camIndex, camera] : _cameras)
 	{
-		sets.camera = _cameras.GetDescriptor(camera);
+		sets.camera = _cameras.GetDescriptor(camIndex);
 
 		for (const auto& [matIndex, material] : *this)
 		{

@@ -164,8 +164,6 @@ namespace vi
 		if (maxImageCount > 0 && imageCount > maxImageCount)
 			imageCount = maxImageCount;
 
-		if (imageCount > SWAPCHAIN_MAX_FRAMES)
-			imageCount = SWAPCHAIN_MAX_FRAMES;
 		return imageCount;
 	}
 

@@ -79,6 +79,8 @@ void BasicPostEffect::DestroyAssets()
 PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlagBits msaaSamples) : 
 	VkHandler(renderer), Dependency(renderer), _renderer(renderer), _msaaSamples(msaaSamples)
 {
+	auto& swapChain = renderer.GetSwapChain();
+
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	auto& samplerBinding = layoutInfo.bindings.Add();
 	samplerBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -87,7 +89,7 @@ PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlag
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
 	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	uint32_t blockSize = 8 * SWAPCHAIN_MAX_FRAMES;
+	uint32_t blockSize = 8 * swapChain.GetLength();
 	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize / 2);
 
 	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());

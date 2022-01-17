@@ -5,10 +5,11 @@
 
 CameraSystem::CameraSystem(ce::Cecsar& cecsar, 
 	Renderer& renderer, TransformSystem& transforms) : 
-	SmallSystem<Camera>(cecsar, MAX_CAMERAS), 
+	SmallSystem<Camera>(cecsar, MAX_CAMERAS),
 	_renderer(renderer), _transforms(transforms),
-	_uboPool(renderer, MAX_CAMERAS, SWAPCHAIN_MAX_FRAMES)
+	_uboPool(renderer, MAX_CAMERAS, renderer.GetSwapChain().GetLength())
 {
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& swapChain = renderer.GetSwapChain();
 	const uint32_t swapChainLength = swapChain.GetLength();
 
@@ -19,14 +20,27 @@ CameraSystem::CameraSystem(ce::Cecsar& cecsar,
 	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	uint32_t size = swapChainLength * MAX_CAMERAS;
 
-	_descriptorPool.Construct(renderer, _layout, &types, &size, 1, size);
-	_ubos = vi::ArrayPtr<Camera::Ubo>{MAX_CAMERAS, GMEM};
+	_ubos = vi::ArrayPtr<Camera::Ubo>{ MAX_CAMERAS, GMEM };
+	_descriptors = vi::ArrayPtr<VkDescriptorSet>(size, GMEM);
+
+	vi::VkDescriptorPoolHandler::PoolCreateInfo descriptorPoolCreateInfo{};
+	descriptorPoolCreateInfo.types = &types;
+	descriptorPoolCreateInfo.capacities = &size;
+	descriptorPoolCreateInfo.typeCount = 1;
+	_descriptorPool = descriptorPoolHandler.Create(descriptorPoolCreateInfo);
+
+	vi::VkDescriptorPoolHandler::SetCreateInfo descriptorSetCreateInfo{};
+	descriptorSetCreateInfo.layout = _layout;
+	descriptorSetCreateInfo.pool = _descriptorPool;
+	descriptorSetCreateInfo.outSets = _descriptors.GetData();
+	descriptorSetCreateInfo.setCount = size;
+	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
 }
 
 CameraSystem::~CameraSystem()
 {
 	_renderer.GetLayoutHandler().DestroyLayout(_layout);
-	_descriptorPool.Cleanup();
+	_renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
 void CameraSystem::Update()
@@ -36,7 +50,9 @@ void CameraSystem::Update()
 	auto& swapChain = _renderer.GetSwapChain();
 	auto& swapChainExt = _renderer.GetSwapChainExt();
 
-	const uint32_t imageIndex = _renderer.GetSwapChain().GetImageIndex();
+	const uint32_t imageIndex = swapChain.GetImageIndex();
+	const uint32_t descriptorSetStartIndex = GetDescriptorStartIndex();
+
 	const auto memory = _uboPool.GetMemory();
 
 	const size_t memSize = sizeof(Camera::Ubo) * MAX_CAMERAS;
@@ -58,7 +74,7 @@ void CameraSystem::Update()
 		ubo.clipFar = camera.clipFar;
 		ubo.aspectRatio = aspectRatio;
 
-		auto& descriptor = camera._descriptors[imageIndex];
+		auto& descriptor = _descriptors[descriptorSetStartIndex + i];
 		
 		shaderHandler.BindBuffer(descriptor, buffer, sizeof(Camera::Ubo) * i, sizeof(Camera::Ubo), 0, 0);
 		i++;
@@ -69,26 +85,9 @@ void CameraSystem::Update()
 	swapChainExt.Collect(buffer);
 }
 
-Camera& CameraSystem::Insert(const uint32_t sparseIndex, const Camera& value)
+VkDescriptorSet CameraSystem::GetDescriptor(const uint32_t sparseIndex) const
 {
-	auto& camera = SmallSystem<Camera>::Insert(sparseIndex, value);
-	for (auto& _descriptor : camera._descriptors)
-		_descriptor = _descriptorPool.Get();
-	return camera;
-}
-
-void CameraSystem::RemoveAt(const uint32_t index)
-{
-	auto& swapChainExt = _renderer.GetSwapChainExt();
-	auto& camera = operator[](index);
-	for (auto& descriptor : camera._descriptors)
-		swapChainExt.Collect(descriptor, _descriptorPool);
-	SmallSystem<Camera>::RemoveAt(index);
-}
-
-VkDescriptorSet CameraSystem::GetDescriptor(const Camera& value) const
-{
-	return value._descriptors[_renderer.GetSwapChain().GetImageIndex()];
+	return _descriptors[GetDescriptorStartIndex() + sparseIndex];
 }
 
 VkDescriptorSetLayout CameraSystem::GetLayout() const
@@ -102,4 +101,11 @@ vi::VkLayoutHandler::CreateInfo::Binding CameraSystem::GetBindingInfo()
 	camBinding.size = sizeof(Camera::Ubo);
 	camBinding.flag = VK_SHADER_STAGE_VERTEX_BIT;
 	return camBinding;
+}
+
+uint32_t CameraSystem::GetDescriptorStartIndex() const
+{
+	auto& swapChain = _renderer.GetSwapChain();
+	const uint32_t imageIndex = swapChain.GetImageIndex();
+	return MAX_CAMERAS * imageIndex;
 }
