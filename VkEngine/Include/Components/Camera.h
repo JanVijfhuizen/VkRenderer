@@ -7,8 +7,6 @@ class Renderer;
 
 struct Camera final
 {
-	friend class CameraSystem;
-
 	struct alignas(256) Ubo final
 	{
 		glm::vec3 position;
@@ -20,12 +18,10 @@ struct Camera final
 	float clipFar = 100;
 };
 
-constexpr auto MAX_CAMERAS = 8;
-
 class CameraSystem final : public ce::SmallSystem<Camera>
 {
 public:
-	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer, TransformSystem& transforms);
+	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer, TransformSystem& transforms, uint32_t capacity = 8);
 	~CameraSystem();
 
 	void Update();
@@ -40,9 +36,9 @@ private:
 
 	VkDescriptorSetLayout _layout;
 	VkDescriptorPool _descriptorPool;
+	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
 	UboPool<Camera::Ubo> _uboPool;
 	vi::ArrayPtr<Camera::Ubo> _ubos;
-	vi::ArrayPtr<VkDescriptorSet> _descriptors;
 
 	[[nodiscard]] uint32_t GetDescriptorStartIndex() const;
 };

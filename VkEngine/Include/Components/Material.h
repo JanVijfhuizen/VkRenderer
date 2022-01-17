@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "Rendering/ShaderExt.h"
-#include "Rendering/DescriptorPool.h"
 #include "Rendering/MeshHandler.h"
 #include "Rendering/SwapChainExt.h"
 #include "Camera.h"
@@ -10,13 +9,7 @@ class Renderer;
 
 struct Material
 {
-	friend class MaterialSystem;
-
-public:
 	Texture* texture = nullptr;
-
-private:
-	VkDescriptorSet _descriptors[SWAPCHAIN_MAX_FRAMES];
 };
 
 class MaterialSystem final : public ce::System<Material>, SwapChainExt::Dependency
@@ -32,9 +25,6 @@ public:
 	[[nodiscard]] Mesh GetMesh() const;
 	[[nodiscard]] Texture GetFallbackTexture() const;
 
-	[[nodiscard]] Material& Insert(uint32_t sparseIndex, const Material& value = {}) override;
-	void RemoveAt(uint32_t index) override;
-
 protected:
 	void OnRecreateSwapChainAssets() override;
 
@@ -46,10 +36,12 @@ private:
 	VkDescriptorSetLayout _layout;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
+	VkDescriptorPool _descriptorPool;
+	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
 	Shader _shader;
-	DescriptorPool _descriptorPool{};
 	Mesh _mesh;
 	Texture _fallbackTexture;
 
 	void DestroySwapChainAssets() const;
+	[[nodiscard]] uint32_t GetDescriptorStartIndex() const;
 };
