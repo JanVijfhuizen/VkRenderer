@@ -28,5 +28,5 @@ void main()
 {
     outData.fragTexCoord = inTexCoords;
 
-    gl_Position = camera.projection * camera.view * mat4(1) * vec4(pushConstants.vertices[inPositionIndex], -pushConstants.height, 1);
+    gl_Position = camera.projection * camera.view * mat4(1) * vec4(pushConstants.vertices[inPositionIndex], pushConstants.height, 1);
 }

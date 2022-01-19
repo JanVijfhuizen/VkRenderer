@@ -86,7 +86,7 @@ void LightSystem::Draw()
 				const auto& matPos = matTransform.position;
 
 				const auto texture = material.texture ? material.texture : &fallbackTexture;
-				const glm::vec2 offset = matPos - lightPos;
+				const glm::vec3 offset = matPos - lightPos;
 				const glm::vec2 offsetNorm = normalize(offset);
 
 				vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
@@ -98,9 +98,9 @@ void LightSystem::Draw()
 				descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
 
 				// Calculate the shadow. We know for a fact that the mesh is a quad.
-				ubo.height = offset.y;
+				ubo.height = offset.z;
 				for (uint32_t i = 0; i < 4; ++i)
-					ubo.vertices[i] = offset + vi::Ut::RotateRadians(quadVertices[i], atan2(offsetNorm.y, offsetNorm.x));
+					ubo.vertices[i] = glm::vec2(offset.x, offset.y) + vi::Ut::RotateRadians(quadVertices[i], atan2(offsetNorm.y, offsetNorm.x));
 
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();

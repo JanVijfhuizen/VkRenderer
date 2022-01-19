@@ -12,7 +12,7 @@ typedef Engine<GameState> GameEngine;
 int main()
 {
 	Engine<GameState>::Info info{};
-	//info.useRenderDoc = true;
+	info.useRenderDoc = true;
 
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{
@@ -47,13 +47,17 @@ int main()
 
 		const auto light = cecsar.Add();
 		auto& lightTransform = transforms.Insert(light);
-		lightTransform.position = cameraTransform.position;
+		lightTransform.position.z += 0.01f;
 		lights.Insert(light);
 	};
 
 	info.update = [](Engine<GameState>& engine, GameState& gameState, bool& outQuit)
 	{
-		
+		static float f = 0;
+		f += 0.001f;
+
+		engine.GetTransforms()[4].position.x = sin(f);
+		engine.GetTransforms()[4].position.y = cos(f);
 	};
 
 	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)
