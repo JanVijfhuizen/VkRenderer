@@ -38,13 +38,14 @@ int main()
 		transforms.Insert(quad1);
 		shadowCasters.Insert(quad1);
 		materials.Insert(quad1);
-
+		/*
 		const auto quad2 = cecsar.Add();
 		auto& quad3Transform = transforms.Insert(quad2);
 		shadowCasters.Insert(quad2);
 		materials.Insert(quad2);
 		quad3Transform.position = { 3, 1, 0 };
-
+		quad3Transform.rotation.z = 65;
+		*/
 		const auto light = cecsar.Add();
 		auto& lightTransform = transforms.Insert(light);
 		lightTransform.position.z += 0.01f;
@@ -56,8 +57,12 @@ int main()
 		static float f = 0;
 		f += 0.001f;
 
-		engine.GetTransforms()[4].position.x = sin(f);
-		engine.GetTransforms()[4].position.y = cos(f);
+		//engine.GetTransforms()[2].position.x = sin(f) * 2;
+		//engine.GetTransforms()[2].position.y = cos(f) * 2;
+
+		engine.GetTransforms()[2].rotation.z = f * 36;
+		engine.GetTransforms()[2].position.x = sin(f) * 2;
+		engine.GetTransforms()[2].position.y = cos(f) * 2;
 	};
 
 	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)

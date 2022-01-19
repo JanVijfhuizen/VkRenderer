@@ -67,6 +67,10 @@ void LightSystem::Draw()
 	glm::vec2 quadVertices[] = { glm::vec2(-1, -1), {-1, 1}, {1, 1}, {1, -1} };
 	Ubo ubo{};
 
+	uint32_t sortableIndices[4];
+	float sortableAngles[4];
+	glm::vec2 sortableVertices[4];
+
 	for (auto& [camIndex, camera] : _cameras)
 	{
 		sets.camera = _cameras.GetDescriptor(camIndex);
@@ -81,6 +85,8 @@ void LightSystem::Draw()
 				sets.shadowCaster = _descriptorPool.Get();
 
 				assert(_materials.Contains(shadowCasterIndex));
+				assert(_transforms.Contains(shadowCasterIndex));
+
 				const auto& material = _materials[shadowCasterIndex];
 				const auto& matTransform = _transforms[shadowCasterIndex];
 				const auto& matPos = matTransform.position;
@@ -101,6 +107,26 @@ void LightSystem::Draw()
 				ubo.height = offset.z;
 				for (uint32_t i = 0; i < 4; ++i)
 					ubo.vertices[i] = glm::vec2(offset.x, offset.y) + vi::Ut::RotateRadians(quadVertices[i], atan2(offsetNorm.y, offsetNorm.x));
+
+				// Calculate the angle distance from the center of the quad to get the outer angles.
+				const float centerAngle = atan2(offsetNorm.y, offsetNorm.x);
+				for (uint32_t i = 0; i < 4; ++i)
+				{
+					const glm::vec2 vertPos = glm::vec2(offset) + vi::Ut::RotateDegrees(quadVertices[i], matTransform.rotation.z / 2);
+					sortableVertices[i] = vertPos;
+					sortableIndices[i] = i;
+					const glm::vec2 vertDir = normalize(vertPos);
+					const float vertAngle = atan2(vertDir.y, vertDir.x);
+					sortableAngles[i] = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
+				}
+
+				// Sort based on center offset.
+				vi::Ut::LinSort(sortableIndices, sortableAngles, 0, 4);
+
+				ubo.vertices[0] = sortableVertices[sortableIndices[3]];
+				ubo.vertices[1] = sortableVertices[sortableIndices[0]];
+				ubo.vertices[2] = glm::vec3(0);
+				ubo.vertices[3] = glm::vec3(0);
 
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();
