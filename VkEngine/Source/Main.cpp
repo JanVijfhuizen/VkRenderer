@@ -12,6 +12,7 @@ typedef Engine<GameState> GameEngine;
 int main()
 {
 	Engine<GameState>::Info info{};
+	//info.useRenderDoc = true;
 
 	info.awake = [](Engine<GameState>& engine, GameState& gameState)
 	{

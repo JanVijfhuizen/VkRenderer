@@ -21,7 +21,7 @@ public:
 		VkDeviceMemory depthMemory;
 		VkFramebuffer frameBuffer;
 		VkCommandBuffer commandBuffer;
-		VkFence fence;
+		VkSemaphore renderFinishedSemaphore;
 
 		union
 		{
@@ -78,6 +78,7 @@ public:
 
 	void Draw() const;
 
+	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore() const;
 	[[nodiscard]] VkRenderPass GetRenderPass() const;
 	[[nodiscard]] VkExtent2D GetExtent() const;
 	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
@@ -91,12 +92,6 @@ protected:
 	void OnRecreateSwapChainAssets() override;
 
 private:
-	struct Layer final
-	{
-		PostEffect* postEffect = nullptr;
-		PostEffect::Frame frames[SWAPCHAIN_MAX_FRAMES];
-	};
-
 	Renderer& _renderer;
 	VkSampleCountFlagBits _msaaSamples;
 	VkRenderPass _renderPass = VK_NULL_HANDLE;
@@ -109,12 +104,15 @@ private:
 	Mesh _mesh;
 	DescriptorPool _descriptorPool{};
 
-	vi::Vector<Layer> _layers{ 4, GMEM_VOL };
+	vi::Vector<PostEffect*> _postEffects{4, GMEM_VOL};
+	vi::Vector<PostEffect::Frame> _frames;
 
 	void LayerBeginFrame(uint32_t index);
 	void LayerEndFrame(uint32_t index) const;
 
-	void RecreateLayerAssets(Layer& layer, uint32_t index);
-	void DestroyLayerAssets(Layer& layer, bool calledByDestructor) const;
+	void RecreateLayerAssets(uint32_t index);
+	void DestroyLayerAssets(uint32_t index, bool calledByDestructor) const;
 	void DestroySwapChainAssets(bool calledByDestructor) const;
+	[[nodiscard]] PostEffect::Frame& GetStartFrame(uint32_t index) const;
+	[[nodiscard]] PostEffect::Frame& GetActiveFrame(uint32_t index) const;
 };

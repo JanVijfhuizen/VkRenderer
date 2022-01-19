@@ -62,7 +62,8 @@ namespace vi
 		submitInfo.signalSemaphoreCount = info.signalSemaphore ? 1 : 0;
 		submitInfo.pSignalSemaphores = &info.signalSemaphore;
 
-		vkResetFences(core.GetLogicalDevice(), 1, &info.fence);
+		if(info.fence)
+			vkResetFences(core.GetLogicalDevice(), 1, &info.fence);
 		const auto result = vkQueueSubmit(core.GetQueues().graphics, 1, &submitInfo, info.fence);
 		assert(!result);
 	}

@@ -26,7 +26,7 @@ namespace vi
 		/// <summary>
 		/// Call this at the end of the frame.
 		/// </summary>
-		void EndFrame();
+		void EndFrame(VkSemaphore overrideWaitSemaphore = VK_NULL_HANDLE);
 
 		/// <summary>
 		/// Waits until a new image target is available. Called by BeginFrame by default.
@@ -50,6 +50,7 @@ namespace vi
 		/// <returns>Render pass in use by the swapchain.</returns>
 		[[nodiscard]] VkRenderPass GetRenderPass() const;
 		/// <returns>If the current render assets are outdated by the swapchain.</returns>
+		[[nodiscard]] VkSemaphore GetImageAvaiableSemaphore() const;
 		[[nodiscard]] bool GetShouldRecreateAssets() const;
 
 	private:

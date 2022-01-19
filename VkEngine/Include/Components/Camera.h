@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "VkRenderer/VkHandlers/VkLayoutHandler.h"
-#include "Rendering/DescriptorPool.h"
 #include "Rendering/UboPool.h"
 
 class TransformSystem;
@@ -8,8 +7,6 @@ class Renderer;
 
 struct Camera final
 {
-	friend class CameraSystem;
-
 	struct alignas(256) Ubo final
 	{
 		glm::vec3 position;
@@ -19,25 +16,17 @@ struct Camera final
 	};
 
 	float clipFar = 100;
-
-private:
-	VkDescriptorSet _descriptors[SWAPCHAIN_MAX_FRAMES];
 };
-
-constexpr auto MAX_CAMERAS = 8;
 
 class CameraSystem final : public ce::SmallSystem<Camera>
 {
 public:
-	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer, TransformSystem& transforms);
+	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer, TransformSystem& transforms, uint32_t capacity = 8);
 	~CameraSystem();
 
 	void Update();
 
-	Camera& Insert(uint32_t sparseIndex, const Camera& value = {}) override;
-	void RemoveAt(uint32_t index) override;
-
-	[[nodiscard]] VkDescriptorSet GetDescriptor(const Camera& value) const;
+	[[nodiscard]] VkDescriptorSet GetDescriptor(uint32_t sparseIndex) const;
 	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
 	[[nodiscard]] static vi::VkLayoutHandler::CreateInfo::Binding GetBindingInfo();
 
@@ -46,7 +35,10 @@ private:
 	TransformSystem& _transforms;
 
 	VkDescriptorSetLayout _layout;
-	DescriptorPool _descriptorPool{};
+	VkDescriptorPool _descriptorPool;
+	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
 	UboPool<Camera::Ubo> _uboPool;
 	vi::ArrayPtr<Camera::Ubo> _ubos;
+
+	[[nodiscard]] uint32_t GetDescriptorStartIndex() const;
 };

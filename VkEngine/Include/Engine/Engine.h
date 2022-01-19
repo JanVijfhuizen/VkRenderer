@@ -126,7 +126,7 @@ int Engine<GameState>::Run(const Info& info)
 		swapChain.BeginFrame(false);
 		postEffectHandler.Draw();
 		
-		swapChain.EndFrame();
+		swapChain.EndFrame(postEffectHandler.GetRenderFinishedSemaphore());
 		swapChainExt.Update();
 	}
 

@@ -79,6 +79,8 @@ void BasicPostEffect::DestroyAssets()
 PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlagBits msaaSamples) : 
 	VkHandler(renderer), Dependency(renderer), _renderer(renderer), _msaaSamples(msaaSamples)
 {
+	auto& swapChain = renderer.GetSwapChain();
+
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	auto& samplerBinding = layoutInfo.bindings.Add();
 	samplerBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -87,10 +89,11 @@ PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlag
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
 	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	uint32_t blockSize = 8 * SWAPCHAIN_MAX_FRAMES;
+	uint32_t blockSize = 8 * swapChain.GetLength();
 	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize / 2);
 
 	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
+	_frames.Reallocate(_postEffects.GetLength() * swapChain.GetLength(), GMEM_VOL);
 
 	OnRecreateSwapChainAssets();
 }
@@ -114,25 +117,34 @@ void PostEffectHandler::EndFrame()
 
 	_imageIndex = swapChain.GetImageIndex();
 
-	const uint32_t count = _layers.GetCount();
+	const uint32_t swapChainLength = swapChain.GetLength();
+	const uint32_t count = _postEffects.GetCount();
+
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		auto& layer = _layers[i];
-		auto& frame = layer.frames[_imageIndex];
+		auto& postEffect = _postEffects[i];
+		auto& frame = _frames[swapChainLength * i + _imageIndex];
 
 		LayerEndFrame(i);
-		if (i < count - 1)
+		if(i < count - 1)
 		{
 			LayerBeginFrame(i + 1);
-			layer.postEffect->Draw(frame);
+			postEffect->Draw(frame);
 		}
 	}
 }
 
 void PostEffectHandler::Draw() const
 {
-	auto& finalLayer = _layers[_layers.GetCount() - 1];
-	finalLayer.postEffect->Draw(finalLayer.frames[_imageIndex]);
+	const uint32_t index = _postEffects.GetCount() - 1;
+	auto& finalLayer = _postEffects[index];
+	finalLayer->Draw(GetActiveFrame(index));
+}
+
+VkSemaphore PostEffectHandler::GetRenderFinishedSemaphore() const
+{
+	const uint32_t index = _postEffects.GetCount() - 1;
+	return GetActiveFrame(index).renderFinishedSemaphore;
 }
 
 VkRenderPass PostEffectHandler::GetRenderPass() const
@@ -157,14 +169,18 @@ Mesh& PostEffectHandler::GetMesh()
 
 void PostEffectHandler::Add(PostEffect* postEffect)
 {
-	auto& layer = _layers.Add();
-	layer.postEffect = postEffect;
-	RecreateLayerAssets(layer, _layers.GetCount() - 1);
+	_postEffects.Add(postEffect);
+
+	auto& swapChain = _renderer.GetSwapChain();
+	const uint32_t swapChainLength = swapChain.GetLength();
+
+	_frames.Resize(_frames.GetCount() + swapChainLength);
+	RecreateLayerAssets(_postEffects.GetCount() - 1);
 }
 
 bool PostEffectHandler::IsEmpty() const
 {
-	return _layers.GetCount() == 0;
+	return _postEffects.GetCount() == 0;
 }
 
 void PostEffectHandler::OnRecreateSwapChainAssets()
@@ -184,9 +200,8 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 	_renderPass = renderPassHandler.Create(renderPassCreateInfo);
 	_extent = swapChain.GetExtent();
 
-	uint32_t i = 0;
-	for (auto& layer : _layers)
-		RecreateLayerAssets(layer, i++);
+	for (uint32_t i = 0; i < _postEffects.GetCount(); ++i)
+		RecreateLayerAssets(i);
 }
 
 void PostEffectHandler::LayerBeginFrame(const uint32_t index)
@@ -197,9 +212,7 @@ void PostEffectHandler::LayerBeginFrame(const uint32_t index)
 
 	_imageIndex = swapChain.GetImageIndex();
 
-	auto& firstLayer = _layers[index];
-	auto& frame = firstLayer.frames[_imageIndex];
-
+	auto& frame = GetActiveFrame(index);
 	commandBufferHandler.BeginRecording(frame.commandBuffer);
 
 	VkClearValue clearColors[2];
@@ -214,10 +227,10 @@ void PostEffectHandler::LayerEndFrame(const uint32_t index) const
 {
 	auto& commandBufferHandler = core.GetCommandBufferHandler();
 	auto& renderPassHandler = core.GetRenderPassHandler();
-	auto& syncHandler = _renderer.GetSyncHandler();
+	auto& swapChain = core.GetSwapChain();
+	const auto imageAvailableSemaphore = swapChain.GetImageAvaiableSemaphore();
 
-	auto& layer = _layers[index];
-	auto& frame = layer.frames[_imageIndex];
+	auto& frame = GetActiveFrame(index);
 
 	renderPassHandler.End();
 	commandBufferHandler.EndRecording();
@@ -225,35 +238,41 @@ void PostEffectHandler::LayerEndFrame(const uint32_t index) const
 	vi::VkCommandBufferHandler::SubmitInfo info{};
 	info.buffers = &frame.commandBuffer;
 	info.buffersCount = 1;
-	info.waitSemaphore = VK_NULL_HANDLE;
-	info.signalSemaphore = VK_NULL_HANDLE;
-	info.fence = frame.fence;
+	info.waitSemaphore = index == 0 ? imageAvailableSemaphore : GetActiveFrame(index -1).renderFinishedSemaphore;
+	info.signalSemaphore = frame.renderFinishedSemaphore;
+	info.fence = VK_NULL_HANDLE;
 	commandBufferHandler.Submit(info);
-
-	syncHandler.WaitForFence(frame.fence);
 }
 
-void PostEffectHandler::RecreateLayerAssets(Layer& layer, const uint32_t index)
+void PostEffectHandler::RecreateLayerAssets(const uint32_t index)
 {
 	auto& commandBufferHandler = core.GetCommandBufferHandler();
 	auto& frameBufferHandler = core.GetFrameBufferHandler();
 	auto& imageHandler = _renderer.GetImageHandler();
 	auto& memoryHandler = _renderer.GetMemoryHandler();
-	auto& swapChainHandler = _renderer.GetSwapChain();
+	auto& swapChain = _renderer.GetSwapChain();
 	auto& syncHandler = _renderer.GetSyncHandler();
 
 	auto msaaSamples = vi::VkCorePhysicalDevice::GetMaxUsableSampleCount(_renderer.GetPhysicalDevice());
 	msaaSamples = vi::Ut::Min(_msaaSamples, msaaSamples);
+	
+	const auto format = swapChain.GetFormat();
+	const auto depthBufferFormat = swapChain.GetDepthBufferFormat();
 
-	for (auto& frame : layer.frames)
+	const uint32_t swapChainLength = swapChain.GetLength();
+	PostEffect::Frame* start = &GetStartFrame(index);
+
+	for (uint32_t i = 0; i < swapChainLength; ++i)
 	{
+		auto& frame = start[i];
+
 		frame.descriptorSet = _descriptorPool.Get();
 		frame.commandBuffer = commandBufferHandler.Create();
-		frame.fence = syncHandler.CreateFence();
+		frame.renderFinishedSemaphore = syncHandler.CreateSemaphore();
 
 		vi::VkImageHandler::CreateInfo colorImageCreateInfo{};
 		colorImageCreateInfo.resolution = { _extent.width, _extent.height };
-		colorImageCreateInfo.format = swapChainHandler.GetFormat();
+		colorImageCreateInfo.format = format;
 		colorImageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		if (index == 0)
 			colorImageCreateInfo.samples = msaaSamples;
@@ -261,7 +280,7 @@ void PostEffectHandler::RecreateLayerAssets(Layer& layer, const uint32_t index)
 
 		vi::VkImageHandler::CreateInfo depthImageCreateInfo{};
 		depthImageCreateInfo.resolution = { _extent.width, _extent.height };
-		depthImageCreateInfo.format = swapChainHandler.GetDepthBufferFormat();
+		depthImageCreateInfo.format = depthBufferFormat;
 		depthImageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		frame.depthImage = imageHandler.Create(depthImageCreateInfo);
 
@@ -273,12 +292,12 @@ void PostEffectHandler::RecreateLayerAssets(Layer& layer, const uint32_t index)
 
 		vi::VkImageHandler::ViewCreateInfo colorViewCreateInfo{};
 		colorViewCreateInfo.image = frame.colorImage;
-		colorViewCreateInfo.format = swapChainHandler.GetFormat();
+		colorViewCreateInfo.format = format;
 		frame.imageView = imageHandler.CreateView(colorViewCreateInfo);
 
 		vi::VkImageHandler::ViewCreateInfo depthViewCreateInfo{};
 		depthViewCreateInfo.image = frame.depthImage;
-		depthViewCreateInfo.format = swapChainHandler.GetDepthBufferFormat();
+		depthViewCreateInfo.format = depthBufferFormat;
 		depthViewCreateInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
 		frame.depthImageView = imageHandler.CreateView(depthViewCreateInfo);
 
@@ -290,21 +309,27 @@ void PostEffectHandler::RecreateLayerAssets(Layer& layer, const uint32_t index)
 		frame.frameBuffer = frameBufferHandler.Create(frameBufferCreateInfo);
 	}
 
-	layer.postEffect->OnRecreateAssets();
+	_postEffects[index]->OnRecreateAssets();
 }
 
-void PostEffectHandler::DestroyLayerAssets(Layer& layer, const bool calledByDestructor) const
+void PostEffectHandler::DestroyLayerAssets(const uint32_t index, const bool calledByDestructor) const
 {
 	auto& commandBufferHandler = core.GetCommandBufferHandler();
 	auto& frameBufferHandler = core.GetFrameBufferHandler();
 	auto& imageHandler = _renderer.GetImageHandler();
 	auto& memoryHandler = _renderer.GetMemoryHandler();
+	auto& swapChain = _renderer.GetSwapChain();
 	auto& syncHandler = _renderer.GetSyncHandler();
 
-	for (auto& frame : layer.frames)
+	const uint32_t swapChainLength = swapChain.GetLength();
+	PostEffect::Frame* start = &GetStartFrame(index);
+
+	for (uint32_t i = 0; i < swapChainLength; ++i)
 	{
+		auto& frame = start[i];
+
 		commandBufferHandler.Destroy(frame.commandBuffer);
-		syncHandler.DestroyFence(frame.fence);
+		syncHandler.DestroySemaphore(frame.renderFinishedSemaphore);
 
 		frameBufferHandler.Destroy(frame.frameBuffer);
 
@@ -319,7 +344,7 @@ void PostEffectHandler::DestroyLayerAssets(Layer& layer, const bool calledByDest
 	}
 
 	if(!calledByDestructor)
-		layer.postEffect->DestroyAssets();
+		_postEffects[index]->DestroyAssets();
 }
 
 void PostEffectHandler::DestroySwapChainAssets(const bool calledByDestructor) const
@@ -327,6 +352,16 @@ void PostEffectHandler::DestroySwapChainAssets(const bool calledByDestructor) co
 	auto& renderPassHandler = _renderer.GetRenderPassHandler();
 	renderPassHandler.Destroy(_renderPass);
 
-	for (auto& layer : _layers)
-		DestroyLayerAssets(layer, calledByDestructor);
+	for (uint32_t i = 0; i < _postEffects.GetCount(); ++i)
+		DestroyLayerAssets(i, calledByDestructor);
+}
+
+PostEffect::Frame& PostEffectHandler::GetStartFrame(uint32_t index) const
+{
+	return _frames[_renderer.GetSwapChain().GetLength() * index];
+}
+
+PostEffect::Frame& PostEffectHandler::GetActiveFrame(const uint32_t index) const
+{
+	return (&GetStartFrame(index))[_imageIndex];
 }

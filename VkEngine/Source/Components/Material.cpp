@@ -4,7 +4,6 @@
 #include "Components/Camera.h"
 #include "Rendering/Vertex.h"
 #include "Components/Transform.h"
-#include "Rendering/DescriptorPool.h"
 #include "Rendering/MeshHandler.h"
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
@@ -13,6 +12,10 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	System<Material>(cecsar), Dependency(renderer), 
 	_renderer(renderer), _transforms(transforms), _cameras(cameras)
 {
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& swapChain = renderer.GetSwapChain();
+	const uint32_t swapChainLength = swapChain.GetLength();
+
 	_shader = renderer.GetShaderExt().Load(shaderName);
 
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
@@ -21,12 +24,26 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	materialBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
-	VkDescriptorType uboType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	uint32_t blockSize = 32 * SWAPCHAIN_MAX_FRAMES;
-	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize);
-
 	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
 	_fallbackTexture = renderer.GetTextureHandler().Create("test", "png");
+
+	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChainLength * GetLength(), GMEM);
+
+	VkDescriptorType types = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	uint32_t size = GetLength() * swapChain.GetLength();
+
+	vi::VkDescriptorPoolHandler::PoolCreateInfo descriptorPoolCreateInfo{};
+	descriptorPoolCreateInfo.types = &types;
+	descriptorPoolCreateInfo.capacities = &size;
+	descriptorPoolCreateInfo.typeCount = 1;
+	_descriptorPool = descriptorPoolHandler.Create(descriptorPoolCreateInfo);
+
+	vi::VkDescriptorPoolHandler::SetCreateInfo descriptorSetCreateInfo{};
+	descriptorSetCreateInfo.layout = _layout;
+	descriptorSetCreateInfo.pool = _descriptorPool;
+	descriptorSetCreateInfo.outSets = _descriptorSets.GetData();
+	descriptorSetCreateInfo.setCount = size;
+	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
 
 	OnRecreateSwapChainAssets();
 }
@@ -38,7 +55,7 @@ MaterialSystem::~MaterialSystem()
 	_renderer.GetShaderExt().DestroyShader(_shader);
 	_renderer.GetTextureHandler().Destroy(_fallbackTexture);
 	_renderer.GetMeshHandler().Destroy(_mesh);
-	_descriptorPool.Cleanup();
+	_renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
 void MaterialSystem::OnRecreateSwapChainAssets()
@@ -67,6 +84,13 @@ void MaterialSystem::DestroySwapChainAssets() const
 	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
 }
 
+uint32_t MaterialSystem::GetDescriptorStartIndex() const
+{
+	auto& swapChain = _renderer.GetSwapChain();
+	const uint32_t imageIndex = swapChain.GetImageIndex();
+	return GetLength() * imageIndex;
+}
+
 void MaterialSystem::Update()
 {
 	auto& descriptorPoolHandler = _renderer.GetDescriptorPoolHandler();
@@ -81,6 +105,8 @@ void MaterialSystem::Update()
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 	meshHandler.Bind(_mesh);
 
+	const uint32_t startIndex = GetDescriptorStartIndex();
+
 	union
 	{
 		struct
@@ -93,11 +119,11 @@ void MaterialSystem::Update()
 
 	for (auto& [camIndex, camera] : _cameras)
 	{
-		sets.camera = _cameras.GetDescriptor(camera);
+		sets.camera = _cameras.GetDescriptor(camIndex);
 
 		for (const auto& [matIndex, material] : *this)
 		{
-			sets.material = material._descriptors[imageIndex];
+			sets.material = _descriptorSets[startIndex + matIndex];
 
 			const auto texture = material.texture ? material.texture : &_fallbackTexture;
 
@@ -131,21 +157,4 @@ Mesh MaterialSystem::GetMesh() const
 Texture MaterialSystem::GetFallbackTexture() const
 {
 	return _fallbackTexture;
-}
-
-Material& MaterialSystem::Insert(const uint32_t sparseIndex, const Material& value)
-{
-	auto& camera = System<Material>::Insert(sparseIndex, value);
-	for (auto& _descriptor : camera._descriptors)
-		_descriptor = _descriptorPool.Get();
-	return camera;
-}
-
-void MaterialSystem::RemoveAt(const uint32_t index)
-{
-	auto& swapChainExt = _renderer.GetSwapChainExt();
-	auto& camera = operator[](index);
-	for (auto& descriptor : camera._descriptors)
-		swapChainExt.Collect(descriptor, _descriptorPool);
-	System<Material>::RemoveAt(index);
 }
