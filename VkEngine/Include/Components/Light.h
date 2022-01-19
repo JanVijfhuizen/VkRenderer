@@ -10,7 +10,7 @@ class CameraSystem;
 
 struct Light final
 {
-	
+	float range = 5;
 };
 
 struct ShadowCaster final

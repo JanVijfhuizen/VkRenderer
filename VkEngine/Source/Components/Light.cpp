@@ -127,8 +127,8 @@ void LightSystem::Draw()
 
 				ubo.vertices[0] = sortableVertices[sortableIndices[0]];
 				ubo.vertices[1] = sortableVertices[sortableIndices[3]];
-				ubo.vertices[3] = ubo.vertices[0] + normalize(ubo.vertices[0] - glm::vec2(lightPos)) * 10.f;
-				ubo.vertices[2] = ubo.vertices[1] + normalize(ubo.vertices[1] - glm::vec2(lightPos)) * 10.f;
+				ubo.vertices[3] = ubo.vertices[0] + normalize(ubo.vertices[0] - glm::vec2(lightPos)) * (light.range - length(ubo.vertices[0]));
+				ubo.vertices[2] = ubo.vertices[1] + normalize(ubo.vertices[1] - glm::vec2(lightPos)) * (light.range - length(ubo.vertices[1]));
 
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();
