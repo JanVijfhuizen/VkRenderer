@@ -17,39 +17,29 @@ int main()
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{
 		const auto camera = engine.GetCecsar().Add();
-		engine.GetTransforms().Insert(camera);
+		auto& cameraTransform = engine.GetTransforms().Insert(camera);
 		engine.GetCameras().Insert(camera);
+		cameraTransform.position.z = -10;
 
-		const auto quad = engine.GetCecsar().Add();
-		engine.GetTransforms().Insert(quad);
-		engine.GetMaterials().Insert(quad);
+		const auto ground = engine.GetCecsar().Add();
+		auto& groundTransform = engine.GetTransforms().Insert(ground);
+		engine.GetMaterials().Insert(ground);
+		groundTransform.scale = glm::vec3(6);
+		groundTransform.position.z = .1f;
+
+		const auto quad1 = engine.GetCecsar().Add();
+		engine.GetTransforms().Insert(quad1);
+		engine.GetMaterials().Insert(quad1);
 
 		const auto quad2 = engine.GetCecsar().Add();
-		engine.GetTransforms().Insert(quad2);
+		auto& quad3Transform = engine.GetTransforms().Insert(quad2);
 		engine.GetMaterials().Insert(quad2);
-
-		const auto quad3 = engine.GetCecsar().Add();
-		auto& quad3Transform = engine.GetTransforms().Insert(quad3);
-		engine.GetMaterials().Insert(quad3);
-		quad3Transform.position = { 3, 0, 8 };
+		quad3Transform.position = { 3, 1, 0 };
 	};
 
 	info.update = [](Engine<GameState>& engine, GameState& gameState, bool& outQuit)
 	{
-		auto& c = engine.GetTransforms()[0];
-		auto& t = engine.GetTransforms()[1];
-		auto& t2 = engine.GetTransforms()[2];
-
-		static float f = 0;
-		f += 0.001f;
-		//c.rotation = f * 360 / 8;
-		c.position.y = sin(f) * 4;
-		c.position.z = -10;
-		t.position.x = sin(f) * 5;
-		t.position.y = cos(f) * 5;
-		t.rotation.y = f * 30;
-		t.position.z = 10;
-		t2.position.z = 10 + sin(f) * -5;
+		
 	};
 
 	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)

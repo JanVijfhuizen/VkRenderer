@@ -34,7 +34,7 @@ namespace vi
 
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.magFilter = info.magFilter;
+		samplerInfo.magFilter = info.maxFilter;
 		samplerInfo.minFilter = info.minFilter;
 		samplerInfo.addressModeU = info.adressMode;
 		samplerInfo.addressModeV = info.adressMode;

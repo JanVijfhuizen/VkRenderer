@@ -132,6 +132,8 @@ void MaterialSystem::Update()
 			vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
 			samplerCreateInfo.minLod = 0;
 			samplerCreateInfo.maxLod = texture->mipLevels;
+			samplerCreateInfo.minFilter = VK_FILTER_NEAREST;
+			samplerCreateInfo.maxFilter = VK_FILTER_NEAREST;
 			const auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
 			shaderHandler.BindSampler(sets.material, texture->imageView, texture->layout, sampler, 0, 0);
 			
