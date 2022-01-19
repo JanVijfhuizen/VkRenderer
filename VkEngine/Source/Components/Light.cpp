@@ -127,8 +127,18 @@ void LightSystem::Draw()
 
 				ubo.vertices[0] = sortableVertices[sortableIndices[0]];
 				ubo.vertices[1] = sortableVertices[sortableIndices[3]];
-				ubo.vertices[3] = ubo.vertices[0] + normalize(ubo.vertices[0] - glm::vec2(lightPos)) * (light.range - length(ubo.vertices[0]));
-				ubo.vertices[2] = ubo.vertices[1] + normalize(ubo.vertices[1] - glm::vec2(lightPos)) * (light.range - length(ubo.vertices[1]));
+
+				const glm::vec2 edge = glm::vec2(matPos) + offsetNorm * light.range;
+				const glm::vec2 edgeDir = vi::Ut::RotateDegrees(offsetNorm, 90);
+
+				// Tangent = Opposide / Adjecent
+				// atan(sortableAngles[0]) = ? / length(ubo.vertices[0] - edge)
+				// atan(sortableAngles[3]) * length(ubo.vertices[0] - edge) = ?
+				const float l = atan(sortableAngles[0]) * length(ubo.vertices[0] - edge);
+				const float l2 = atan(sortableAngles[3]) * length(ubo.vertices[1] - edge);
+
+				ubo.vertices[2] = edge - edgeDir * l;
+				ubo.vertices[3] = edge - edgeDir * l2;
 
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();

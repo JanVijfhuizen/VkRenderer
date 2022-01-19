@@ -26,7 +26,7 @@ int main()
 		const auto camera = cecsar.Add();
 		auto& cameraTransform = transforms.Insert(camera);
 		cameras.Insert(camera);
-		cameraTransform.position.z = -10;
+		cameraTransform.position.z = -20;
 
 		const auto ground = cecsar.Add();
 		auto& groundTransform = transforms.Insert(ground);
@@ -48,7 +48,7 @@ int main()
 		
 		const auto light = cecsar.Add();
 		auto& lightTransform = transforms.Insert(light);
-		lightTransform.position.z += 0.01f;
+		lightTransform.position.z -= 0.01f;
 		lights.Insert(light);
 	};
 
@@ -58,7 +58,7 @@ int main()
 		f += 0.001f;
 
 		engine.GetTransforms()[2].position.x = sin(f) * 2;
-		//engine.GetTransforms()[2].position.y = cos(f) * 2;
+		engine.GetTransforms()[2].position.y = cos(f) * 2;
 		engine.GetTransforms()[3].rotation.z = f * 36;
 	};
 
