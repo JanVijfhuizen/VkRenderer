@@ -69,8 +69,9 @@ void CameraSystem::Update()
 		
 		// Update individual UBOs.
 		auto& ubo = _ubos[i];
-		ubo.position = transform.position;
-		ubo.rotation = transform.rotation;
+		ubo.view = glm::lookAt(transform.position, camera.lookAt, glm::vec3(0, 1, 0));
+		ubo.projection = glm::perspective(glm::radians(camera.fieldOfView),
+			aspectRatio, camera.clipNear, camera.clipFar);
 		ubo.clipFar = camera.clipFar;
 		ubo.aspectRatio = aspectRatio;
 

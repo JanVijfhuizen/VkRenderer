@@ -8,17 +8,15 @@ layout(location = 2) in vec2 inTexCoords;
 
 layout (set = 0, binding = 0) uniform Camera
 {
-    vec3 position;
-    float rotation;
+    mat4 view;
+    mat4 projection;
     float clipFar;
     float aspectRatio;
 } camera;
 
 layout (push_constant) uniform PushConstants
 {
-    vec3 position;
-    float rotation;
-    float scale;
+    mat4 model;
 } pushConstants;
 
 layout(location = 0) out Data
@@ -32,6 +30,5 @@ void main()
     outData.normal = inNormal;
     outData.fragTexCoord = inTexCoords;
 
-    gl_Position = ToWorldPos(pushConstants.position, inPosition, camera.position, pushConstants.rotation, 
-        pushConstants.scale, camera.rotation, camera.aspectRatio, camera.clipFar);
+    gl_Position = camera.projection * camera.view * pushConstants.model * vec4(inPosition, 1);
 }

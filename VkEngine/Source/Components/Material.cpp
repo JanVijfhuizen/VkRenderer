@@ -72,7 +72,7 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.modules.Add(_shader.vertex);
 	pipelineInfo.modules.Add(_shader.fragment);
-	pipelineInfo.pushConstants.Add({ sizeof(Transform), VK_SHADER_STAGE_VERTEX_BIT });
+	pipelineInfo.pushConstants.Add({ sizeof(Transform::Ubo), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
 	pipelineInfo.extent = postEffectHandler.GetExtent();
 
@@ -117,6 +117,8 @@ void MaterialSystem::Update()
 		VkDescriptorSet values[2];
 	} sets{};
 
+	glm::mat4 modelMatrix;
+
 	for (auto& [camIndex, camera] : _cameras)
 	{
 		sets.camera = _cameras.GetDescriptor(camIndex);
@@ -136,7 +138,9 @@ void MaterialSystem::Update()
 			descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
 
 			const auto& transform = _transforms[matIndex];
-			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, transform);
+
+			transform.CreateModelMatrix(modelMatrix);
+			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, modelMatrix);
 			meshHandler.Draw();
 
 			swapChainext.Collect(sampler);

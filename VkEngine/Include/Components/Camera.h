@@ -9,12 +9,15 @@ struct Camera final
 {
 	struct alignas(256) Ubo final
 	{
-		glm::vec3 position;
-		float rotation;
+		glm::mat4 view;
+		glm::mat4 projection;
 		float clipFar;
 		float aspectRatio;
 	};
 
+	glm::vec3 lookAt{ 0 };
+	float fieldOfView = 45;
+	float clipNear = .1f;
 	float clipFar = 100;
 };
 

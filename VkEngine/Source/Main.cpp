@@ -14,11 +14,6 @@ int main()
 	Engine<GameState>::Info info{};
 	//info.useRenderDoc = true;
 
-	info.awake = [](Engine<GameState>& engine, GameState& gameState)
-	{
-		//gameState.msaa = GMEM.New<BasicPostEffect>(engine.GetRenderer(), "post-");
-	};
-
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{
 		const auto camera = engine.GetCecsar().Add();
@@ -49,9 +44,10 @@ int main()
 		f += 0.001f;
 		//c.rotation = f * 360 / 8;
 		c.position.y = sin(f) * 4;
+		c.position.z = -10;
 		t.position.x = sin(f) * 5;
 		t.position.y = cos(f) * 5;
-		t.rotation = f * 30;
+		t.rotation.y = f * 30;
 		t.position.z = 10;
 		t2.position.z = 10 + sin(f) * -5;
 	};
