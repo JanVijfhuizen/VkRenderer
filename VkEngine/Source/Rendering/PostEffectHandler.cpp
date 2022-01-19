@@ -137,6 +137,11 @@ void PostEffectHandler::Draw() const
 	finalLayer.postEffect->Draw(finalLayer.frames[_imageIndex]);
 }
 
+VkSemaphore PostEffectHandler::GetRenderFinishedSemaphore() const
+{
+	return _layers[_layers.GetCount() - 1].frames[_imageIndex].renderFinishedSemaphore;
+}
+
 VkRenderPass PostEffectHandler::GetRenderPass() const
 {
 	return _renderPass;
@@ -216,7 +221,8 @@ void PostEffectHandler::LayerEndFrame(const uint32_t index) const
 {
 	auto& commandBufferHandler = core.GetCommandBufferHandler();
 	auto& renderPassHandler = core.GetRenderPassHandler();
-	auto& syncHandler = _renderer.GetSyncHandler();
+	auto& swapChain = core.GetSwapChain();
+	const auto imageAvailableSemaphore = swapChain.GetImageAvaiableSemaphore();
 
 	auto& layer = _layers[index];
 	auto& frame = layer.frames[_imageIndex];
@@ -227,12 +233,10 @@ void PostEffectHandler::LayerEndFrame(const uint32_t index) const
 	vi::VkCommandBufferHandler::SubmitInfo info{};
 	info.buffers = &frame.commandBuffer;
 	info.buffersCount = 1;
-	info.waitSemaphore = VK_NULL_HANDLE;
-	info.signalSemaphore = VK_NULL_HANDLE;
-	info.fence = frame.fence;
+	info.waitSemaphore = index == 0 ? imageAvailableSemaphore : _layers[index - 1].frames[_imageIndex].renderFinishedSemaphore;
+	info.signalSemaphore = frame.renderFinishedSemaphore;
+	info.fence = VK_NULL_HANDLE;
 	commandBufferHandler.Submit(info);
-
-	syncHandler.WaitForFence(frame.fence);
 }
 
 void PostEffectHandler::RecreateLayerAssets(Layer& layer, const uint32_t index)
@@ -251,7 +255,7 @@ void PostEffectHandler::RecreateLayerAssets(Layer& layer, const uint32_t index)
 	{
 		frame.descriptorSet = _descriptorPool.Get();
 		frame.commandBuffer = commandBufferHandler.Create();
-		frame.fence = syncHandler.CreateFence();
+		frame.renderFinishedSemaphore = syncHandler.CreateSemaphore();
 
 		vi::VkImageHandler::CreateInfo colorImageCreateInfo{};
 		colorImageCreateInfo.resolution = { _extent.width, _extent.height };
@@ -306,7 +310,7 @@ void PostEffectHandler::DestroyLayerAssets(Layer& layer, const bool calledByDest
 	for (auto& frame : layer.frames)
 	{
 		commandBufferHandler.Destroy(frame.commandBuffer);
-		syncHandler.DestroyFence(frame.fence);
+		syncHandler.DestroySemaphore(frame.renderFinishedSemaphore);
 
 		frameBufferHandler.Destroy(frame.frameBuffer);
 

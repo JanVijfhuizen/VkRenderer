@@ -58,6 +58,11 @@ namespace vi
 		return _renderPass;
 	}
 
+	VkSemaphore VkCoreSwapchain::GetImageAvaiableSemaphore() const
+	{
+		return _frames[_frameIndex].imageAvailableSemaphore;
+	}
+
 	bool VkCoreSwapchain::GetShouldRecreateAssets() const
 	{
 		return _shouldRecreateAssets;
@@ -68,9 +73,10 @@ namespace vi
 		if (callWaitForImage)
 			WaitForImage();
 
+		auto& commandBufferHandler = _core.GetCommandBufferHandler();
 		auto& image = _images[_imageIndex];
 
-		_core.GetCommandBufferHandler().BeginRecording(image.commandBuffer);
+		commandBufferHandler.BeginRecording(image.commandBuffer);
 
 		VkClearValue clearColors[2];
 		clearColors[0].color = { 0, 0, 0, 1 };
@@ -98,7 +104,7 @@ namespace vi
 		return result;
 	}
 
-	void VkCoreSwapchain::EndFrame()
+	void VkCoreSwapchain::EndFrame(const VkSemaphore overrideWaitSemaphore)
 	{
 		auto& frame = _frames[_frameIndex];
 		auto& image = _images[_imageIndex];
@@ -112,7 +118,7 @@ namespace vi
 		VkCommandBufferHandler::SubmitInfo info{};
 		info.buffers = &image.commandBuffer;
 		info.buffersCount = 1;
-		info.waitSemaphore = frame.imageAvailableSemaphore;
+		info.waitSemaphore = overrideWaitSemaphore ? overrideWaitSemaphore : frame.imageAvailableSemaphore;
 		info.signalSemaphore = frame.renderFinishedSemaphore;
 		info.fence = frame.inFlightFence;
 		commandBufferHandler.Submit(info);
@@ -127,7 +133,8 @@ namespace vi
 		auto& syncHandler = _core.GetSyncHandler();
 
 		syncHandler.WaitForFence(frame.inFlightFence);
-		const auto result = vkAcquireNextImageKHR(_core.GetLogicalDevice(), _swapChain, UINT64_MAX, frame.imageAvailableSemaphore, VK_NULL_HANDLE, &_imageIndex);
+		const auto result = vkAcquireNextImageKHR(_core.GetLogicalDevice(), 
+			_swapChain, UINT64_MAX, frame.imageAvailableSemaphore, VK_NULL_HANDLE, &_imageIndex);
 		assert(!result);
 
 		auto& imageInFlight = _inFlight[_imageIndex];

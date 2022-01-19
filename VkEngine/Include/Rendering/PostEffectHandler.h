@@ -21,7 +21,7 @@ public:
 		VkDeviceMemory depthMemory;
 		VkFramebuffer frameBuffer;
 		VkCommandBuffer commandBuffer;
-		VkFence fence;
+		VkSemaphore renderFinishedSemaphore;
 
 		union
 		{
@@ -78,6 +78,7 @@ public:
 
 	void Draw() const;
 
+	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore() const;
 	[[nodiscard]] VkRenderPass GetRenderPass() const;
 	[[nodiscard]] VkExtent2D GetExtent() const;
 	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
