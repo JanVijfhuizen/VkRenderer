@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Rendering/SwapChainExt.h"
 #include "Rendering/ShaderExt.h"
+#include "Rendering/MeshHandler.h"
 
 struct Light final
 {
@@ -15,7 +16,7 @@ struct ShadowCaster final
 class LightSystem final : public ce::SmallSystem<Light>, SwapChainExt::Dependency
 {
 public:
-	LightSystem(ce::Cecsar& cecsar, Renderer& renderer, size_t size);
+	LightSystem(ce::Cecsar& cecsar, Renderer& renderer, size_t size = 8);
 	~LightSystem();
 
 private:
@@ -35,7 +36,9 @@ private:
 
 	VkDescriptorSetLayout _layout;
 	Shader _shader;
+	Mesh _mesh;
 
+	void CreateMesh();
 	void OnRecreateSwapChainAssets() override;
 };
 

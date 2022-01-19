@@ -4,6 +4,7 @@
 #include "Components/Transform.h"
 #include "Rendering/Renderer.h"
 #include "Components/Camera.h"
+#include "Components/Light.h"
 
 template <typename GameState>
 class Engine final
@@ -43,9 +44,13 @@ private:
 	vi::WindowHandlerGLFW* _windowHandler;
 	Renderer* _renderer;
 	ce::Cecsar* _cecsar;
+
 	TransformSystem* _transforms;
 	CameraSystem* _cameras;
 	MaterialSystem* _materials;
+	LightSystem* _lightSystem;
+	ShadowCasterSystem* _shadowCasterSystem;
+
 	GameState* _gameState;
 	BasicPostEffect* _defaultPostEffect = nullptr;
 };
@@ -72,6 +77,9 @@ int Engine<GameState>::Run(const Info& info)
 	_transforms = GMEM.New<TransformSystem>(*_cecsar);
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
 	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_transforms, *_cameras, "");
+	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer);
+	_shadowCasterSystem = GMEM.New<ShadowCasterSystem>(*_cecsar);
+
 	_gameState = GMEM.New<GameState>();
 
 	auto& postEffectHandler = _renderer->GetPostEffectHandler();
@@ -136,6 +144,8 @@ int Engine<GameState>::Run(const Info& info)
 		info.cleanup(*this, *_gameState);
 
 	GMEM.Delete(_gameState);
+	GMEM.Delete(_shadowCasterSystem);
+	GMEM.Delete(_lightSystem);
 	GMEM.Delete(_defaultPostEffect);
 	GMEM.Delete(_materials);
 	GMEM.Delete(_cameras);

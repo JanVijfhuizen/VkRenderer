@@ -13,10 +13,13 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, const size_t si
 	materialBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	materialBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
+
+	CreateMesh();
 }
 
 LightSystem::~LightSystem()
 {
+	renderer.GetMeshHandler().Destroy(_mesh);
 	renderer.GetShaderExt().DestroyShader(_shader);
 	renderer.GetLayoutHandler().DestroyLayout(_layout);
 }
@@ -47,6 +50,31 @@ vi::Vector<VkVertexInputAttributeDescription> LightSystem::ShadowVertex::GetAttr
 	texCoords.offset = offsetof(ShadowVertex, textureCoordinates);
 
 	return attributeDescriptions;
+}
+
+void LightSystem::CreateMesh()
+{
+	auto& meshHandler = renderer.GetMeshHandler();
+	MeshHandler::VertexData<ShadowVertex> vertData{};
+	vertData.vertices = vi::ArrayPtr<ShadowVertex>{ 4, GMEM_TEMP };
+	vertData.indices = vi::ArrayPtr<Vertex::Index>{ 4, GMEM_TEMP };
+
+	auto& lBot = vertData.vertices[0];
+	lBot.textureCoordinates = { 0, 0 };
+	auto& lTop = vertData.vertices[1];
+	lTop.textureCoordinates = { 0, 1 };
+	auto& rTop = vertData.vertices[2];
+	rTop.textureCoordinates = { 1, 1 };
+	auto& rBot = vertData.vertices[3];
+	rBot.textureCoordinates = { 1, 0 };
+
+	for (uint32_t i = 0; i < 4; ++i)
+	{
+		vertData.vertices[i].index = i;
+		vertData.indices[i] = i;
+	}
+
+	_mesh = meshHandler.Create(vertData);
 }
 
 void LightSystem::OnRecreateSwapChainAssets()
