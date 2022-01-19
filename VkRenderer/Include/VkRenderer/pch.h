@@ -1,5 +1,4 @@
 #pragma once
-constexpr unsigned SWAPCHAIN_MAX_FRAMES = 3;
 
 #include <iostream>
 #include <cassert>
