@@ -2,10 +2,14 @@
 #include "Components/Light.h"
 #include "VkRenderer/VkHandlers/VkLayoutHandler.h"
 #include "Rendering/Renderer.h"
+#include "Components/Camera.h"
 
-LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, const size_t size) : 
-	SmallSystem<Light>(cecsar, size), Dependency(renderer)
+LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, 
+	CameraSystem& cameras, ShadowCasterSystem& shadowCasters, const size_t size) :
+	SmallSystem<Light>(cecsar, size), Dependency(renderer), _cameras(cameras), _shadowCasters(shadowCasters)
 {
+	auto& swapChain = renderer.GetSwapChain();
+
 	_shader = renderer.GetShaderExt().Load("light-");
 
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
@@ -15,13 +19,22 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, const size_t si
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
 	CreateMesh();
+
+	VkDescriptorType types = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	uint32_t sizes = 32 * swapChain.GetLength();
+
+	_descriptorPool.Construct(renderer, _layout, &types, &sizes, 1, sizes);
+
+	OnRecreateSwapChainAssets();
 }
 
 LightSystem::~LightSystem()
 {
+	_descriptorPool.Cleanup();
 	renderer.GetMeshHandler().Destroy(_mesh);
 	renderer.GetShaderExt().DestroyShader(_shader);
 	renderer.GetLayoutHandler().DestroyLayout(_layout);
+	DestroySwapChainAssets();
 }
 
 VkVertexInputBindingDescription LightSystem::ShadowVertex::GetBindingDescription()
@@ -79,7 +92,28 @@ void LightSystem::CreateMesh()
 
 void LightSystem::OnRecreateSwapChainAssets()
 {
+	if (_pipeline)
+		DestroySwapChainAssets();
 
+	auto& postEffectHandler = renderer.GetPostEffectHandler();
+
+	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
+	pipelineInfo.attributeDescriptions = ShadowVertex::GetAttributeDescriptions();
+	pipelineInfo.bindingDescription = ShadowVertex::GetBindingDescription();
+	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
+	pipelineInfo.setLayouts.Add(_layout);
+	pipelineInfo.modules.Add(_shader.vertex);
+	pipelineInfo.modules.Add(_shader.fragment);
+	pipelineInfo.pushConstants.Add({ sizeof(Ubo), VK_SHADER_STAGE_VERTEX_BIT });
+	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
+	pipelineInfo.extent = postEffectHandler.GetExtent();
+
+	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
+}
+
+void LightSystem::DestroySwapChainAssets() const
+{
+	renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
 }
 
 ShadowCasterSystem::ShadowCasterSystem(ce::Cecsar& cecsar) : System<ShadowCaster>(cecsar)

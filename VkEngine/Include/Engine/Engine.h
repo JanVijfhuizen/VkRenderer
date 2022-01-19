@@ -48,8 +48,8 @@ private:
 	TransformSystem* _transforms;
 	CameraSystem* _cameras;
 	MaterialSystem* _materials;
-	LightSystem* _lightSystem;
 	ShadowCasterSystem* _shadowCasterSystem;
+	LightSystem* _lightSystem;
 
 	GameState* _gameState;
 	BasicPostEffect* _defaultPostEffect = nullptr;
@@ -77,8 +77,8 @@ int Engine<GameState>::Run(const Info& info)
 	_transforms = GMEM.New<TransformSystem>(*_cecsar);
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
 	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_transforms, *_cameras, "");
-	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer);
 	_shadowCasterSystem = GMEM.New<ShadowCasterSystem>(*_cecsar);
+	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_cameras, *_shadowCasterSystem);
 
 	_gameState = GMEM.New<GameState>();
 
@@ -144,8 +144,8 @@ int Engine<GameState>::Run(const Info& info)
 		info.cleanup(*this, *_gameState);
 
 	GMEM.Delete(_gameState);
-	GMEM.Delete(_shadowCasterSystem);
 	GMEM.Delete(_lightSystem);
+	GMEM.Delete(_shadowCasterSystem);
 	GMEM.Delete(_defaultPostEffect);
 	GMEM.Delete(_materials);
 	GMEM.Delete(_cameras);
