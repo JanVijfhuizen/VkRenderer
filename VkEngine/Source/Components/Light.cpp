@@ -116,17 +116,19 @@ void LightSystem::Draw()
 					sortableVertices[i] = vertPos;
 					sortableIndices[i] = i;
 					const glm::vec2 vertDir = normalize(vertPos);
+					// Calculate angle.
 					const float vertAngle = atan2(vertDir.y, vertDir.x);
+					// Calculate angle offset from center angle.
 					sortableAngles[i] = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
 				}
 
 				// Sort based on center offset.
 				vi::Ut::LinSort(sortableIndices, sortableAngles, 0, 4);
 
-				ubo.vertices[0] = sortableVertices[sortableIndices[3]];
-				ubo.vertices[1] = sortableVertices[sortableIndices[0]];
-				ubo.vertices[2] = glm::vec3(0);
-				ubo.vertices[3] = glm::vec3(0);
+				ubo.vertices[0] = sortableVertices[sortableIndices[0]];
+				ubo.vertices[1] = sortableVertices[sortableIndices[3]];
+				ubo.vertices[3] = ubo.vertices[0] + normalize(ubo.vertices[0] - glm::vec2(lightPos)) * 10.f;
+				ubo.vertices[2] = ubo.vertices[1] + normalize(ubo.vertices[1] - glm::vec2(lightPos)) * 10.f;
 
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();
