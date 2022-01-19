@@ -4,7 +4,7 @@
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/Renderer.h"
 
-SwapChainExt::Dependency::Dependency(Renderer& renderer) : _renderer(renderer)
+SwapChainExt::Dependency::Dependency(Renderer& renderer) : renderer(renderer)
 {
 	auto& swapChainExt = renderer.GetSwapChainExt();
 	swapChainExt._dependencies.Add(this);
@@ -12,7 +12,7 @@ SwapChainExt::Dependency::Dependency(Renderer& renderer) : _renderer(renderer)
 
 SwapChainExt::Dependency::~Dependency()
 {
-	auto& swapChainExt = _renderer.GetSwapChainExt();
+	auto& swapChainExt = renderer.GetSwapChainExt();
 	swapChainExt._dependencies.Remove(this);
 }
 

@@ -193,6 +193,7 @@
     <ClInclude Include="Include\Rendering\Vertex.h" />
     <ClInclude Include="Include\Components\Camera.h" />
     <ClInclude Include="Include\Rendering\UboPool.h" />
+    <ClInclude Include="Shaders\light,frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">
@@ -200,6 +201,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\light.vert" />
     <None Include="Shaders\post.frag" />
     <None Include="Shaders\post.vert" />
   </ItemGroup>

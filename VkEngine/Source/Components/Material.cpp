@@ -10,7 +10,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	Renderer& renderer, TransformSystem& transforms, 
 	CameraSystem& cameras, const char* shaderName) : 
 	System<Material>(cecsar), Dependency(renderer), 
-	_renderer(renderer), _transforms(transforms), _cameras(cameras)
+	_transforms(transforms), _cameras(cameras)
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& swapChain = renderer.GetSwapChain();
@@ -51,11 +51,11 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 MaterialSystem::~MaterialSystem()
 {
 	DestroySwapChainAssets();
-	_renderer.GetLayoutHandler().DestroyLayout(_layout);
-	_renderer.GetShaderExt().DestroyShader(_shader);
-	_renderer.GetTextureHandler().Destroy(_fallbackTexture);
-	_renderer.GetMeshHandler().Destroy(_mesh);
-	_renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
+	renderer.GetLayoutHandler().DestroyLayout(_layout);
+	renderer.GetShaderExt().DestroyShader(_shader);
+	renderer.GetTextureHandler().Destroy(_fallbackTexture);
+	renderer.GetMeshHandler().Destroy(_mesh);
+	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
 void MaterialSystem::OnRecreateSwapChainAssets()
@@ -63,7 +63,7 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	if (_pipeline)
 		DestroySwapChainAssets();
 
-	auto& postEffectHandler = _renderer.GetPostEffectHandler();
+	auto& postEffectHandler = renderer.GetPostEffectHandler();
 
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
@@ -76,29 +76,29 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
 	pipelineInfo.extent = postEffectHandler.GetExtent();
 
-	_renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
+	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
 void MaterialSystem::DestroySwapChainAssets() const
 {
-	_renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
+	renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
 }
 
 uint32_t MaterialSystem::GetDescriptorStartIndex() const
 {
-	auto& swapChain = _renderer.GetSwapChain();
+	auto& swapChain = renderer.GetSwapChain();
 	const uint32_t imageIndex = swapChain.GetImageIndex();
 	return GetLength() * imageIndex;
 }
 
 void MaterialSystem::Update()
 {
-	auto& descriptorPoolHandler = _renderer.GetDescriptorPoolHandler();
-	auto& shaderHandler = _renderer.GetShaderHandler();
-	auto& meshHandler = _renderer.GetMeshHandler();
-	auto& pipelineHandler = _renderer.GetPipelineHandler();
-	auto& swapChain = _renderer.GetSwapChain();
-	auto& swapChainext = _renderer.GetSwapChainExt();
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& shaderHandler = renderer.GetShaderHandler();
+	auto& meshHandler = renderer.GetMeshHandler();
+	auto& pipelineHandler = renderer.GetPipelineHandler();
+	auto& swapChain = renderer.GetSwapChain();
+	auto& swapChainext = renderer.GetSwapChainExt();
 
 	const uint32_t imageIndex = swapChain.GetImageIndex();
 

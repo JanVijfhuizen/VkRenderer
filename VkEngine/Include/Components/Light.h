@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Rendering/SwapChainExt.h"
+#include "Rendering/ShaderExt.h"
 
 struct Light final
 {
@@ -15,8 +16,26 @@ class LightSystem final : public ce::SmallSystem<Light>, SwapChainExt::Dependenc
 {
 public:
 	LightSystem(ce::Cecsar& cecsar, Renderer& renderer, size_t size);
+	~LightSystem();
 
-protected:
+private:
+	struct ShadowVertex final
+	{
+		uint32_t index;
+		glm::vec2 textureCoordinates;
+
+		[[nodiscard]] static VkVertexInputBindingDescription GetBindingDescription();
+		[[nodiscard]] static vi::Vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
+	};
+
+	struct Ubo final
+	{
+		glm::vec3 vertices[4];
+	};
+
+	VkDescriptorSetLayout _layout;
+	Shader _shader;
+
 	void OnRecreateSwapChainAssets() override;
 };
 

@@ -29,7 +29,6 @@ protected:
 	void OnRecreateSwapChainAssets() override;
 
 private:
-	Renderer& _renderer;
 	TransformSystem& _transforms;
 	CameraSystem& _cameras;
 
