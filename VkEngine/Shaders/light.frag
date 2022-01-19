@@ -16,5 +16,5 @@ void main()
     vec4 color = texture(diffuseSampler, inData.fragTexCoord);
     if(color.a < .01f)
         discard;
-    outColor = vec4(vec3(0), 1);
+    outColor = vec4(vec3(1, 0, 0), 1);
 }

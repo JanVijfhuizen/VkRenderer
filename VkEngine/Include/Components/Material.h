@@ -19,7 +19,7 @@ public:
 		TransformSystem& transforms, CameraSystem& cameras, const char* shaderName);
 	~MaterialSystem();
 
-	void Update();
+	void Draw();
 
 	[[nodiscard]] Shader GetShader() const;
 	[[nodiscard]] Mesh GetMesh() const;

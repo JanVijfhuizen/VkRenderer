@@ -15,7 +15,8 @@ layout (set = 0, binding = 0) uniform Camera
 
 layout (push_constant) uniform PushConstants
 {
-    vec3 vertices[4];
+    vec2 vertices[4];
+    float height;
 } pushConstants;
 
 layout(location = 0) out Data
@@ -27,5 +28,5 @@ void main()
 {
     outData.fragTexCoord = inTexCoords;
 
-    gl_Position = camera.projection * camera.view * mat4(1) * vec4(pushConstants.vertices[inPositionIndex], 1);
+    gl_Position = camera.projection * camera.view * mat4(1) * vec4(pushConstants.vertices[inPositionIndex], -pushConstants.height, 1);
 }

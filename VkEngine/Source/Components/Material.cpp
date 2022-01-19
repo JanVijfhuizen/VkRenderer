@@ -91,16 +91,13 @@ uint32_t MaterialSystem::GetDescriptorStartIndex() const
 	return GetLength() * imageIndex;
 }
 
-void MaterialSystem::Update()
+void MaterialSystem::Draw()
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& meshHandler = renderer.GetMeshHandler();
 	auto& pipelineHandler = renderer.GetPipelineHandler();
-	auto& swapChain = renderer.GetSwapChain();
-	auto& swapChainext = renderer.GetSwapChainExt();
-
-	const uint32_t imageIndex = swapChain.GetImageIndex();
+	auto& swapChainExt = renderer.GetSwapChainExt();
 
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 	meshHandler.Bind(_mesh);
@@ -145,7 +142,7 @@ void MaterialSystem::Update()
 			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, modelMatrix);
 			meshHandler.Draw();
 
-			swapChainext.Collect(sampler);
+			swapChainExt.Collect(sampler);
 		}
 	}
 }

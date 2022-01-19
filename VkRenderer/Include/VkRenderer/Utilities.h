@@ -2,6 +2,9 @@
 
 namespace vi
 {
+	#define PI 3.14159265358979323846f
+	#define DEG2_RAD (PI / 180)
+
 	/// <summary>
 	/// Utility class which contains common mathematical functions.
 	/// </summary>
@@ -25,8 +28,27 @@ namespace vi
 		template <typename T>
 		[[nodiscard]] static T Lerp(const T& t, const T& a, const T& b);
 
+		static glm::vec2 RotateDegrees(const glm::vec2 v, float degrees);
+
+		static glm::vec2 RotateRadians(const glm::vec2 v, const float radians);
+
+		/// <summary>
+		/// Gets the length of a given string.
+		/// </summary>
 		static size_t StrLen(const char* cStr);
 	};
+
+	inline glm::vec2 Ut::RotateDegrees(const glm::vec2 v, float degrees)
+	{
+		return RotateRadians(v, degrees * DEG2_RAD);
+	}
+
+	inline glm::vec2 Ut::RotateRadians(const glm::vec2 v, const float radians)
+	{
+		const float ca = std::cos(radians);
+		const float sa = std::sin(radians);
+		return glm::vec2(ca * v.x - sa * v.y, sa * v.x + ca * v.y);
+	}
 
 	inline size_t Ut::StrLen(const char* cStr)
 	{

@@ -35,9 +35,12 @@ public:
 
 	[[nodiscard]] Renderer& GetRenderer() const;
 	[[nodiscard]] ce::Cecsar& GetCecsar() const;
+
 	[[nodiscard]] CameraSystem& GetCameras() const;
-	[[nodiscard]] TransformSystem& GetTransforms() const;
+	[[nodiscard]] LightSystem& GetLights() const;
 	[[nodiscard]] MaterialSystem& GetMaterials() const;
+	[[nodiscard]] TransformSystem& GetTransforms() const;
+	[[nodiscard]] ShadowCasterSystem& GetShadowCasters() const;
 
 private:
 	bool _isRunning = false;
@@ -78,7 +81,7 @@ int Engine<GameState>::Run(const Info& info)
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
 	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_transforms, *_cameras, "");
 	_shadowCasterSystem = GMEM.New<ShadowCasterSystem>(*_cecsar);
-	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_cameras, *_shadowCasterSystem);
+	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_cameras, *_materials, *_shadowCasterSystem, *_transforms);
 
 	_gameState = GMEM.New<GameState>();
 
@@ -119,11 +122,11 @@ int Engine<GameState>::Run(const Info& info)
 			break;
 
 		swapChain.WaitForImage();
-
 		postEffectHandler.BeginFrame();
 
 		_cameras->Update();
-		_materials->Update();
+		_materials->Draw();
+		_lightSystem->Draw();
 
 		if (info.renderUpdate)
 			info.renderUpdate(*this, *_gameState, outQuit);
@@ -180,6 +183,18 @@ template <typename GameState>
 CameraSystem& Engine<GameState>::GetCameras() const
 {
 	return *_cameras;
+}
+
+template <typename GameState>
+LightSystem& Engine<GameState>::GetLights() const
+{
+	return *_lightSystem;
+}
+
+template <typename GameState>
+ShadowCasterSystem& Engine<GameState>::GetShadowCasters() const
+{
+	return *_shadowCasterSystem;
 }
 
 template <typename GameState>
