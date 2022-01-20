@@ -132,10 +132,11 @@ void LightSystem::Draw()
 				const glm::vec2 edgeDir = vi::Ut::RotateDegrees(offsetNorm, 90);
 
 				// Tangent = Opposide / Adjecent
-				// atan(sortableAngles[0]) = ? / length(ubo.vertices[0] - edge)
-				// atan(sortableAngles[3]) * length(ubo.vertices[0] - edge) = ?
-				const float l = atan(sortableAngles[0]) * length(ubo.vertices[0] - edge);
-				const float l2 = atan(sortableAngles[3]) * length(ubo.vertices[1] - edge);
+				// atan(sortableAngles[0]) = ? / edgeLength
+				// atan(sortableAngles[3]) * edgeLength = ?
+				const float edgeLength = length(glm::vec2(matPos) - edge);
+				const float l = atan(sortableAngles[0]) * edgeLength;
+				const float l2 = atan(sortableAngles[3]) * edgeLength;
 
 				ubo.vertices[2] = edge - edgeDir * l;
 				ubo.vertices[3] = edge - edgeDir * l2;
