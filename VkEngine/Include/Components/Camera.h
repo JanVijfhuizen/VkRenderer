@@ -11,8 +11,6 @@ struct Camera final
 	{
 		glm::mat4 view;
 		glm::mat4 projection;
-		float clipFar;
-		float aspectRatio;
 	};
 
 	glm::vec3 lookAt{ 0 };

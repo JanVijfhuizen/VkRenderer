@@ -72,8 +72,6 @@ void CameraSystem::Update()
 		ubo.view = glm::lookAt(transform.position, camera.lookAt, glm::vec3(0, 1, 0));
 		ubo.projection = glm::perspective(glm::radians(camera.fieldOfView),
 			aspectRatio, camera.clipNear, camera.clipFar);
-		ubo.clipFar = camera.clipFar;
-		ubo.aspectRatio = aspectRatio;
 
 		auto& descriptor = _descriptorSets[descriptorSetStartIndex + i];
 		

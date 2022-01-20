@@ -12,7 +12,7 @@ typedef Engine<GameState> GameEngine;
 int main()
 {
 	Engine<GameState>::Info info{};
-	//info.useRenderDoc = true;
+	info.useRenderDoc = true;
 
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{

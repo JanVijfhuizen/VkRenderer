@@ -8,8 +8,6 @@ layout (set = 0, binding = 0) uniform Camera
 {
     mat4 view;
     mat4 projection;
-    float clipFar;
-    float aspectRatio;
 } camera;
 
 layout (push_constant) uniform PushConstants
