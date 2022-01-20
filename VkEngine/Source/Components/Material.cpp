@@ -25,7 +25,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
 	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
-	_fallbackTexture = renderer.GetTextureHandler().Create("test", "png");
+	_fallbackTexture = renderer.GetTextureHandler().Create("Test", "png");
 
 	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChainLength * GetLength(), GMEM);
 

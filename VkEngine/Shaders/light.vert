@@ -3,7 +3,6 @@
 #include "shader.glsl"
 
 layout(location = 0) in int inPositionIndex;
-layout(location = 1) in vec2 inTexCoords;
 
 layout (set = 0, binding = 0) uniform Camera
 {
@@ -16,6 +15,7 @@ layout (set = 0, binding = 0) uniform Camera
 layout (push_constant) uniform PushConstants
 {
     vec2 vertices[4];
+    vec2 textureCoordinates[4];
     float height;
 } pushConstants;
 
@@ -26,7 +26,7 @@ layout(location = 0) out Data
 
 void main() 
 {
-    outData.fragTexCoord = inTexCoords;
+    outData.fragTexCoord = pushConstants.textureCoordinates[inPositionIndex];
 
     gl_Position = camera.projection * camera.view * mat4(1) * vec4(pushConstants.vertices[inPositionIndex], pushConstants.height, 1);
 }

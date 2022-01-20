@@ -140,6 +140,11 @@ void LightSystem::Draw()
 				ubo.vertices[2] = edge - edgeDir * l;
 				ubo.vertices[3] = edge - edgeDir * l2;
 
+				ubo.textureCoordinates[0] = { 0, 0 };
+				ubo.textureCoordinates[1] = { 0, 1 };
+				ubo.textureCoordinates[2] = { 1, 1 };
+				ubo.textureCoordinates[3] = { 1, 0 };
+
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();
 
@@ -161,19 +166,13 @@ VkVertexInputBindingDescription LightSystem::ShadowVertex::GetBindingDescription
 
 vi::Vector<VkVertexInputAttributeDescription> LightSystem::ShadowVertex::GetAttributeDescriptions()
 {
-	vi::Vector<VkVertexInputAttributeDescription> attributeDescriptions{ 2, GMEM_TEMP, 2 };
+	vi::Vector<VkVertexInputAttributeDescription> attributeDescriptions{ 1, GMEM_TEMP, 1 };
 
 	auto& position = attributeDescriptions[0];
 	position.binding = 0;
 	position.location = 0;
 	position.format = VK_FORMAT_R32_SINT;
 	position.offset = offsetof(ShadowVertex, index);
-
-	auto& texCoords = attributeDescriptions[1];
-	texCoords.binding = 0;
-	texCoords.location = 1;
-	texCoords.format = VK_FORMAT_R32G32_SFLOAT;
-	texCoords.offset = offsetof(ShadowVertex, textureCoordinates);
 
 	return attributeDescriptions;
 }
@@ -186,15 +185,6 @@ void LightSystem::CreateMesh()
 	
 	Vertex::Index indices[6] = { 0, 1, 2, 0, 2, 3 };
 	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 6 };
-
-	auto& lBot = vertData.vertices[0];
-	lBot.textureCoordinates = { 0, 0 };
-	auto& lTop = vertData.vertices[1];
-	lTop.textureCoordinates = { 0, 1 };
-	auto& rTop = vertData.vertices[2];
-	rTop.textureCoordinates = { 1, 1 };
-	auto& rBot = vertData.vertices[3];
-	rBot.textureCoordinates = { 1, 0 };
 
 	for (uint32_t i = 0; i < 4; ++i)
 		vertData.vertices[i].index = i;

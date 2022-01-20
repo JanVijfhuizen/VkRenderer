@@ -38,7 +38,6 @@ private:
 	struct ShadowVertex final
 	{
 		uint32_t index;
-		glm::vec2 textureCoordinates;
 
 		[[nodiscard]] static VkVertexInputBindingDescription GetBindingDescription();
 		[[nodiscard]] static vi::Vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
@@ -47,6 +46,7 @@ private:
 	struct Ubo final
 	{
 		glm::vec2 vertices[4];
+		glm::vec2 textureCoordinates[4];
 		float height;
 	};
 
