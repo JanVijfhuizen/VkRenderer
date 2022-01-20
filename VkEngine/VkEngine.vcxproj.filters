@@ -60,6 +60,9 @@
     <ClCompile Include="Source\Rendering\PostEffectHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Components\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\pch.h">
@@ -116,9 +119,16 @@
     <ClInclude Include="Include\Rendering\PostEffectHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Include\Components\Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\light,frag">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\post.vert" />
     <None Include="Shaders\post.frag" />
+    <None Include="Shaders\light.vert" />
   </ItemGroup>
 </Project>

@@ -16,40 +16,50 @@ int main()
 
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{
-		const auto camera = engine.GetCecsar().Add();
-		engine.GetTransforms().Insert(camera);
-		engine.GetCameras().Insert(camera);
+		auto& cecsar = engine.GetCecsar();
+		auto& cameras = engine.GetCameras();
+		auto& lights = engine.GetLights();
+		auto& materials = engine.GetMaterials();
+		auto& shadowCasters = engine.GetShadowCasters();
+		auto& transforms = engine.GetTransforms();
 
-		const auto quad = engine.GetCecsar().Add();
-		engine.GetTransforms().Insert(quad);
-		engine.GetMaterials().Insert(quad);
+		const auto camera = cecsar.Add();
+		auto& cameraTransform = transforms.Insert(camera);
+		cameras.Insert(camera);
+		cameraTransform.position.z = -20;
 
-		const auto quad2 = engine.GetCecsar().Add();
-		engine.GetTransforms().Insert(quad2);
-		engine.GetMaterials().Insert(quad2);
+		const auto ground = cecsar.Add();
+		auto& groundTransform = transforms.Insert(ground);
+		materials.Insert(ground);
+		groundTransform.scale = glm::vec3(6);
+		groundTransform.position.z = .1f;
 
-		const auto quad3 = engine.GetCecsar().Add();
-		auto& quad3Transform = engine.GetTransforms().Insert(quad3);
-		engine.GetMaterials().Insert(quad3);
-		quad3Transform.position = { 3, 0, 8 };
+		const auto quad1 = cecsar.Add();
+		transforms.Insert(quad1);
+		shadowCasters.Insert(quad1);
+		materials.Insert(quad1);
+		
+		const auto quad2 = cecsar.Add();
+		auto& quad3Transform = transforms.Insert(quad2);
+		shadowCasters.Insert(quad2);
+		materials.Insert(quad2);
+		quad3Transform.position = { 3, 1, 0 };
+		quad3Transform.rotation.z = 65;
+		
+		const auto light = cecsar.Add();
+		auto& lightTransform = transforms.Insert(light);
+		lightTransform.position.z -= 0.01f;
+		lights.Insert(light);
 	};
 
 	info.update = [](Engine<GameState>& engine, GameState& gameState, bool& outQuit)
 	{
-		auto& c = engine.GetTransforms()[0];
-		auto& t = engine.GetTransforms()[1];
-		auto& t2 = engine.GetTransforms()[2];
-
 		static float f = 0;
 		f += 0.001f;
-		//c.rotation = f * 360 / 8;
-		c.position.y = sin(f) * 4;
-		c.position.z = -10;
-		t.position.x = sin(f) * 5;
-		t.position.y = cos(f) * 5;
-		t.rotation.y = f * 30;
-		t.position.z = 10;
-		t2.position.z = 10 + sin(f) * -5;
+
+		engine.GetTransforms()[2].position.x = sin(f) * 2;
+		engine.GetTransforms()[2].position.y = cos(f) * 2;
+		engine.GetTransforms()[3].rotation.z = f * 36;
 	};
 
 	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)

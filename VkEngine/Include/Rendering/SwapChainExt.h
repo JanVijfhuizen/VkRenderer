@@ -20,8 +20,7 @@ public:
 	protected:
 		virtual void OnRecreateSwapChainAssets() = 0;
 
-	private:
-		Renderer& _renderer;
+		Renderer& renderer;
 	};
 
 	explicit SwapChainExt(vi::VkCore& core);

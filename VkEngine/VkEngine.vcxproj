@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Components\Light.cpp" />
     <ClCompile Include="Source\Rendering\PostEffectHandler.cpp" />
     <ClCompile Include="Source\Rendering\TextureHandler.cpp" />
     <ClCompile Include="Source\Rendering\MeshHandler.cpp" />
@@ -173,6 +174,7 @@
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Include\Components\Light.h" />
     <ClInclude Include="Include\Components\Material.h" />
     <ClInclude Include="Include\ECS\Cecsar.h" />
     <ClInclude Include="Include\ECS\HashSet.h" />
@@ -191,6 +193,7 @@
     <ClInclude Include="Include\Rendering\Vertex.h" />
     <ClInclude Include="Include\Components\Camera.h" />
     <ClInclude Include="Include\Rendering\UboPool.h" />
+    <ClInclude Include="Shaders\light,frag" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">
@@ -198,6 +201,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\light.vert" />
     <None Include="Shaders\post.frag" />
     <None Include="Shaders\post.vert" />
   </ItemGroup>

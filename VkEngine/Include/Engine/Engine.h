@@ -4,6 +4,7 @@
 #include "Components/Transform.h"
 #include "Rendering/Renderer.h"
 #include "Components/Camera.h"
+#include "Components/Light.h"
 
 template <typename GameState>
 class Engine final
@@ -34,18 +35,25 @@ public:
 
 	[[nodiscard]] Renderer& GetRenderer() const;
 	[[nodiscard]] ce::Cecsar& GetCecsar() const;
+
 	[[nodiscard]] CameraSystem& GetCameras() const;
-	[[nodiscard]] TransformSystem& GetTransforms() const;
+	[[nodiscard]] LightSystem& GetLights() const;
 	[[nodiscard]] MaterialSystem& GetMaterials() const;
+	[[nodiscard]] TransformSystem& GetTransforms() const;
+	[[nodiscard]] ShadowCasterSystem& GetShadowCasters() const;
 
 private:
 	bool _isRunning = false;
 	vi::WindowHandlerGLFW* _windowHandler;
 	Renderer* _renderer;
 	ce::Cecsar* _cecsar;
+
 	TransformSystem* _transforms;
 	CameraSystem* _cameras;
 	MaterialSystem* _materials;
+	ShadowCasterSystem* _shadowCasterSystem;
+	LightSystem* _lightSystem;
+
 	GameState* _gameState;
 	BasicPostEffect* _defaultPostEffect = nullptr;
 };
@@ -72,6 +80,9 @@ int Engine<GameState>::Run(const Info& info)
 	_transforms = GMEM.New<TransformSystem>(*_cecsar);
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
 	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_transforms, *_cameras, "");
+	_shadowCasterSystem = GMEM.New<ShadowCasterSystem>(*_cecsar);
+	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_cameras, *_materials, *_shadowCasterSystem, *_transforms);
+
 	_gameState = GMEM.New<GameState>();
 
 	auto& postEffectHandler = _renderer->GetPostEffectHandler();
@@ -111,11 +122,11 @@ int Engine<GameState>::Run(const Info& info)
 			break;
 
 		swapChain.WaitForImage();
-
 		postEffectHandler.BeginFrame();
 
 		_cameras->Update();
-		_materials->Update();
+		_materials->Draw();
+		_lightSystem->Draw();
 
 		if (info.renderUpdate)
 			info.renderUpdate(*this, *_gameState, outQuit);
@@ -136,6 +147,8 @@ int Engine<GameState>::Run(const Info& info)
 		info.cleanup(*this, *_gameState);
 
 	GMEM.Delete(_gameState);
+	GMEM.Delete(_lightSystem);
+	GMEM.Delete(_shadowCasterSystem);
 	GMEM.Delete(_defaultPostEffect);
 	GMEM.Delete(_materials);
 	GMEM.Delete(_cameras);
@@ -170,6 +183,18 @@ template <typename GameState>
 CameraSystem& Engine<GameState>::GetCameras() const
 {
 	return *_cameras;
+}
+
+template <typename GameState>
+LightSystem& Engine<GameState>::GetLights() const
+{
+	return *_lightSystem;
+}
+
+template <typename GameState>
+ShadowCasterSystem& Engine<GameState>::GetShadowCasters() const
+{
+	return *_shadowCasterSystem;
 }
 
 template <typename GameState>

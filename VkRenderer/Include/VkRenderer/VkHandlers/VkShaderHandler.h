@@ -10,8 +10,8 @@ namespace vi
 		{
 			float minLod = 0;
 			float maxLod = 0;
-			VkFilter magFilter = VK_FILTER_LINEAR;
 			VkFilter minFilter = VK_FILTER_LINEAR;
+			VkFilter maxFilter = VK_FILTER_LINEAR;
 			VkBorderColor borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 			VkSamplerAddressMode adressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		};

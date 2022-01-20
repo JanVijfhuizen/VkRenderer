@@ -24,7 +24,7 @@ struct Camera final
 class CameraSystem final : public ce::SmallSystem<Camera>
 {
 public:
-	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer, TransformSystem& transforms, uint32_t capacity = 8);
+	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer, TransformSystem& transforms, uint32_t capacity = 1);
 	~CameraSystem();
 
 	void Update();
