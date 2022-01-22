@@ -128,10 +128,12 @@ void LightSystem::Draw()
 				const float cAngle = vertData[sortableIndices[0]].angleToLight;
 				const float aAngle = vertData[sortableIndices[1]].angleToLight;
 				const float bAngle = vertData[sortableIndices[2]].angleToLight;
-				if (cAngle < aAngle && cAngle > bAngle)
+
+				const bool hasHat = cAngle > aAngle && cAngle < bAngle || cAngle < aAngle&& cAngle > bAngle;
+				if (!hasHat)
 					continue;
 
-				// Sort on quad angle.
+				// Sort on angle to light.
 				for (uint32_t i = 1; i < 3; ++i)
 					sortableValues[i] = -vertData[sortableIndices[i]].angleToLight;
 				vi::Ut::LinSort(sortableIndices, sortableValues, 1, 3);
@@ -141,8 +143,9 @@ void LightSystem::Draw()
 				for (uint32_t i = 0; i < 3; ++i)
 					ubo.vertices[i] = vertData[sortableIndices[i]].worldPos;
 
-				for (uint32_t i = 0; i < 3; ++i)
-					ubo.vertices[3 + i] = vertData[sortableIndices[i]].worldPos * 2.f;
+				ubo.vertices[3] = vertData[sortableIndices[2]].worldPos * 2.f;
+				ubo.vertices[4] = vertData[sortableIndices[1]].worldPos * 2.f;
+				ubo.vertices[5] = vertData[sortableIndices[0]].worldPos * 6.f;
 
 				// Draw the quad shadow.
 				sets.shadowCaster = _descriptorPool.Get();
@@ -196,8 +199,8 @@ void LightSystem::CreateMesh()
 	{ 
 		0, 1, 2, 
 		2, 1, 3, 
-		3, 2, 4,
-		5, 3, 4
+		3, 1, 4,
+		3, 4, 5
 	};
 
 	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 12 };
