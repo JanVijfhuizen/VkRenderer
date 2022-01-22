@@ -110,14 +110,17 @@ void LightSystem::Draw()
 					// Calculate angle to the light.
 					glm::vec2 vertDir = glm::normalize(data.worldPos);
 					float vertAngle = atan2(vertDir.y, vertDir.x);
-					data.angleToLight = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
+					data.xyAngleToLight = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
 
 					// Calculate angle to the quad center.
 					vertDir = glm::normalize(localPos);
 					// Calculate angle.
 					vertAngle = atan2(vertDir.y, vertDir.x);
 					// Calculate angle offset from center angle.
-					data.angleToQuadCenter = atan2(sin(vertAngle), cos(vertAngle));
+					data.xyAngleToQuadCenter = atan2(sin(vertAngle), cos(vertAngle));
+
+					// Calculate height angle.
+					data.zAngleToLight = vi::Ut::Abs(data.disToLight / offset.z);
 				}
 
 				// Sort on distance to light.
@@ -125,9 +128,9 @@ void LightSystem::Draw()
 					sortableValues[i] = vertData[sortableIndices[i]].disToLight;
 				vi::Ut::LinSort(sortableIndices, sortableValues, 0, 4);
 
-				const float cAngle = vertData[sortableIndices[0]].angleToLight;
-				const float aAngle = vertData[sortableIndices[1]].angleToLight;
-				const float bAngle = vertData[sortableIndices[2]].angleToLight;
+				const float cAngle = vertData[sortableIndices[0]].xyAngleToLight;
+				const float aAngle = vertData[sortableIndices[1]].xyAngleToLight;
+				const float bAngle = vertData[sortableIndices[2]].xyAngleToLight;
 
 				const bool hasHat = cAngle > aAngle && cAngle < bAngle || cAngle < aAngle&& cAngle > bAngle;
 				if (!hasHat)
@@ -135,7 +138,7 @@ void LightSystem::Draw()
 
 				// Sort on angle to light.
 				for (uint32_t i = 1; i < 3; ++i)
-					sortableValues[i] = -vertData[sortableIndices[i]].angleToLight;
+					sortableValues[i] = -vertData[sortableIndices[i]].xyAngleToLight;
 				vi::Ut::LinSort(sortableIndices, sortableValues, 1, 3);
 
 				// Put the first three vertices into the ubo.
@@ -143,9 +146,9 @@ void LightSystem::Draw()
 				for (uint32_t i = 0; i < 3; ++i)
 					ubo.vertices[i] = vertData[sortableIndices[i]].worldPos;
 
-				ubo.vertices[3] = vertData[sortableIndices[2]].worldPos * 2.f;
-				ubo.vertices[4] = vertData[sortableIndices[1]].worldPos * 2.f;
-				ubo.vertices[5] = vertData[sortableIndices[0]].worldPos * 6.f;
+				ubo.vertices[3] = vertData[sortableIndices[2]].worldPos * vertData[sortableIndices[2]].zAngleToLight;
+				ubo.vertices[4] = vertData[sortableIndices[1]].worldPos * vertData[sortableIndices[1]].zAngleToLight;
+				ubo.vertices[5] = vertData[sortableIndices[0]].worldPos * vertData[sortableIndices[0]].zAngleToLight;
 
 				// Draw the quad shadow.
 				sets.shadowCaster = _descriptorPool.Get();
@@ -203,7 +206,7 @@ void LightSystem::CreateMesh()
 		3, 4, 5
 	};
 
-	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 12 };
+	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 9 };
 
 	for (uint32_t i = 0; i < 6; ++i)
 		vertData.vertices[i].index = i;

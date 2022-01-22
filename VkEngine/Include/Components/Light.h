@@ -59,9 +59,10 @@ private:
 	struct VertData final
 	{
 		float disToLight;
-		float angleToQuadCenter;
-		float angleToLight;
+		float xyAngleToQuadCenter;
 		glm::vec2 worldPos;
+		float xyAngleToLight;
+		float zAngleToLight;
 	};
 
 	CameraSystem& _cameras;
