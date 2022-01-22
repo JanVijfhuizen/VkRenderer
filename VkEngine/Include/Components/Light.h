@@ -61,8 +61,8 @@ private:
 		float disToLight;
 		float xyAngleToQuadCenter;
 		glm::vec2 worldPos;
-		float xyAngleToLight;
-		float zAngleToLight;
+		float horAngleToLight;
+		float vertAngleToLight;
 	};
 
 	CameraSystem& _cameras;
