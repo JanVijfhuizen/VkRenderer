@@ -57,9 +57,11 @@ int main()
 		static float f = 0;
 		f += 0.001f;
 
-		engine.GetTransforms()[2].position.x = sin(f) * 2;
-		engine.GetTransforms()[2].position.y = cos(f) * 2;
+		engine.GetTransforms()[2].position.x = sin(-f * 2) * 2;
+		engine.GetTransforms()[2].position.y = cos(-f * 2) * 2;
 		engine.GetTransforms()[3].rotation.z = f * 36;
+		engine.GetTransforms()[3].position.x = sin(f) * 5;
+		engine.GetTransforms()[3].position.y = cos(f) * 5;
 	};
 
 	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)

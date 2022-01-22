@@ -82,8 +82,6 @@ void LightSystem::Draw()
 
 			for (const auto& [shadowCasterIndex, shadowCaster] : _shadowCasters)
 			{
-				sets.shadowCaster = _descriptorPool.Get();
-
 				assert(_materials.Contains(shadowCasterIndex));
 				assert(_transforms.Contains(shadowCasterIndex));
 
@@ -95,14 +93,6 @@ void LightSystem::Draw()
 				const glm::vec3 offset = matPos - lightPos;
 				const glm::vec2 offsetNorm = normalize(offset);
 
-				vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
-				samplerCreateInfo.minLod = 0;
-				samplerCreateInfo.maxLod = texture->mipLevels;
-				const auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
-				shaderHandler.BindSampler(sets.shadowCaster, texture->imageView, texture->layout, sampler, 0, 0);
-
-				descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
-
 				const float centerAngle = atan2(offsetNorm.y, offsetNorm.x);
 				const glm::vec2 lightPos2d = glm::vec2(lightPos);
 
@@ -112,21 +102,22 @@ void LightSystem::Draw()
 					sortableIndices[i] = i;
 					auto& data = vertData[i];
 
+					const glm::vec2 localPos = vi::Ut::RotateDegrees(quadVertices[i], matTransform.rotation.z / 2);
 					// Calculate the vertex world position and distance to the light.
-					data.worldPos = glm::vec2(offset) + vi::Ut::RotateDegrees(quadVertices[i], matTransform.rotation.z / 2);
+					data.worldPos = glm::vec2(offset) + localPos;
 					data.disToLight = glm::distance(data.worldPos, lightPos2d);
 
 					// Calculate angle to the light.
 					glm::vec2 vertDir = glm::normalize(data.worldPos);
 					float vertAngle = atan2(vertDir.y, vertDir.x);
-					data.absAngleToLight = abs(atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle)));
+					data.angleToLight = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
 
 					// Calculate angle to the quad center.
-					vertDir = glm::normalize(data.worldPos - glm::vec2(offset));
+					vertDir = glm::normalize(localPos);
 					// Calculate angle.
 					vertAngle = atan2(vertDir.y, vertDir.x);
 					// Calculate angle offset from center angle.
-					data.angleToQuadCenter = -atan2(sin(vertAngle), cos(vertAngle));
+					data.angleToQuadCenter = atan2(sin(vertAngle), cos(vertAngle));
 				}
 
 				// Sort on distance to light.
@@ -134,15 +125,34 @@ void LightSystem::Draw()
 					sortableValues[i] = vertData[sortableIndices[i]].disToLight;
 				vi::Ut::LinSort(sortableIndices, sortableValues, 0, 4);
 
-				// Sort on quad angle.
-				for (uint32_t i = 0; i < 3; ++i)
-					sortableValues[i] = vertData[sortableIndices[i]].angleToQuadCenter;
-				vi::Ut::LinSort(sortableIndices, sortableValues, 0, 3);
+				const float cAngle = vertData[sortableIndices[0]].angleToLight;
+				const float aAngle = vertData[sortableIndices[1]].angleToLight;
+				const float bAngle = vertData[sortableIndices[2]].angleToLight;
+				if (cAngle < aAngle && cAngle > bAngle)
+					continue;
 
-				// Put vertices into ubo.
+				// Sort on quad angle.
+				for (uint32_t i = 1; i < 3; ++i)
+					sortableValues[i] = -vertData[sortableIndices[i]].angleToLight;
+				vi::Ut::LinSort(sortableIndices, sortableValues, 1, 3);
+
+				// Put the first three vertices into the ubo.
 				ubo.height = offset.z;
 				for (uint32_t i = 0; i < 3; ++i)
 					ubo.vertices[i] = vertData[sortableIndices[i]].worldPos;
+
+				for (uint32_t i = 0; i < 3; ++i)
+					ubo.vertices[3 + i] = vertData[sortableIndices[i]].worldPos * 2.f;
+
+				// Draw the quad shadow.
+				sets.shadowCaster = _descriptorPool.Get();
+				vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
+				samplerCreateInfo.minLod = 0;
+				samplerCreateInfo.maxLod = texture->mipLevels;
+				const auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
+				shaderHandler.BindSampler(sets.shadowCaster, texture->imageView, texture->layout, sampler, 0, 0);
+
+				descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
 
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();
@@ -185,12 +195,12 @@ void LightSystem::CreateMesh()
 	Vertex::Index indices[12] = 
 	{ 
 		0, 1, 2, 
-		0, 2, 3, 
-		3, 1, 4,
+		2, 1, 3, 
+		3, 2, 4,
 		5, 3, 4
 	};
 
-	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 3 };
+	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 12 };
 
 	for (uint32_t i = 0; i < 6; ++i)
 		vertData.vertices[i].index = i;

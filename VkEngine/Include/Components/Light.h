@@ -60,7 +60,7 @@ private:
 	{
 		float disToLight;
 		float angleToQuadCenter;
-		float absAngleToLight;
+		float angleToLight;
 		glm::vec2 worldPos;
 	};
 
