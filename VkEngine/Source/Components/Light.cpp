@@ -70,6 +70,7 @@ void LightSystem::Draw()
 	uint32_t sortableIndices[4];
 	float sortableValues[4];
 	VertData vertData[4];
+	uint32_t hatVertOrder[3]{ 2, 1, 3 };
 
 	for (auto& [camIndex, camera] : _cameras)
 	{
@@ -146,16 +147,11 @@ void LightSystem::Draw()
 				for (uint32_t i = 0; i < 3; ++i)
 					ubo.vertices[i] = vertData[sortableIndices[i]].worldPos;
 
-				ubo.vertices[3] = vertData[sortableIndices[2]].worldPos * vertData[sortableIndices[2]].vertAngleToLight;
-				ubo.vertices[4] = vertData[sortableIndices[1]].worldPos * vertData[sortableIndices[1]].vertAngleToLight;
-				ubo.vertices[5] = vertData[sortableIndices[3]].worldPos * vertData[sortableIndices[3]].vertAngleToLight;
-
-				ubo.textureCoordinates[0] = { 0, 0 };
-				ubo.textureCoordinates[1] = { 0, 0 };
-				ubo.textureCoordinates[2] = { 0, 0 };
-				ubo.textureCoordinates[3] = { 0, 1 };
-				ubo.textureCoordinates[4] = { 1, 1 };
-				ubo.textureCoordinates[5] = { 1, 0 };
+				for (uint32_t i = 0; i < 3; ++i)
+				{
+					auto& data = vertData[sortableIndices[hatVertOrder[i]]];
+					ubo.vertices[3 + i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
+				}
 
 				// Draw the quad shadow.
 				sets.shadowCaster = _descriptorPool.Get();
