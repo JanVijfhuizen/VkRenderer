@@ -12,8 +12,8 @@ layout (set = 0, binding = 0) uniform Camera
 
 layout (push_constant) uniform PushConstants
 {
-    vec2 vertices[4];
-    vec2 textureCoordinates[4];
+    vec2 vertices[3];
+    vec2 textureCoordinates[3];
     float height;
 } pushConstants;
 

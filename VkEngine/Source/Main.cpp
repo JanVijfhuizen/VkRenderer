@@ -32,7 +32,7 @@ int main()
 		auto& groundTransform = transforms.Insert(ground);
 		materials.Insert(ground);
 		groundTransform.scale = glm::vec3(6);
-		groundTransform.position.z = .1f;
+		groundTransform.position.z = 0.1f;
 
 		const auto quad1 = cecsar.Add();
 		transforms.Insert(quad1);
@@ -48,7 +48,7 @@ int main()
 		
 		const auto light = cecsar.Add();
 		auto& lightTransform = transforms.Insert(light);
-		lightTransform.position.z -= 0.01f;
+		lightTransform.position.z += 0.01f;
 		lights.Insert(light);
 	};
 

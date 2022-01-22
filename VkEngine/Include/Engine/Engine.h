@@ -125,7 +125,7 @@ int Engine<GameState>::Run(const Info& info)
 		postEffectHandler.BeginFrame();
 
 		_cameras->Update();
-		_materials->Draw();
+		//_materials->Draw();
 		_lightSystem->Draw();
 
 		if (info.renderUpdate)

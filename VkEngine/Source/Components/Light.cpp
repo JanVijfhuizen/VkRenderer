@@ -103,6 +103,41 @@ void LightSystem::Draw()
 
 				descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
 
+				// New.
+				ubo.height = offset.z;
+
+				// Calculate the angle distance from the center of the quad to get the outer angles.
+				const float centerAngle = atan2(offsetNorm.y, offsetNorm.x);
+				for (uint32_t i = 0; i < 4; ++i)
+				{
+					const glm::vec2 vertPos = glm::vec2(offset) + vi::Ut::RotateDegrees(quadVertices[i], matTransform.rotation.z / 2);
+					sortableVertices[i] = vertPos;
+					sortableIndices[i] = i;
+					const glm::vec2 vertDir = normalize(vertPos);
+					// Calculate angle.
+					const float vertAngle = atan2(vertDir.y, vertDir.x);
+					// Calculate angle offset from center angle.
+					sortableAngles[i] = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
+				}
+
+				// Sort the vertices based on the angle between them and the quad centerpoint.
+				vi::Ut::LinSort(sortableIndices, sortableAngles, 0, 4);
+
+				// Get the closest and farthest vertex.
+				const float dis1 = glm::distance(sortableVertices[sortableIndices[1]], glm::vec2(lightPos));
+				const float dis2 = glm::distance(sortableVertices[sortableIndices[2]], glm::vec2(lightPos));
+				const uint32_t closestVert = sortableIndices[dis1 < dis2 ? 1 : 2];
+				const uint32_t fartherstVert = closestVert == 1 ? 2 : 1;
+
+				ubo.vertices[0] = sortableVertices[closestVert];
+				ubo.vertices[1] = sortableVertices[sortableIndices[0]];
+				ubo.vertices[2] = sortableVertices[sortableIndices[3]];
+
+				ubo.vertices[3] = ubo.vertices[0];
+				ubo.vertices[4] = ubo.vertices[1];
+				ubo.vertices[5] = ubo.vertices[2];
+
+				/*
 				// Calculate the shadow. We know for a fact that the mesh is a quad.
 				ubo.height = offset.z;
 				for (uint32_t i = 0; i < 4; ++i)
@@ -145,7 +180,7 @@ void LightSystem::Draw()
 				ubo.textureCoordinates[1] = { 0, 1 };
 				ubo.textureCoordinates[2] = { 1, 1 };
 				ubo.textureCoordinates[3] = { 1, 0 };
-
+				*/
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();
 
@@ -182,12 +217,18 @@ void LightSystem::CreateMesh()
 {
 	auto& meshHandler = renderer.GetMeshHandler();
 	MeshHandler::VertexData<ShadowVertex> vertData{};
-	vertData.vertices = vi::ArrayPtr<ShadowVertex>{ 4, GMEM_TEMP };
+	vertData.vertices = vi::ArrayPtr<ShadowVertex>{ 6, GMEM_TEMP };
 	
-	Vertex::Index indices[6] = { 0, 1, 2, 0, 2, 3 };
-	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 6 };
+	Vertex::Index indices[9] = 
+	{ 
+		0, 1, 2, 
+		0, 2, 3, 
+		3, 2, 4 
+	};
 
-	for (uint32_t i = 0; i < 4; ++i)
+	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 9 };
+
+	for (uint32_t i = 0; i < 6; ++i)
 		vertData.vertices[i].index = i;
 
 	_mesh = meshHandler.Create(vertData);

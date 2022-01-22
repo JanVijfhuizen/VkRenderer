@@ -45,8 +45,8 @@ private:
 
 	struct Ubo final
 	{
-		glm::vec2 vertices[4];
-		glm::vec2 textureCoordinates[4];
+		glm::vec2 vertices[6];
+		glm::vec2 textureCoordinates[6];
 		float height;
 	};
 
