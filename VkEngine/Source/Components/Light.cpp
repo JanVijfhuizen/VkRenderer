@@ -69,7 +69,7 @@ void LightSystem::Draw()
 
 	uint32_t sortableIndices[4];
 	float sortableValues[4];
-	glm::vec2 vertices[4];
+	VertData vertData[4];
 
 	for (auto& [camIndex, camera] : _cameras)
 	{
@@ -105,41 +105,44 @@ void LightSystem::Draw()
 
 				const float centerAngle = atan2(offsetNorm.y, offsetNorm.x);
 				const glm::vec2 lightPos2d = glm::vec2(lightPos);
-				ubo.height = offset.z;
 
-				// Calculate the vertex distance and remove the furthest vertex.
+				// Precalculate all important information.
 				for (uint32_t i = 0; i < 4; ++i)
 				{
-					const glm::vec2 vertPos = glm::vec2(offset) + vi::Ut::RotateDegrees(quadVertices[i], matTransform.rotation.z / 2);
-					vertices[i] = vertPos;
 					sortableIndices[i] = i;
-					sortableValues[i] = glm::distance(vertPos, lightPos2d);
+					auto& data = vertData[i];
+
+					// Calculate the vertex world position and distance to the light.
+					data.worldPos = glm::vec2(offset) + vi::Ut::RotateDegrees(quadVertices[i], matTransform.rotation.z / 2);
+					data.disToLight = glm::distance(data.worldPos, lightPos2d);
+
+					// Calculate angle to the light.
+					glm::vec2 vertDir = glm::normalize(data.worldPos);
+					float vertAngle = atan2(vertDir.y, vertDir.x);
+					data.absAngleToLight = abs(atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle)));
+
+					// Calculate angle to the quad center.
+					vertDir = glm::normalize(data.worldPos - glm::vec2(offset));
+					// Calculate angle.
+					vertAngle = atan2(vertDir.y, vertDir.x);
+					// Calculate angle offset from center angle.
+					data.angleToQuadCenter = -atan2(sin(vertAngle), cos(vertAngle));
 				}
 
+				// Sort on distance to light.
+				for (uint32_t i = 0; i < 4; ++i)
+					sortableValues[i] = vertData[sortableIndices[i]].disToLight;
 				vi::Ut::LinSort(sortableIndices, sortableValues, 0, 4);
 
-				// Calculate the angle distance from the center of the quad to get the outer angles.			
+				// Sort on quad angle.
 				for (uint32_t i = 0; i < 3; ++i)
-				{
-					const glm::vec2 vertDir = normalize(vertices[sortableIndices[i]] - glm::vec2(offset));
-					// Calculate angle.
-					const float vertAngle = atan2(vertDir.y, vertDir.x);
-					// Calculate angle offset from center angle.
-					sortableValues[i] = -atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
-				}
-
-				// Sort the vertices based on the angle between them and the quad centerpoint.
+					sortableValues[i] = vertData[sortableIndices[i]].angleToQuadCenter;
 				vi::Ut::LinSort(sortableIndices, sortableValues, 0, 3);
 
-				// Get the closest and farthest vertex.
+				// Put vertices into ubo.
+				ubo.height = offset.z;
 				for (uint32_t i = 0; i < 3; ++i)
-				{
-					ubo.vertices[i] = vertices[sortableIndices[i]];
-				}
-
-				ubo.vertices[3] = ubo.vertices[0] + glm::normalize(ubo.vertices[0] - lightPos2d) * 4.f;
-				ubo.vertices[4] = ubo.vertices[1] + glm::normalize(ubo.vertices[1] - lightPos2d) * 4.f;
-				ubo.vertices[5] = ubo.vertices[2] + glm::normalize(ubo.vertices[2] - lightPos2d) * 4.f;
+					ubo.vertices[i] = vertData[sortableIndices[i]].worldPos;
 
 				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
 				meshHandler.Draw();
@@ -182,7 +185,7 @@ void LightSystem::CreateMesh()
 	Vertex::Index indices[12] = 
 	{ 
 		0, 1, 2, 
-		0, 3, 1, 
+		0, 2, 3, 
 		3, 1, 4,
 		5, 3, 4
 	};

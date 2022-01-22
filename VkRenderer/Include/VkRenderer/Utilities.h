@@ -111,7 +111,7 @@ namespace vi
 		{
 			size_t j = i;
 
-			while (j > 0 && comparables[j] < comparables[j - 1])
+			while (j > from && comparables[j] < comparables[j - 1])
 			{
 				const T temp = arr[j - 1];
 				arr[j - 1] = arr[j];

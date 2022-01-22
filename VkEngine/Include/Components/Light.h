@@ -56,6 +56,14 @@ private:
 		VkImageView view;
 	};
 
+	struct VertData final
+	{
+		float disToLight;
+		float angleToQuadCenter;
+		float absAngleToLight;
+		glm::vec2 worldPos;
+	};
+
 	CameraSystem& _cameras;
 	MaterialSystem& _materials;
 	ShadowCasterSystem& _shadowCasters;
