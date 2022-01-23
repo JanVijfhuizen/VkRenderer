@@ -61,8 +61,8 @@ int main()
 
 		//engine.GetTransforms()[0].position.z = -7.5f - 2.5f *sin(-f * 2);
 
-		engine.GetTransforms()[2].position.x = sin(-f * 2);
-		engine.GetTransforms()[2].position.y = cos(-f * 2);
+		engine.GetTransforms()[2].position.x = sin(-f * 2) * 2;
+		engine.GetTransforms()[2].position.y = cos(-f * 2) * 2;
 		//engine.GetTransforms()[3].rotation.z = f * 36;
 		engine.GetTransforms()[3].position.x = sin(f) * 3;
 		engine.GetTransforms()[3].position.y = cos(f) * 3;

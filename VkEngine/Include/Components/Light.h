@@ -59,7 +59,6 @@ private:
 	struct VertData final
 	{
 		float disToLight;
-		float xyAngleToQuadCenter;
 		glm::vec2 worldPos;
 		float horAngleToLight;
 		float vertAngleToLight;

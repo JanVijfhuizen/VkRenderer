@@ -113,13 +113,6 @@ void LightSystem::Draw()
 					float vertAngle = atan2(vertDir.y, vertDir.x);
 					data.horAngleToLight = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
 
-					// Calculate angle to the quad center.
-					vertDir = glm::normalize(localPos);
-					// Calculate angle.
-					vertAngle = atan2(vertDir.y, vertDir.x);
-					// Calculate angle offset from center angle.
-					data.xyAngleToQuadCenter = atan2(sin(vertAngle), cos(vertAngle));
-
 					// Calculate height angle.
 					data.vertAngleToLight = vi::Ut::Abs(data.disToLight / offset.z);
 				}
@@ -134,23 +127,48 @@ void LightSystem::Draw()
 				const float bAngle = vertData[sortableIndices[2]].horAngleToLight;
 
 				const bool hasHat = cAngle > aAngle && cAngle < bAngle || cAngle < aAngle&& cAngle > bAngle;
-				if (!hasHat)
-					continue;
 
 				// Sort on angle to light.
 				for (uint32_t i = 1; i < 3; ++i)
 					sortableValues[i] = -vertData[sortableIndices[i]].horAngleToLight;
 				vi::Ut::LinSort(sortableIndices, sortableValues, 1, 3);
 
-				// Put the first three vertices into the ubo.
-				ubo.height = offset.z;
-				for (uint32_t i = 0; i < 3; ++i)
-					ubo.vertices[i] = vertData[sortableIndices[i]].worldPos;
+				// TODO: just send indices 
 
-				for (uint32_t i = 0; i < 3; ++i)
+				if (hasHat)
 				{
-					auto& data = vertData[sortableIndices[hatVertOrder[i]]];
-					ubo.vertices[3 + i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
+					// Draw the shadow front side.
+					ubo.height = offset.z;
+					for (uint32_t i = 0; i < 3; ++i)
+						ubo.vertices[i] = vertData[sortableIndices[i]].worldPos;
+
+					// Draw the shadow back side.
+					for (uint32_t i = 0; i < 3; ++i)
+					{
+						auto& data = vertData[sortableIndices[hatVertOrder[i]]];
+						ubo.vertices[3 + i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
+					}
+				}
+				else
+				{
+					for (uint32_t i = 1; i < 4; ++i)
+						sortableValues[i] = -vertData[sortableIndices[i]].horAngleToLight;
+					vi::Ut::LinSort(sortableIndices, sortableValues, 1, 4);
+
+					// Draw the shadow front side.
+					for (uint32_t i = 0; i < 2; ++i)
+					{
+						auto& data = vertData[sortableIndices[i]];
+						ubo.vertices[i] = data.worldPos;
+						ubo.vertices[2 + i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
+					}
+
+					// Draw the shadow back side.
+					for (uint32_t i = 0; i < 2; ++i)
+					{
+						auto& data = vertData[sortableIndices[i + 2]];
+						ubo.vertices[5 - i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
+					}
 				}
 
 				// Draw the quad shadow.
