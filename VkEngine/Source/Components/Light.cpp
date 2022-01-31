@@ -161,19 +161,13 @@ void LightSystem::Draw()
 
 					ubo.textureCoordinates[0] = texCoords[hat];
 					ubo.textureCoordinates[4] = ubo.textureCoordinates[1] = texCoords[(hat + 3) % 4];
-					//ubo.textureCoordinates[1] *= 0.5f;
 					ubo.textureCoordinates[3] = ubo.textureCoordinates[2] = texCoords[(hat + 1) % 4];
 					ubo.textureCoordinates[5] = texCoords[(hat + 2) % 4];
-
-					/*
-					ubo.textureCoordinates[0] = texCoords[hat];
-					ubo.textureCoordinates[4] = ubo.textureCoordinates[1] = texCoords[(hat + 3) % 4];
-					ubo.textureCoordinates[3] = ubo.textureCoordinates[2] = texCoords[(hat + 1) % 4];
-					ubo.textureCoordinates[5] = texCoords[(hat + 2) % 4];
-					*/
 				}
 				else
 				{
+					break;
+
 					// Sort on angle to the quad.
 					for (uint32_t i = 0; i < 4; ++i)
 						sortableValues[i] = -vertData[sortableIndices[i]].angleToQuad;
@@ -200,6 +194,12 @@ void LightSystem::Draw()
 						auto& data = vertData[sortableIndices[i + 1]];
 						ubo.vertices[i + 4] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
 					}
+
+					const uint32_t hat = sortableIndices[0];
+					ubo.textureCoordinates[0] = ubo.textureCoordinates[1] = texCoords[hat];
+					ubo.textureCoordinates[2] = ubo.textureCoordinates[3] = texCoords[(hat + 3) % 4];
+					ubo.textureCoordinates[4] = texCoords[(hat + 1) % 4];
+					ubo.textureCoordinates[5] = texCoords[(hat + 2) % 4];
 				}
 
 				// Draw the quad shadow.
