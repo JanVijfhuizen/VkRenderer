@@ -186,6 +186,7 @@
     <ClInclude Include="Include\Rendering\ShaderExt.h" />
     <ClInclude Include="Include\Rendering\MeshHandler.h" />
     <ClInclude Include="Include\Rendering\TextureHandler.h" />
+    <ClInclude Include="Include\Utils\EUtils.h" />
     <ClInclude Include="Include\Utils\FileReader.h" />
     <ClInclude Include="Include\pch.h" />
     <ClInclude Include="Include\ECS\SparseSet.h" />

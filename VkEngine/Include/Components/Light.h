@@ -62,6 +62,7 @@ private:
 		glm::vec2 worldPos;
 		float horAngleToLight;
 		float vertAngleToLight;
+		float angleToQuad;
 	};
 
 	CameraSystem& _cameras;

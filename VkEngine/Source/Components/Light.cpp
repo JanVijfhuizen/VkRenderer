@@ -5,6 +5,7 @@
 #include "Components/Camera.h"
 #include "Components/Material.h"
 #include "Components/Transform.h"
+#include "Utils/EUtils.h"
 
 LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, 
 	CameraSystem& cameras, MaterialSystem& materials, 
@@ -70,7 +71,7 @@ void LightSystem::Draw()
 	uint32_t sortableIndices[4];
 	float sortableValues[4];
 	VertData vertData[4];
-	uint32_t hatVertOrder[3]{ 2, 1, 3 };
+	const uint32_t hatVertOrder[3]{ 2, 1, 3 };
 
 	for (auto& [camIndex, camera] : _cameras)
 	{
@@ -109,9 +110,15 @@ void LightSystem::Draw()
 					data.disToLight = glm::distance(data.worldPos, lightPos2d);
 
 					// Calculate angle to the light.
-					glm::vec2 vertDir = glm::normalize(data.worldPos);
-					float vertAngle = atan2(vertDir.y, vertDir.x);
+					const glm::vec2 vertDir = glm::normalize(data.worldPos);
+					const float vertAngle = atan2(vertDir.y, vertDir.x);
+					// Calculate angle difference.
 					data.horAngleToLight = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
+
+					// Calculate angle to center of the quad.
+					const glm::vec2 normDir = glm::normalize(localPos);
+					const float normAngle = atan2(normDir.y, normDir.x);
+					data.angleToQuad = normAngle;
 
 					// Calculate height angle.
 					data.vertAngleToLight = vi::Ut::Abs(data.disToLight / offset.z);
@@ -126,14 +133,14 @@ void LightSystem::Draw()
 				const float aAngle = vertData[sortableIndices[1]].horAngleToLight;
 				const float bAngle = vertData[sortableIndices[2]].horAngleToLight;
 
+				// Based on the angle to the light, the shadow might have a different form.
+				// A shadow with a "hat" is a shadow with a vertex in front that does not normally add to the shadow's shape.
 				const bool hasHat = cAngle > aAngle && cAngle < bAngle || cAngle < aAngle&& cAngle > bAngle;
 
 				// Sort on angle to light.
 				for (uint32_t i = 1; i < 3; ++i)
 					sortableValues[i] = -vertData[sortableIndices[i]].horAngleToLight;
 				vi::Ut::LinSort(sortableIndices, sortableValues, 1, 3);
-
-				// TODO: just send indices 
 
 				if (hasHat)
 				{
@@ -151,23 +158,30 @@ void LightSystem::Draw()
 				}
 				else
 				{
-					for (uint32_t i = 1; i < 4; ++i)
+					// Sort on angle to the quad.
+					for (uint32_t i = 0; i < 4; ++i)
+						sortableValues[i] = -vertData[sortableIndices[i]].angleToQuad;
+					vi::Ut::LinSort(sortableIndices, sortableValues, 0, 4);
+
+					for (uint32_t i = 0; i < 4; ++i)
 						sortableValues[i] = -vertData[sortableIndices[i]].horAngleToLight;
-					vi::Ut::LinSort(sortableIndices, sortableValues, 1, 4);
+					EUt::LinMove(sortableIndices, sortableValues, 0, 4);
 
 					// Draw the shadow front side.
 					for (uint32_t i = 0; i < 2; ++i)
 					{
-						auto& data = vertData[sortableIndices[i]];
-						ubo.vertices[i] = data.worldPos;
-						ubo.vertices[2 + i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
+						auto& data = vertData[sortableIndices[i * 3]];
+						ubo.vertices[i * 2] = data.worldPos;
+						// Shadow end.
+						ubo.vertices[i * 2 + 1] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
 					}
 
 					// Draw the shadow back side.
 					for (uint32_t i = 0; i < 2; ++i)
 					{
-						auto& data = vertData[sortableIndices[i + 2]];
-						ubo.vertices[5 - i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
+						// Shadow end.
+						auto& data = vertData[sortableIndices[i + 1]];
+						ubo.vertices[i + 4] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
 					}
 				}
 
