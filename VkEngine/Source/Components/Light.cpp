@@ -145,7 +145,6 @@ void LightSystem::Draw()
 				if (hasHat)
 				{
 					// Draw the shadow front side.
-					ubo.height = offset.z;
 					for (uint32_t i = 0; i < 3; ++i)
 						ubo.vertices[i] = vertData[sortableIndices[i]].worldPos;
 
@@ -163,6 +162,7 @@ void LightSystem::Draw()
 						sortableValues[i] = -vertData[sortableIndices[i]].angleToQuad;
 					vi::Ut::LinSort(sortableIndices, sortableValues, 0, 4);
 
+					// Sort on angle towards the quad center.
 					for (uint32_t i = 0; i < 4; ++i)
 						sortableValues[i] = -vertData[sortableIndices[i]].horAngleToLight;
 					EUt::LinMove(sortableIndices, sortableValues, 0, 4);
@@ -186,6 +186,7 @@ void LightSystem::Draw()
 				}
 
 				// Draw the quad shadow.
+				ubo.height = offset.z;
 				sets.shadowCaster = _descriptorPool.Get();
 				vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
 				samplerCreateInfo.minLod = 0;
