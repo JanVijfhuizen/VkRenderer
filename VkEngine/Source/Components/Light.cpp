@@ -156,11 +156,21 @@ void LightSystem::Draw()
 						ubo.vertices[3 + i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
 					}
 
-					// Assign unsorted texture coordinates.
-					ubo.textureCoordinates[0] = texCoords[0];
-					ubo.textureCoordinates[4] = ubo.textureCoordinates[1] = texCoords[3];
-					ubo.textureCoordinates[3] = ubo.textureCoordinates[2] = texCoords[1];
-					ubo.textureCoordinates[5] = texCoords[2];
+					// Assign texture coordinates.
+					const uint32_t hat = sortableIndices[0];
+
+					ubo.textureCoordinates[0] = texCoords[hat];
+					ubo.textureCoordinates[4] = ubo.textureCoordinates[1] = texCoords[(hat + 3) % 4];
+					//ubo.textureCoordinates[1] *= 0.5f;
+					ubo.textureCoordinates[3] = ubo.textureCoordinates[2] = texCoords[(hat + 1) % 4];
+					ubo.textureCoordinates[5] = texCoords[(hat + 2) % 4];
+
+					/*
+					ubo.textureCoordinates[0] = texCoords[hat];
+					ubo.textureCoordinates[4] = ubo.textureCoordinates[1] = texCoords[(hat + 3) % 4];
+					ubo.textureCoordinates[3] = ubo.textureCoordinates[2] = texCoords[(hat + 1) % 4];
+					ubo.textureCoordinates[5] = texCoords[(hat + 2) % 4];
+					*/
 				}
 				else
 				{
@@ -208,6 +218,7 @@ void LightSystem::Draw()
 
 				swapChainExt.Collect(sampler);
 				swapChainExt.Collect(sets.shadowCaster, _descriptorPool);
+				break;
 			}
 		}
 	}
