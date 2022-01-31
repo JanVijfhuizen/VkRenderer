@@ -4,7 +4,7 @@
 class GameState final
 {
 public:
-	BasicPostEffect* msaa;
+	Texture texture;
 };
 
 typedef Engine<GameState> GameEngine;
@@ -16,6 +16,8 @@ int main()
 
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{
+		gameState.texture = engine.GetRenderer().GetTextureHandler().Create("Feather", "png");
+
 		auto& cecsar = engine.GetCecsar();
 		auto& cameras = engine.GetCameras();
 		auto& lights = engine.GetLights();
@@ -37,8 +39,9 @@ int main()
 		const auto quad1 = cecsar.Add();
 		transforms.Insert(quad1);
 		shadowCasters.Insert(quad1);
-		materials.Insert(quad1);
-		
+		auto& mat = materials.Insert(quad1);
+		mat.texture = &gameState.texture;
+
 		const auto quad2 = cecsar.Add();
 		auto& quad3Transform = transforms.Insert(quad2);
 		shadowCasters.Insert(quad2);
@@ -70,7 +73,7 @@ int main()
 
 	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)
 	{
-		//GMEM.Delete(gameState.msaa);
+		engine.GetRenderer().GetTextureHandler().Destroy(gameState.texture);
 	};
 
 	auto engine = GMEM.New<Engine<GameState>>();

@@ -72,6 +72,7 @@ void LightSystem::Draw()
 	float sortableValues[4];
 	VertData vertData[4];
 	const uint32_t hatVertOrder[3]{ 2, 1, 3 };
+	const glm::vec2 texCoords[4]{ {0, 0}, {0, 1}, {1, 1}, {1, 0} };
 
 	for (auto& [camIndex, camera] : _cameras)
 	{
@@ -154,6 +155,12 @@ void LightSystem::Draw()
 						auto& data = vertData[sortableIndices[hatVertOrder[i]]];
 						ubo.vertices[3 + i] = data.worldPos + glm::normalize(data.worldPos) * data.vertAngleToLight;
 					}
+
+					// Assign unsorted texture coordinates.
+					ubo.textureCoordinates[0] = texCoords[0];
+					ubo.textureCoordinates[4] = ubo.textureCoordinates[1] = texCoords[3];
+					ubo.textureCoordinates[3] = ubo.textureCoordinates[2] = texCoords[1];
+					ubo.textureCoordinates[5] = texCoords[2];
 				}
 				else
 				{
