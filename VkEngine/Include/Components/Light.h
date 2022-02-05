@@ -27,42 +27,25 @@ public:
 class LightSystem final : public ce::SmallSystem<Light>, SwapChainExt::Dependency
 {
 public:
+	struct Info final
+	{
+		size_t size = 8;
+		glm::ivec2 shadowResolution{ 512 };
+	};
+
 	LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
 		CameraSystem& cameras, MaterialSystem& materials, 
-		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, size_t size = 8);
+		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 
 	void Draw();
 
 private:
-	struct ShadowVertex final
-	{
-		uint32_t index;
-
-		[[nodiscard]] static VkVertexInputBindingDescription GetBindingDescription();
-		[[nodiscard]] static vi::Vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
-	};
-
-	struct Ubo final
-	{
-		glm::vec2 vertices[6];
-		glm::vec2 textureCoordinates[6];
-		float height;
-	};
-
-	struct ShadowMap final
+	struct CubeMap final
 	{
 		VkImage image;
+		VkDeviceMemory memory;
 		VkImageView view;
-	};
-
-	struct VertData final
-	{
-		float disToLight;
-		glm::vec2 worldPos;
-		float horAngleToLight;
-		float vertAngleToLight;
-		float angleToQuad;
 	};
 
 	CameraSystem& _cameras;
@@ -72,14 +55,15 @@ private:
 
 	VkDescriptorSetLayout _layout;
 	Shader _shader;
-	Mesh _mesh;
 	DescriptorPool _descriptorPool{};
-	vi::ArrayPtr<ShadowMap> _shadowMaps{};
+	vi::ArrayPtr<CubeMap> _cubeMaps{};
 
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
 
-	void CreateMesh();
+	void CreateCubeMaps(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
+	void DestroyCubeMaps();
+
 	void OnRecreateSwapChainAssets() override;
 	void DestroySwapChainAssets() const;
 };

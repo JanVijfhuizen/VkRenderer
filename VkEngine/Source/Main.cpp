@@ -12,7 +12,7 @@ typedef Engine<GameState> GameEngine;
 int main()
 {
 	Engine<GameState>::Info info{};
-	info.useRenderDoc = true;
+	//info.useRenderDoc = true;
 
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{
@@ -54,7 +54,7 @@ int main()
 		lightTransform.position.z += 1;
 		lights.Insert(light);
 
-		//cameraTransform.position.y += 15;
+		cameraTransform.position.y += 15;
 	};
 
 	info.update = [](Engine<GameState>& engine, GameState& gameState, bool& outQuit)

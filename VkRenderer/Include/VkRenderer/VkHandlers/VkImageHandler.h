@@ -12,6 +12,8 @@ namespace vi
 			glm::ivec2 resolution;
 			// The depth of the mipmap chain.
 			uint32_t mipLevels = 1;
+			// The amount of sub images.
+			uint32_t arrayLayers = 1;
 			// The format of the image (i.e. (S)RGB).
 			VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 			// How should the image function when going outside the borders.
@@ -20,12 +22,18 @@ namespace vi
 			VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 			// Multisampling.
 			VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+			// Flags.
+			VkImageCreateFlags flags{};
 		};
 
 		struct ViewCreateInfo final
 		{
 			// Image to read from.
 			VkImage image;
+			// Type of image view.
+			VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D;
+			// The amount of layers in the image.
+			uint32_t layerCount = 1;
 			// The depth of the mipmap chain.
 			uint32_t mipLevels = 1;
 			// Format of the image.
@@ -40,6 +48,8 @@ namespace vi
 			VkImage image;
 			VkImageLayout oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			VkImageLayout newLayout;
+			// The amount of layers.
+			uint32_t layerCount = 1;
 			// The depth of the mipmap chain.
 			uint32_t mipLevels = 1;
 			// Image aspects.
