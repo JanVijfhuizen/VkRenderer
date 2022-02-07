@@ -1,12 +1,10 @@
 ﻿#pragma once
 #include "Rendering/SwapChainExt.h"
 #include "Rendering/MeshHandler.h"
-#include "Rendering/DescriptorPool.h"
 #include "Rendering/ShaderExt.h"
 
 class TransformSystem;
 class MaterialSystem;
-class CameraSystem;
 
 struct Light final
 {
@@ -33,8 +31,7 @@ public:
 		glm::ivec2 shadowResolution{ 512 };
 	};
 
-	LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
-		CameraSystem& cameras, MaterialSystem& materials, 
+	LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem& materials, 
 		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 
@@ -48,26 +45,30 @@ private:
 		VkImageView view;
 	};
 
-	struct Ubo final
+	struct GeometryUbo final
 	{
 		glm::mat4 matrices[6]{};
 	};
 
-	CameraSystem& _cameras;
+	struct FragmentUbo final
+	{
+		glm::vec3 position;
+		float range;
+	};
+
 	MaterialSystem& _materials;
 	ShadowCasterSystem& _shadowCasters;
 	TransformSystem& _transforms;
 
+	glm::ivec2 _shadowResolution;
 	Shader _shader;
 	vi::ArrayPtr<DepthBuffer> _cubeMaps{};
-	vi::ArrayPtr<DepthBuffer> _renderTargets{};
 
+	VkDescriptorSetLayout _layout;
 	VkRenderPass _renderPass;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
 
-	void CreateRenderTargets(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
-	void DestroyRenderTargets();
 	void CreateCubeMaps(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
 	void DestroyCubeMaps();
 

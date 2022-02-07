@@ -1,19 +1,31 @@
 ﻿#include "pch.h"
 #include "Components/Light.h"
 #include "Rendering/Renderer.h"
-#include "Components/Camera.h"
 #include "Components/Material.h"
 #include "Components/Transform.h"
 
-LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, CameraSystem& cameras, MaterialSystem& materials,
+LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem& materials,
 	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info) :
 	SmallSystem<Light>(cecsar, info.size), Dependency(renderer),
-	_cameras(cameras), _materials(materials), _shadowCasters(shadowCasters), _transforms(transforms)
+	_materials(materials), 
+	_shadowCasters(shadowCasters), _transforms(transforms),
+	_shadowResolution(info.shadowResolution)
 {
 	auto& renderPassHandler = renderer.GetRenderPassHandler();
 	auto& swapChain = renderer.GetSwapChain();
 
 	_shader = renderer.GetShaderExt().Load("light-");
+
+	vi::VkLayoutHandler::CreateInfo layoutInfo{};
+	auto& geomBinding = layoutInfo.bindings.Add();
+	geomBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	geomBinding.flag = VK_SHADER_STAGE_GEOMETRY_BIT;
+	geomBinding.size = sizeof(GeometryUbo);
+	auto& fragBinding = layoutInfo.bindings.Add();
+	fragBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	fragBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragBinding.size = sizeof(FragmentUbo);
+	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
 	vi::VkRenderPassHandler::CreateInfo renderPassCreateInfo{};
 	renderPassCreateInfo.useColorAttachment = false;
@@ -22,7 +34,6 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, CameraSystem& c
 	renderPassCreateInfo.depthFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	_renderPass = renderPassHandler.Create(renderPassCreateInfo);
 
-	CreateRenderTargets(swapChain, info.shadowResolution);
 	CreateCubeMaps(swapChain, info.shadowResolution);
 	OnRecreateSwapChainAssets();
 }
@@ -32,86 +43,19 @@ LightSystem::~LightSystem()
 	renderer.GetRenderPassHandler().Destroy(_renderPass);
 	renderer.GetShaderExt().DestroyShader(_shader);
 
-	DestroyRenderTargets();
+	renderer.GetLayoutHandler().DestroyLayout(_layout);
 	DestroyCubeMaps();
 	DestroySwapChainAssets();
 }
 
 void LightSystem::Draw()
 {
-	
-}
+	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
+	const float near = 0.1f;
 
-void LightSystem::CreateRenderTargets(vi::VkCoreSwapchain& swapChain, const glm::ivec2 resolution)
-{
-	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
-	auto& imageHandler = renderer.GetImageHandler();
-	auto& memoryHandler = renderer.GetMemoryHandler();
-	auto& syncHandler = renderer.GetSyncHandler();
-
-	// Create image.
-	vi::VkImageHandler::CreateInfo imageCreateInfo{};
-	imageCreateInfo.resolution = resolution;
-	imageCreateInfo.format = swapChain.GetDepthBufferFormat();
-	imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-
-	// Create image view.
-	vi::VkImageHandler::ViewCreateInfo viewCreateInfo{};
-	viewCreateInfo.format = swapChain.GetDepthBufferFormat();
-	viewCreateInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-	// Create transition info.
-	vi::VkImageHandler::TransitionInfo transitionInfo{};
-	transitionInfo.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	transitionInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
-
-	// Start transition.
-	auto cmdBuffer = commandBufferHandler.Create();
-	commandBufferHandler.BeginRecording(cmdBuffer);
-
-	// Use the create infos to create a render target for every swapchain image.
-	_renderTargets.Reallocate(swapChain.GetLength(), GMEM);
-	for (uint32_t i = 0; i < swapChain.GetLength(); ++i)
+	for (const auto& [lightIndex, light] : *this)
 	{
-		auto& depthBuffer = _renderTargets[i];
-		depthBuffer.image = imageHandler.Create(imageCreateInfo);
-		depthBuffer.memory = memoryHandler.Allocate(depthBuffer.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		memoryHandler.Bind(depthBuffer.image, depthBuffer.memory);
-
-		viewCreateInfo.image = depthBuffer.image;
-		depthBuffer.view = imageHandler.CreateView(viewCreateInfo);
-
-		transitionInfo.image = depthBuffer.image;
-		imageHandler.TransitionLayout(transitionInfo);
-	}
-
-	const auto fence = syncHandler.CreateFence();
-
-	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
-	submitInfo.buffers = &cmdBuffer;
-	submitInfo.buffersCount = 1;
-	submitInfo.fence = fence;
-
-	// End recording and execute transitions.
-	commandBufferHandler.EndRecording();
-	commandBufferHandler.Submit(submitInfo);
-	syncHandler.WaitForFence(fence);
-
-	// Destroy command buffer and fence.
-	commandBufferHandler.Destroy(cmdBuffer);
-	syncHandler.DestroyFence(fence);
-}
-
-void LightSystem::DestroyRenderTargets()
-{
-	auto& imageHandler = renderer.GetImageHandler();
-	auto& memoryHandler = renderer.GetMemoryHandler();
-
-	for (auto& renderTarget : _renderTargets)
-	{
-		imageHandler.DestroyView(renderTarget.view);
-		imageHandler.Destroy(renderTarget.image);
-		memoryHandler.Free(renderTarget.memory);
+		const glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, light.range);
 	}
 }
 
@@ -128,7 +72,7 @@ void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec
 	imageCreateInfo.arrayLayers = 6;
 	imageCreateInfo.format = swapChain.GetDepthBufferFormat();
 	imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-	imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT; // VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+	imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 	// Create image view.
 	vi::VkImageHandler::ViewCreateInfo viewCreateInfo{};
@@ -203,7 +147,6 @@ void LightSystem::OnRecreateSwapChainAssets()
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
-	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
 	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.modules.Add(_shader.vertex);
 	pipelineInfo.renderPass = _renderPass;
