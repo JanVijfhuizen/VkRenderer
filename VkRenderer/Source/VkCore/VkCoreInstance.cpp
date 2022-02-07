@@ -54,7 +54,7 @@ namespace vi
 	ArrayPtr<const char*> VkCoreInstance::GetExtensions(const VkCoreInfo& info)
 	{
 		const auto requiredExtensions = info.windowHandler->GetRequiredExtensions();
-		auto& additionalExtensions = info.additionalExtensions;
+		auto& additionalExtensions = info.instanceExtensions;
 
 		uint32_t debugExtensions = 0;
 #ifdef _DEBUG
@@ -65,7 +65,7 @@ namespace vi
 		const size_t size = requiredExtensions.GetLength() + additionalExtensions.GetCount() + debugExtensions;
 		ArrayPtr<const char*> extensions(size, GMEM_TEMP);
 		extensions.CopyData(requiredExtensions, 0, requiredExtensions.GetLength());
-		extensions.CopyData(info.additionalExtensions, requiredExtensions.GetLength(), size - debugExtensions);
+		extensions.CopyData(info.instanceExtensions, requiredExtensions.GetLength(), size - debugExtensions);
 
 #ifdef _DEBUG
 		extensions[extensions.GetLength() - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;

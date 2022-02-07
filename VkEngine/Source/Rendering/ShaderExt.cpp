@@ -31,7 +31,7 @@ void ShaderExt::DestroyShader(const Shader& shader)
 	handler.DestroyModule(shader.vertex.module);
 }
 
-vi::String ShaderExt::ToCode(vi::String& name, vi::String& postFix)
+vi::String ShaderExt::ToCode(const vi::String& name, const vi::String& postFix)
 {
 	vi::String path{ "Shaders/", GMEM_TEMP };
 	path.Append(name);

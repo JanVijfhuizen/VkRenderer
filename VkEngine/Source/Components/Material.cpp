@@ -72,7 +72,7 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.modules.Add(_shader.vertex);
 	pipelineInfo.modules.Add(_shader.fragment);
-	pipelineInfo.pushConstants.Add({ sizeof(Transform::Ubo), VK_SHADER_STAGE_VERTEX_BIT });
+	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
 	pipelineInfo.extent = postEffectHandler.GetExtent();
 

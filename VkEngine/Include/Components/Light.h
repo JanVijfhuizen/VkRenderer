@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "Rendering/SwapChainExt.h"
-#include "Rendering/ShaderExt.h"
 #include "Rendering/MeshHandler.h"
 #include "Rendering/DescriptorPool.h"
+#include "Rendering/ShaderExt.h"
 
 class TransformSystem;
 class MaterialSystem;
@@ -41,11 +41,16 @@ public:
 	void Draw();
 
 private:
-	struct CubeMap final
+	struct DepthBuffer final
 	{
 		VkImage image;
 		VkDeviceMemory memory;
 		VkImageView view;
+	};
+
+	struct Ubo final
+	{
+		glm::mat4 matrices[6]{};
 	};
 
 	CameraSystem& _cameras;
@@ -53,14 +58,16 @@ private:
 	ShadowCasterSystem& _shadowCasters;
 	TransformSystem& _transforms;
 
-	VkDescriptorSetLayout _layout;
 	Shader _shader;
-	DescriptorPool _descriptorPool{};
-	vi::ArrayPtr<CubeMap> _cubeMaps{};
+	vi::ArrayPtr<DepthBuffer> _cubeMaps{};
+	vi::ArrayPtr<DepthBuffer> _renderTargets{};
 
+	VkRenderPass _renderPass;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
 
+	void CreateRenderTargets(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
+	void DestroyRenderTargets();
 	void CreateCubeMaps(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
 	void DestroyCubeMaps();
 

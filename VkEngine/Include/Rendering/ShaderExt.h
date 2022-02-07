@@ -23,5 +23,5 @@ public:
 	void DestroyShader(const Shader& shader);
 
 private:
-	[[nodiscard]] static vi::String ToCode(vi::String& name, vi::String& postFix);
+	[[nodiscard]] static vi::String ToCode(const vi::String& name, const vi::String& postFix);
 };

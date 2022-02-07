@@ -14,6 +14,6 @@ namespace vi
 		// Validation layers used for debugging.
 		Vector<const char*> validationLayers{ 1, GMEM_TEMP };
 		// Optional extensions for the vulkan instance.
-		Vector<const char*> additionalExtensions{ 0, GMEM_TEMP };
+		Vector<const char*> instanceExtensions{ 0, GMEM_TEMP };
 	};
 }
