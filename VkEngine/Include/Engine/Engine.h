@@ -81,7 +81,7 @@ int Engine<GameState>::Run(const Info& info)
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
 	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_transforms, *_cameras, "");
 	_shadowCasterSystem = GMEM.New<ShadowCasterSystem>(*_cecsar);
-	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_cameras, *_materials, *_shadowCasterSystem, *_transforms);
+	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_materials, *_shadowCasterSystem, *_transforms);
 
 	_gameState = GMEM.New<GameState>();
 

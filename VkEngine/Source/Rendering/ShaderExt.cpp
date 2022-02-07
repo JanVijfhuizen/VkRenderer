@@ -7,28 +7,40 @@ ShaderExt::ShaderExt(vi::VkCore& core) : VkHandler(core)
 {
 }
 
-Shader ShaderExt::Load(const char* name) const
+Shader ShaderExt::Load(const char* name, const LoadInfo& info) const
 {
-	vi::String vertPostFix{ "vert.spv", GMEM_TEMP };
-	vi::String fragPostFix{ "frag.spv", GMEM_TEMP };
-	vi::String middle{ name, GMEM_TEMP };
-
-	const auto vertCode = ToCode(middle, vertPostFix);
-	const auto fragCode = ToCode(middle, fragPostFix);
-
 	auto& handler = core.GetShaderHandler();
 
+	const vi::String middle{ name, GMEM_TEMP };
+	vi::String postFixes[3]
+	{
+		{"vert.spv", GMEM_TEMP },
+		{"geom.spv", GMEM_TEMP },
+		{"frag.spv", GMEM_TEMP }
+	};
+
 	Shader shader{};
-	shader.vertex.module = handler.CreateModule(vertCode);
-	shader.fragment.module = handler.CreateModule(fragCode);
+
+	for (uint32_t i = 0; i < 3; ++i)
+	{
+		if (!info.values[i])
+			continue;
+
+		vi::String postFix{ postFixes[i], GMEM_TEMP };
+		const auto code = ToCode(middle, postFix);
+		shader.modules[i].module = handler.CreateModule(code);
+	}
+
 	return shader;
 }
 
 void ShaderExt::DestroyShader(const Shader& shader)
 {
 	auto& handler = core.GetShaderHandler();
-	handler.DestroyModule(shader.fragment.module);
-	handler.DestroyModule(shader.vertex.module);
+
+	for (auto& module : shader.modules)
+		if (module.module)
+			handler.DestroyModule(module.module);
 }
 
 vi::String ShaderExt::ToCode(const vi::String& name, const vi::String& postFix)

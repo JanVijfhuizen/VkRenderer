@@ -14,7 +14,9 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 	auto& renderPassHandler = renderer.GetRenderPassHandler();
 	auto& swapChain = renderer.GetSwapChain();
 
-	_shader = renderer.GetShaderExt().Load("light-");
+	ShaderExt::LoadInfo shaderLoadInfo{};
+	shaderLoadInfo.geometry = true;
+	_shader = renderer.GetShaderExt().Load("light-", shaderLoadInfo);
 
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	auto& geomBinding = layoutInfo.bindings.Add();
