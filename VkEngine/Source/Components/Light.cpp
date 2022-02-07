@@ -135,6 +135,9 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	const float near = 0.1f;
 	glm::mat4 modelMatrix;
 
+	auto mesh = _materials.GetMesh();
+	meshHandler.Bind(mesh);
+
 	for (const auto& [lightIndex, light] : *this)
 	{
 		auto& lightTransform = _transforms[lightIndex];
@@ -159,6 +162,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 			transform.CreateModelMatrix(modelMatrix);
 			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, modelMatrix);
+
 			meshHandler.Draw();
 		}
 
