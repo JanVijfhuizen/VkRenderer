@@ -64,7 +64,7 @@ namespace vi
 		auto allocator = ArrayPtr<T>::GetAllocator();
 		assert(allocator);
 		const size_t length = ArrayPtr<T>::GetLength();
-		if(++_count >= length)
+		if(_count++ >= length)
 			ArrayPtr<T>::Reallocate(Ut::Max<size_t>(1, length * 2), *allocator);
 		return ArrayPtr<T>::operator[](_count - 1) = value;
 	}

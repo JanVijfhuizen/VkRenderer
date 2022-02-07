@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Rendering/SwapChainExt.h"
-#include "Rendering/MeshHandler.h"
 #include "Rendering/ShaderExt.h"
+#include "Rendering/UboPool.h"
 
 class TransformSystem;
 class MaterialSystem;
@@ -63,6 +63,13 @@ private:
 	glm::ivec2 _shadowResolution;
 	Shader _shader;
 	vi::ArrayPtr<DepthBuffer> _cubeMaps{};
+	vi::ArrayPtr<VkDescriptorSet_T*> _descriptorSets;
+	VkDescriptorPool _descriptorPool;
+
+	UboPool<GeometryUbo> _geometryUboPool;
+	UboPool<GeometryUbo> _fragmentUboPool;
+	vi::ArrayPtr<GeometryUbo> _geometryUbos;
+	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
 
 	VkDescriptorSetLayout _layout;
 	VkRenderPass _renderPass;

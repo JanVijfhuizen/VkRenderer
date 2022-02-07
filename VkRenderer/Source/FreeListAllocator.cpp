@@ -69,7 +69,7 @@ namespace vi
 	FreeListAllocator::Block::Block(size_t capacity)
 	{
 		// Allocates required amount of chunks.
-		capacity = ToChunkSize(capacity);
+		this->capacity = capacity = ToChunkSize(capacity);
 		data = new size_t[capacity];
 		next = data;
 
@@ -107,9 +107,9 @@ namespace vi
 			// If there is still space left over, partition this range into two parts.
 			if (diff > 1)
 			{
-				space = size;
+				space = size - 2;
 
-				const auto partitioned = reinterpret_cast<size_t*>(&current[size + 2]);
+				const auto partitioned = reinterpret_cast<size_t*>(&current[size]);
 				*reinterpret_cast<size_t**>(current) = partitioned;
 				*reinterpret_cast<size_t**>(partitioned) = next;
 

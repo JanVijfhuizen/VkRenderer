@@ -94,9 +94,9 @@ uint32_t MaterialSystem::GetDescriptorStartIndex() const
 void MaterialSystem::Draw()
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
-	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& meshHandler = renderer.GetMeshHandler();
 	auto& pipelineHandler = renderer.GetPipelineHandler();
+	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& swapChainExt = renderer.GetSwapChainExt();
 
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);

@@ -7,12 +7,20 @@
 LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem& materials,
 	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info) :
 	SmallSystem<Light>(cecsar, info.size), Dependency(renderer),
-	_materials(materials), 
+	_materials(materials),
 	_shadowCasters(shadowCasters), _transforms(transforms),
-	_shadowResolution(info.shadowResolution)
+	_shadowResolution(info.shadowResolution),
+	_geometryUboPool(renderer, info.size, renderer.GetSwapChain().GetLength()),
+	_fragmentUboPool(renderer, info.size, renderer.GetSwapChain().GetLength()),
+	_geometryUbos(info.size, GMEM_VOL),
+	_fragmentUbos(info.size, GMEM_VOL)
 {
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& renderPassHandler = renderer.GetRenderPassHandler();
+	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& swapChain = renderer.GetSwapChain();
+
+	const uint32_t swapChainLength = swapChain.GetLength();
 
 	ShaderExt::LoadInfo shaderLoadInfo{};
 	shaderLoadInfo.geometry = true;
@@ -38,27 +46,91 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 
 	CreateCubeMaps(swapChain, info.shadowResolution);
 	OnRecreateSwapChainAssets();
+
+	// Create descriptor sets.
+	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChain.GetLength() * GetLength(), GMEM);
+
+	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uint32_t size = GetLength() * swapChainLength * 2;
+
+	vi::VkDescriptorPoolHandler::PoolCreateInfo descriptorPoolCreateInfo{};
+	descriptorPoolCreateInfo.types = &types;
+	descriptorPoolCreateInfo.capacities = &size;
+	descriptorPoolCreateInfo.typeCount = 1;
+	_descriptorPool = descriptorPoolHandler.Create(descriptorPoolCreateInfo);
+
+	vi::VkDescriptorPoolHandler::SetCreateInfo descriptorSetCreateInfo{};
+	descriptorSetCreateInfo.layout = _layout;
+	descriptorSetCreateInfo.pool = _descriptorPool;
+	descriptorSetCreateInfo.outSets = _descriptorSets.GetData();
+	descriptorSetCreateInfo.setCount = size;
+	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
 }
 
 LightSystem::~LightSystem()
 {
+	DestroySwapChainAssets();
+
 	renderer.GetRenderPassHandler().Destroy(_renderPass);
 	renderer.GetShaderExt().DestroyShader(_shader);
-
 	renderer.GetLayoutHandler().DestroyLayout(_layout);
-	DestroyCubeMaps();
-	DestroySwapChainAssets();
+	DestroyCubeMaps();	
+	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
 void LightSystem::Draw()
 {
+	return;
+
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& memoryHandler = renderer.GetMemoryHandler();
+	auto& shaderHandler = renderer.GetShaderHandler();
+	auto& swapChain = renderer.GetSwapChain();
+	auto& swapChainExt = renderer.GetSwapChainExt();
+
+	const uint32_t imageIndex = swapChain.GetImageIndex();
+	const uint32_t offsetMultiplier = GetLength() * imageIndex;
+
 	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
 	const float near = 0.1f;
 
+	uint32_t i = 0;
+	const size_t geometryUboOffset = sizeof(GeometryUbo) * offsetMultiplier;
+	const size_t fragmentUboOffset = sizeof(FragmentUbo) * offsetMultiplier;
+
+	const auto geomMemory = _geometryUboPool.GetMemory();
+	const auto fragMemory = _fragmentUboPool.GetMemory();
+
+	const auto geomBuffer = _geometryUboPool.CreateBuffer();
+	memoryHandler.Bind(geomBuffer, geomMemory, geometryUboOffset);
+	const auto fragBuffer = _fragmentUboPool.CreateBuffer();
+	memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset);
+
 	for (const auto& [lightIndex, light] : *this)
 	{
+		auto& lightTransform = _transforms[lightIndex];
+
+		// Update geometry ubo.
+		auto& geomUbo = _geometryUbos[i];
 		const glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, light.range);
+
+		// Update fragment ubo.
+		auto& fragUbo = _fragmentUbos[i];
+		fragUbo.position = lightTransform.position;
+		fragUbo.range = light.range;
+
+		auto& descriptorSet = _descriptorSets[offsetMultiplier + i];
+		shaderHandler.BindBuffer(descriptorSet, geomBuffer, sizeof(GeometryUbo) * i, sizeof(GeometryUbo), 0, 0);
+		shaderHandler.BindBuffer(descriptorSet, fragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
+		descriptorPoolHandler.BindSets(&descriptorSet, 1);
+
+		++i;
 	}
+
+	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
+	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * GetLength());
+	swapChainExt.Collect(geomBuffer);
+	swapChainExt.Collect(fragBuffer);
 }
 
 void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec2 resolution)
