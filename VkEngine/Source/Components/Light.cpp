@@ -12,9 +12,11 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 	_shadowResolution(info.shadowResolution),
 	_geometryUboPool(renderer, info.size, renderer.GetSwapChain().GetLength()),
 	_fragmentUboPool(renderer, info.size, renderer.GetSwapChain().GetLength()),
-	_geometryUbos(info.size, GMEM_VOL),
-	_fragmentUbos(info.size, GMEM_VOL)
+	_geometryUbos(info.size, GMEM),
+	_fragmentUbos(info.size, GMEM),
+	_commandBuffers(renderer.GetSwapChain().GetLength(), GMEM)
 {
+	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& renderPassHandler = renderer.GetRenderPassHandler();
 	auto& swapChain = renderer.GetSwapChain();
@@ -64,12 +66,19 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 	descriptorSetCreateInfo.setCount = GetLength() * swapChainLength;
 	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
 
+	for (auto& commandBuffer : _commandBuffers)
+		commandBuffer = commandBufferHandler.Create();
+
 	OnRecreateSwapChainAssets();
 }
 
 LightSystem::~LightSystem()
 {
 	DestroySwapChainAssets();
+
+	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
+	for (auto& commandBuffer : _commandBuffers)
+		commandBufferHandler.Destroy(commandBuffer);
 
 	renderer.GetRenderPassHandler().Destroy(_renderPass);
 	renderer.GetShaderExt().DestroyShader(_shader);
@@ -78,12 +87,14 @@ LightSystem::~LightSystem()
 	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
-void LightSystem::Draw()
+void LightSystem::RenderDraw()
 {
-	return;
-
+	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& memoryHandler = renderer.GetMemoryHandler();
+	auto& meshHandler = renderer.GetMeshHandler();
+	auto& pipelineHandler = renderer.GetPipelineHandler();
+	auto& renderPassHandler = renderer.GetRenderPassHandler();
 	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& swapChain = renderer.GetSwapChain();
 	auto& swapChainExt = renderer.GetSwapChainExt();
@@ -91,8 +102,13 @@ void LightSystem::Draw()
 	const uint32_t imageIndex = swapChain.GetImageIndex();
 	const uint32_t offsetMultiplier = GetLength() * imageIndex;
 
-	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
-	const float near = 0.1f;
+	// Begin render pass.
+	VkClearValue depthStencil  = { 1, 0 };
+	const glm::ivec2 extent = { swapChain.GetExtent().width, swapChain.GetExtent().height };
+	renderPassHandler.Begin(_cubeMaps[imageIndex].frameBuffer, _renderPass, {}, extent, &depthStencil, 1);
+	pipelineHandler.Bind(_pipeline, _pipelineLayout);
+
+	commandBufferHandler.BeginRecording(_commandBuffers[imageIndex]);
 
 	uint32_t i = 0;
 	const size_t geometryUboOffset = sizeof(GeometryUbo) * offsetMultiplier;
@@ -105,6 +121,10 @@ void LightSystem::Draw()
 	memoryHandler.Bind(geomBuffer, geomMemory, geometryUboOffset);
 	const auto fragBuffer = _fragmentUboPool.CreateBuffer();
 	memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset);
+
+	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
+	const float near = 0.1f;
+	glm::mat4 modelMatrix;
 
 	for (const auto& [lightIndex, light] : *this)
 	{
@@ -124,6 +144,15 @@ void LightSystem::Draw()
 		shaderHandler.BindBuffer(descriptorSet, fragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
 		descriptorPoolHandler.BindSets(&descriptorSet, 1);
 
+		for (const auto& [matIndex, material] : _materials)
+		{
+			const auto& transform = _transforms[matIndex];
+
+			transform.CreateModelMatrix(modelMatrix);
+			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, modelMatrix);
+			meshHandler.Draw();
+		}
+
 		++i;
 	}
 
@@ -131,11 +160,21 @@ void LightSystem::Draw()
 	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * GetLength());
 	swapChainExt.Collect(geomBuffer);
 	swapChainExt.Collect(fragBuffer);
+
+	// TODO: wait & signal semaphores.
+	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
+	submitInfo.buffers = &_commandBuffers[imageIndex];
+	submitInfo.buffersCount = 1;
+
+	commandBufferHandler.EndRecording();
+	commandBufferHandler.Submit(submitInfo);
+	renderPassHandler.End();
 }
 
 void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec2 resolution)
 {
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
+	auto& frameBufferHandler = renderer.GetFrameBufferHandler();
 	auto& imageHandler = renderer.GetImageHandler();
 	auto& memoryHandler = renderer.GetMemoryHandler();
 	auto& syncHandler = renderer.GetSyncHandler();
@@ -154,6 +193,13 @@ void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec
 	viewCreateInfo.layerCount = 6;
 	viewCreateInfo.format = swapChain.GetDepthBufferFormat();
 	viewCreateInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+	// Create frame buffer info.
+	vi::VkFrameBufferHandler::CreateInfo frameBufferCreateInfo{};
+	frameBufferCreateInfo.imageViewCount = 1;
+	frameBufferCreateInfo.renderPass = _renderPass;
+	frameBufferCreateInfo.extent = swapChain.GetExtent();
+	frameBufferCreateInfo.layerCount = 6;
 
 	// Create transition info.
 	vi::VkImageHandler::TransitionInfo transitionInfo{};
@@ -179,6 +225,9 @@ void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec
 
 		transitionInfo.image = cubeMap.image;
 		imageHandler.TransitionLayout(transitionInfo);
+
+		frameBufferCreateInfo.imageViews = &cubeMap.view;
+		cubeMap.frameBuffer = frameBufferHandler.Create(frameBufferCreateInfo);
 	}
 
 	const auto fence = syncHandler.CreateFence();
@@ -200,11 +249,13 @@ void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec
 
 void LightSystem::DestroyCubeMaps()
 {
+	auto& frameBufferHandler = renderer.GetFrameBufferHandler();
 	auto& imageHandler = renderer.GetImageHandler();
 	auto& memoryHandler = renderer.GetMemoryHandler();
 
 	for (auto& cubeMap : _cubeMaps)
 	{
+		frameBufferHandler.Destroy(cubeMap.frameBuffer);
 		imageHandler.DestroyView(cubeMap.view);
 		imageHandler.Destroy(cubeMap.image);
 		memoryHandler.Free(cubeMap.memory);
@@ -223,9 +274,10 @@ void LightSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.modules.Add(_shader.vertex);
+	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.renderPass = _renderPass;
 	pipelineInfo.extent = postEffectHandler.GetExtent();
-
+	
 	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 

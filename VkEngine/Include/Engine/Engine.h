@@ -122,11 +122,13 @@ int Engine<GameState>::Run(const Info& info)
 			break;
 
 		swapChain.WaitForImage();
+
+		_lightSystem->RenderDraw();
+
 		postEffectHandler.BeginFrame();
 
 		_cameras->Update();
 		_materials->Draw();
-		_lightSystem->Draw();
 
 		if (info.renderUpdate)
 			info.renderUpdate(*this, *_gameState, outQuit);

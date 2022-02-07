@@ -13,7 +13,7 @@ namespace vi
 		framebufferInfo.pAttachments = info.imageViews;
 		framebufferInfo.width = info.extent.width;
 		framebufferInfo.height = info.extent.height;
-		framebufferInfo.layers = 1;
+		framebufferInfo.layers = info.layerCount;
 
 		VkFramebuffer frameBuffer;
 		const auto result = vkCreateFramebuffer(core.GetLogicalDevice(), &framebufferInfo, nullptr, &frameBuffer);

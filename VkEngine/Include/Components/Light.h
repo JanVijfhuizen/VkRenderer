@@ -35,7 +35,7 @@ public:
 		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 
-	void Draw();
+	void RenderDraw();
 
 private:
 	struct DepthBuffer final
@@ -43,14 +43,15 @@ private:
 		VkImage image;
 		VkDeviceMemory memory;
 		VkImageView view;
+		VkFramebuffer frameBuffer;
 	};
 
-	struct GeometryUbo final
+	struct alignas(512) GeometryUbo final
 	{
 		glm::mat4 matrices[6]{};
 	};
 
-	struct FragmentUbo final
+	struct alignas(256) FragmentUbo final
 	{
 		glm::vec3 position;
 		float range;
@@ -70,6 +71,7 @@ private:
 	UboPool<GeometryUbo> _fragmentUboPool;
 	vi::ArrayPtr<GeometryUbo> _geometryUbos;
 	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
+	vi::ArrayPtr<VkCommandBuffer> _commandBuffers;
 
 	VkDescriptorSetLayout _layout;
 	VkRenderPass _renderPass;
