@@ -40,7 +40,6 @@ namespace vi
 		/// </summary>
 		struct Block final
 		{
-			size_t capacity;
 			// Memory this block manages.
 			size_t* data;
 			// Next/first memory slot to check when allocating.

@@ -17,7 +17,6 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& renderPassHandler = renderer.GetRenderPassHandler();
-	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& swapChain = renderer.GetSwapChain();
 
 	const uint32_t swapChainLength = swapChain.GetLength();
@@ -45,7 +44,6 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 	_renderPass = renderPassHandler.Create(renderPassCreateInfo);
 
 	CreateCubeMaps(swapChain, info.shadowResolution);
-	OnRecreateSwapChainAssets();
 
 	// Create descriptor sets.
 	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChain.GetLength() * GetLength(), GMEM);
@@ -63,8 +61,10 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 	descriptorSetCreateInfo.layout = _layout;
 	descriptorSetCreateInfo.pool = _descriptorPool;
 	descriptorSetCreateInfo.outSets = _descriptorSets.GetData();
-	descriptorSetCreateInfo.setCount = size;
+	descriptorSetCreateInfo.setCount = GetLength() * swapChainLength;
 	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
+
+	OnRecreateSwapChainAssets();
 }
 
 LightSystem::~LightSystem()
