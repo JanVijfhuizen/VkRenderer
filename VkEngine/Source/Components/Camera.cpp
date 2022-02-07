@@ -57,7 +57,7 @@ void CameraSystem::Update()
 
 	const size_t memSize = sizeof(Camera::Ubo) * GetLength();
 	const size_t memOffset = memSize * imageIndex;
-	const float aspectRatio = static_cast<float>(swapChain.GetExtent().width) / swapChain.GetExtent().height;
+	const float aspectRatio = static_cast<float>(swapChain.GetExtent().x) / swapChain.GetExtent().y;
 
 	const auto buffer = _uboPool.CreateBuffer();
 	memoryHandler.Bind(buffer, memory, memOffset);

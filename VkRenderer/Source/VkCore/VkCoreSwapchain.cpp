@@ -148,9 +148,9 @@ namespace vi
 		IntReconstruct();
 	}
 
-	VkExtent2D VkCoreSwapchain::GetExtent() const
+	glm::ivec2 VkCoreSwapchain::GetExtent() const
 	{
-		return _extent;
+		return { _extent.width, _extent.height };
 	}
 
 	VkFormat VkCoreSwapchain::GetDepthBufferFormat() const
@@ -420,7 +420,7 @@ namespace vi
 			frameBufferCreateInfo.imageViews = image.imageViews;
 			frameBufferCreateInfo.imageViewCount = 2;
 			frameBufferCreateInfo.renderPass = _renderPass;
-			frameBufferCreateInfo.extent = _extent;
+			frameBufferCreateInfo.extent = { _extent.width, _extent.height };
 			image.frameBuffer = frameBufferHandler.Create(frameBufferCreateInfo);
 			image.commandBuffer = commandBuffers[i];
 		}

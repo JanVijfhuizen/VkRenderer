@@ -42,7 +42,7 @@ namespace vi
 		/// <returns>Current image count.</returns>
 		[[nodiscard]] uint32_t GetImageIndex() const;
 		/// <returns>Resolution of the images.</returns>
-		[[nodiscard]] VkExtent2D GetExtent() const;
+		[[nodiscard]] glm::ivec2 GetExtent() const;
 		/// <returns>Depth buffer image format.</returns>
 		[[nodiscard]] VkFormat GetDepthBufferFormat() const;
 		/// <returns>Color image format.</returns>

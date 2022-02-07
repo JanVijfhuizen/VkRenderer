@@ -106,8 +106,9 @@ PostEffectHandler::~PostEffectHandler()
 	_descriptorPool.Cleanup();
 }
 
-void PostEffectHandler::BeginFrame()
+void PostEffectHandler::BeginFrame(const VkSemaphore waitSemaphore)
 {
+	_waitSemaphore = waitSemaphore;
 	LayerBeginFrame(0);
 }
 
@@ -152,7 +153,7 @@ VkRenderPass PostEffectHandler::GetRenderPass() const
 	return _renderPass;
 }
 
-VkExtent2D PostEffectHandler::GetExtent() const
+glm::ivec2 PostEffectHandler::GetExtent() const
 {
 	return _extent;
 }
@@ -220,15 +221,13 @@ void PostEffectHandler::LayerBeginFrame(const uint32_t index)
 	clearColors[1].depthStencil = { 1, 0 };
 
 	renderPassHandler.Begin(frame.frameBuffer, _renderPass, {},
-		{ _extent.width, _extent.height }, clearColors, 2);
+		_extent, clearColors, 2);
 }
 
 void PostEffectHandler::LayerEndFrame(const uint32_t index) const
 {
 	auto& commandBufferHandler = core.GetCommandBufferHandler();
 	auto& renderPassHandler = core.GetRenderPassHandler();
-	auto& swapChain = core.GetSwapChain();
-	const auto imageAvailableSemaphore = swapChain.GetImageAvaiableSemaphore();
 
 	auto& frame = GetActiveFrame(index);
 
@@ -238,7 +237,7 @@ void PostEffectHandler::LayerEndFrame(const uint32_t index) const
 	vi::VkCommandBufferHandler::SubmitInfo info{};
 	info.buffers = &frame.commandBuffer;
 	info.buffersCount = 1;
-	info.waitSemaphore = index == 0 ? imageAvailableSemaphore : GetActiveFrame(index -1).renderFinishedSemaphore;
+	info.waitSemaphore = index == 0 ? _waitSemaphore : GetActiveFrame(index -1).renderFinishedSemaphore;
 	info.signalSemaphore = frame.renderFinishedSemaphore;
 	info.fence = VK_NULL_HANDLE;
 	commandBufferHandler.Submit(info);
@@ -271,7 +270,7 @@ void PostEffectHandler::RecreateLayerAssets(const uint32_t index)
 		frame.renderFinishedSemaphore = syncHandler.CreateSemaphore();
 
 		vi::VkImageHandler::CreateInfo colorImageCreateInfo{};
-		colorImageCreateInfo.resolution = { _extent.width, _extent.height };
+		colorImageCreateInfo.resolution = _extent;
 		colorImageCreateInfo.format = format;
 		colorImageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		if (index == 0)
@@ -279,7 +278,7 @@ void PostEffectHandler::RecreateLayerAssets(const uint32_t index)
 		frame.colorImage = imageHandler.Create(colorImageCreateInfo);
 
 		vi::VkImageHandler::CreateInfo depthImageCreateInfo{};
-		depthImageCreateInfo.resolution = { _extent.width, _extent.height };
+		depthImageCreateInfo.resolution = _extent;
 		depthImageCreateInfo.format = depthBufferFormat;
 		depthImageCreateInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		frame.depthImage = imageHandler.Create(depthImageCreateInfo);

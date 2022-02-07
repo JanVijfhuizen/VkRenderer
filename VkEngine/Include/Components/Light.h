@@ -35,7 +35,9 @@ public:
 		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 
-	void RenderDraw();
+	void Render(VkSemaphore waitSemaphore);
+
+	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore();
 
 private:
 	struct DepthBuffer final
@@ -44,6 +46,13 @@ private:
 		VkDeviceMemory memory;
 		VkImageView view;
 		VkFramebuffer frameBuffer;
+	};
+
+	struct Frame final
+	{
+		DepthBuffer cubeMap;
+		VkCommandBuffer commandBuffer;
+		VkSemaphore signalSemaphore;
 	};
 
 	struct alignas(512) GeometryUbo final
@@ -63,15 +72,14 @@ private:
 
 	glm::ivec2 _shadowResolution;
 	Shader _shader;
-	vi::ArrayPtr<DepthBuffer> _cubeMaps{};
-	vi::ArrayPtr<VkDescriptorSet_T*> _descriptorSets;
+	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
 	VkDescriptorPool _descriptorPool;
 
 	UboPool<GeometryUbo> _geometryUboPool;
 	UboPool<GeometryUbo> _fragmentUboPool;
 	vi::ArrayPtr<GeometryUbo> _geometryUbos;
 	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
-	vi::ArrayPtr<VkCommandBuffer> _commandBuffers;
+	vi::ArrayPtr<Frame> _frames;
 
 	VkDescriptorSetLayout _layout;
 	VkRenderPass _renderPass;

@@ -123,9 +123,8 @@ int Engine<GameState>::Run(const Info& info)
 
 		swapChain.WaitForImage();
 
-		_lightSystem->RenderDraw();
-
-		postEffectHandler.BeginFrame();
+		_lightSystem->Render(swapChain.GetImageAvaiableSemaphore());
+		postEffectHandler.BeginFrame(_lightSystem->GetRenderFinishedSemaphore());
 
 		_cameras->Update();
 		_materials->Draw();

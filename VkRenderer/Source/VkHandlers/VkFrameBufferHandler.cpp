@@ -11,8 +11,8 @@ namespace vi
 		framebufferInfo.renderPass = info.renderPass;
 		framebufferInfo.attachmentCount = info.imageViewCount;
 		framebufferInfo.pAttachments = info.imageViews;
-		framebufferInfo.width = info.extent.width;
-		framebufferInfo.height = info.extent.height;
+		framebufferInfo.width = info.extent.x;
+		framebufferInfo.height = info.extent.y;
 		framebufferInfo.layers = info.layerCount;
 
 		VkFramebuffer frameBuffer;

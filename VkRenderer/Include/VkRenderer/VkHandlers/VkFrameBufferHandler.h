@@ -14,7 +14,9 @@ namespace vi
 			// Render pass to use.
 			VkRenderPass renderPass;
 			// Resolution of the image.
-			VkExtent2D extent;
+			glm::ivec2 extent;
+			// Number of layers.
+			uint32_t layerCount = 1;
 		};
 
 		explicit VkFrameBufferHandler(VkCore& core);

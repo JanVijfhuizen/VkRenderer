@@ -37,14 +37,14 @@ namespace vi
 		VkViewport viewport{};
 		viewport.x = 0;
 		viewport.y = 0;
-		viewport.width = static_cast<float>(info.extent.width);
-		viewport.height = static_cast<float>(info.extent.height);
+		viewport.width = static_cast<float>(info.extent.x);
+		viewport.height = static_cast<float>(info.extent.y);
 		viewport.minDepth = 0;
 		viewport.maxDepth = 1;
 
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
-		scissor.extent = info.extent;
+		scissor.extent = { static_cast<uint32_t>(info.extent.x), static_cast<uint32_t>(info.extent.y) };
 
 		VkPipelineViewportStateCreateInfo viewportState{};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;

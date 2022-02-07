@@ -14,12 +14,13 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 	_fragmentUboPool(renderer, info.size, renderer.GetSwapChain().GetLength()),
 	_geometryUbos(info.size, GMEM),
 	_fragmentUbos(info.size, GMEM),
-	_commandBuffers(renderer.GetSwapChain().GetLength(), GMEM)
+	_frames(renderer.GetSwapChain().GetLength(), GMEM)
 {
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& renderPassHandler = renderer.GetRenderPassHandler();
 	auto& swapChain = renderer.GetSwapChain();
+	auto& syncHandler = renderer.GetSyncHandler();
 
 	const uint32_t swapChainLength = swapChain.GetLength();
 
@@ -66,8 +67,11 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 	descriptorSetCreateInfo.setCount = GetLength() * swapChainLength;
 	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
 
-	for (auto& commandBuffer : _commandBuffers)
-		commandBuffer = commandBufferHandler.Create();
+	for (auto& frame : _frames)
+	{
+		frame.commandBuffer = commandBufferHandler.Create();
+		frame.signalSemaphore = syncHandler.CreateSemaphore();
+	}
 
 	OnRecreateSwapChainAssets();
 }
@@ -77,8 +81,13 @@ LightSystem::~LightSystem()
 	DestroySwapChainAssets();
 
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
-	for (auto& commandBuffer : _commandBuffers)
-		commandBufferHandler.Destroy(commandBuffer);
+	auto& syncHandler = renderer.GetSyncHandler();
+
+	for (auto& frame : _frames)
+	{
+		commandBufferHandler.Destroy(frame.commandBuffer);
+		syncHandler.DestroySemaphore(frame.signalSemaphore);
+	}
 
 	renderer.GetRenderPassHandler().Destroy(_renderPass);
 	renderer.GetShaderExt().DestroyShader(_shader);
@@ -87,7 +96,7 @@ LightSystem::~LightSystem()
 	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
-void LightSystem::RenderDraw()
+void LightSystem::Render(const VkSemaphore waitSemaphore)
 {
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
@@ -102,13 +111,13 @@ void LightSystem::RenderDraw()
 	const uint32_t imageIndex = swapChain.GetImageIndex();
 	const uint32_t offsetMultiplier = GetLength() * imageIndex;
 
+	auto& frame = _frames[imageIndex];
+	commandBufferHandler.BeginRecording(frame.commandBuffer);
+
 	// Begin render pass.
 	VkClearValue depthStencil  = { 1, 0 };
-	const glm::ivec2 extent = { swapChain.GetExtent().width, swapChain.GetExtent().height };
-	renderPassHandler.Begin(_cubeMaps[imageIndex].frameBuffer, _renderPass, {}, extent, &depthStencil, 1);
+	renderPassHandler.Begin(frame.cubeMap.frameBuffer, _renderPass, {}, _shadowResolution, &depthStencil, 1);
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
-
-	commandBufferHandler.BeginRecording(_commandBuffers[imageIndex]);
 
 	uint32_t i = 0;
 	const size_t geometryUboOffset = sizeof(GeometryUbo) * offsetMultiplier;
@@ -161,14 +170,22 @@ void LightSystem::RenderDraw()
 	swapChainExt.Collect(geomBuffer);
 	swapChainExt.Collect(fragBuffer);
 
-	// TODO: wait & signal semaphores.
+	renderPassHandler.End();
+
 	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
-	submitInfo.buffers = &_commandBuffers[imageIndex];
+	submitInfo.buffers = &frame.commandBuffer;
+	submitInfo.waitSemaphore = waitSemaphore;
+	submitInfo.signalSemaphore = frame.signalSemaphore;
 	submitInfo.buffersCount = 1;
 
 	commandBufferHandler.EndRecording();
 	commandBufferHandler.Submit(submitInfo);
-	renderPassHandler.End();
+}
+
+VkSemaphore LightSystem::GetRenderFinishedSemaphore()
+{
+	auto& swapChain = renderer.GetSwapChain();
+	return _frames[swapChain.GetImageIndex()].signalSemaphore;
 }
 
 void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec2 resolution)
@@ -198,7 +215,7 @@ void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec
 	vi::VkFrameBufferHandler::CreateInfo frameBufferCreateInfo{};
 	frameBufferCreateInfo.imageViewCount = 1;
 	frameBufferCreateInfo.renderPass = _renderPass;
-	frameBufferCreateInfo.extent = swapChain.GetExtent();
+	frameBufferCreateInfo.extent = _shadowResolution;
 	frameBufferCreateInfo.layerCount = 6;
 
 	// Create transition info.
@@ -212,10 +229,9 @@ void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec
 	commandBufferHandler.BeginRecording(cmdBuffer);
 
 	// Use the create infos to create a cubemap for every swapchain image.
-	_cubeMaps.Reallocate(swapChain.GetLength(), GMEM);
 	for (uint32_t i = 0; i < swapChain.GetLength(); ++i)
 	{
-		auto& cubeMap = _cubeMaps[i];
+		auto& cubeMap = _frames[i].cubeMap;
 		cubeMap.image = imageHandler.Create(imageCreateInfo);
 		cubeMap.memory = memoryHandler.Allocate(cubeMap.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 		memoryHandler.Bind(cubeMap.image, cubeMap.memory);
@@ -253,8 +269,9 @@ void LightSystem::DestroyCubeMaps()
 	auto& imageHandler = renderer.GetImageHandler();
 	auto& memoryHandler = renderer.GetMemoryHandler();
 
-	for (auto& cubeMap : _cubeMaps)
+	for (auto& frame : _frames)
 	{
+		auto& cubeMap = frame.cubeMap;
 		frameBufferHandler.Destroy(cubeMap.frameBuffer);
 		imageHandler.DestroyView(cubeMap.view);
 		imageHandler.Destroy(cubeMap.image);
@@ -276,7 +293,7 @@ void LightSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.modules.Add(_shader.vertex);
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.renderPass = _renderPass;
-	pipelineInfo.extent = postEffectHandler.GetExtent();
+	pipelineInfo.extent = _shadowResolution;
 	
 	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
