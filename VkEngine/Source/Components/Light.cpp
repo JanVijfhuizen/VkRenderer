@@ -140,17 +140,34 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 	for (const auto& [lightIndex, light] : *this)
 	{
-		auto& lightTransform = _transforms[lightIndex];
+		const auto& lightTransform = _transforms[lightIndex];
+		const auto& position = lightTransform.position;
 
 		// Update geometry ubo.
 		auto& geomUbo = _geometryUbos[i];
+		auto& shadowFaces = geomUbo.matrices;
+
 		const glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, light.range);
+		shadowFaces[0] = shadowProj * glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
+		shadowFaces[1] = shadowProj * glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
+		shadowFaces[2] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
+		shadowFaces[3] = shadowProj * glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, 1));
+		shadowFaces[4] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
+		shadowFaces[5] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
 
 		// Update fragment ubo.
 		auto& fragUbo = _fragmentUbos[i];
 		fragUbo.position = lightTransform.position;
 		fragUbo.range = light.range;
+	}
 
+	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
+	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * GetLength());
+	swapChainExt.Collect(geomBuffer);
+	swapChainExt.Collect(fragBuffer);
+
+	for (const auto& [lightIndex, light] : *this)
+	{
 		auto& descriptorSet = _descriptorSets[offsetMultiplier + i];
 		shaderHandler.BindBuffer(descriptorSet, geomBuffer, sizeof(GeometryUbo) * i, sizeof(GeometryUbo), 0, 0);
 		shaderHandler.BindBuffer(descriptorSet, fragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
@@ -168,11 +185,6 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 		++i;
 	}
-
-	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
-	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * GetLength());
-	swapChainExt.Collect(geomBuffer);
-	swapChainExt.Collect(fragBuffer);
 
 	renderPassHandler.End();
 
@@ -288,13 +300,13 @@ void LightSystem::OnRecreateSwapChainAssets()
 	if (_pipeline)
 		DestroySwapChainAssets();
 
-	auto& postEffectHandler = renderer.GetPostEffectHandler();
-
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.modules.Add(_shader.vertex);
+	pipelineInfo.modules.Add(_shader.geometry);
+	pipelineInfo.modules.Add(_shader.fragment);
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.renderPass = _renderPass;
 	pipelineInfo.extent = _shadowResolution;

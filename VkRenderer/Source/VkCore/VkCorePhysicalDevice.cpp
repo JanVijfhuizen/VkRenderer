@@ -110,6 +110,8 @@ namespace vi
 			return false;
 		if (!deviceInfo.features.samplerAnisotropy)
 			return false;
+		if (!deviceInfo.features.geometryShader)
+			return false;
 		return true;
 	}
 
