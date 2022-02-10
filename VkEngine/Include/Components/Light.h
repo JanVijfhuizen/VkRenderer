@@ -53,7 +53,6 @@ private:
 
 	struct Frame final
 	{
-		DepthBuffer cubeMap;
 		VkCommandBuffer commandBuffer;
 		VkSemaphore signalSemaphore;
 	};
@@ -86,6 +85,7 @@ private:
 	vi::ArrayPtr<GeometryUbo> _geometryUbos;
 	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
 	vi::ArrayPtr<Frame> _frames;
+	vi::ArrayPtr<DepthBuffer> _cubeMaps;
 
 	VkDescriptorSetLayout _layout;
 	VkDescriptorSetLayout _extLayout;

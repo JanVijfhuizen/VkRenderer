@@ -118,10 +118,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 
 	// Begin render pass.
 	VkClearValue depthStencil  = { 1, 0 };
-	renderPassHandler.Begin(frame.cubeMap.frameBuffer, _renderPass, {}, _shadowResolution, &depthStencil, 1);
-	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 
-	uint32_t i = 0;
 	const size_t geometryUboOffset = sizeof(GeometryUbo) * offsetMultiplier;
 	const size_t fragmentUboOffset = sizeof(FragmentUbo) * offsetMultiplier;
 
@@ -141,6 +138,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 	auto mesh = materials.GetMesh();
 	meshHandler.Bind(mesh);
 
+	uint32_t i = 0;
 	for (const auto& [lightIndex, light] : *this)
 	{
 		const auto& lightTransform = _transforms[lightIndex];
@@ -162,6 +160,8 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 		auto& fragUbo = _fragmentUbos[i];
 		fragUbo.position = lightTransform.position;
 		fragUbo.range = light.range;
+
+		++i;
 	}
 
 	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
@@ -169,8 +169,13 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 	swapChainExt.Collect(geomBuffer);
 	swapChainExt.Collect(_currentFragBuffer);
 
+	i = 0;
 	for (const auto& [lightIndex, light] : *this)
 	{
+		auto& cubeMap = _cubeMaps[imageIndex * GetLength() + i];
+		renderPassHandler.Begin(cubeMap.frameBuffer, _renderPass, {}, _shadowResolution, &depthStencil, 1);
+		pipelineHandler.Bind(_pipeline, _pipelineLayout);
+
 		auto& descriptorSet = _descriptorSets[offsetMultiplier + i];
 		shaderHandler.BindBuffer(descriptorSet, geomBuffer, sizeof(GeometryUbo) * i, sizeof(GeometryUbo), 0, 0);
 		shaderHandler.BindBuffer(descriptorSet, _currentFragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
@@ -186,12 +191,12 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 			meshHandler.Draw();
 		}
 
+		renderPassHandler.End();
+
 		++i;
 	}
 
 	shaderHandler.BindBuffer(_extDescriptorSets[imageIndex], _currentFragBuffer, 0, sizeof(FragmentUbo) * i, 0, 0);
-
-	renderPassHandler.End();
 
 	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
 	submitInfo.buffers = &frame.commandBuffer;
@@ -260,9 +265,9 @@ void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec
 	commandBufferHandler.BeginRecording(cmdBuffer);
 
 	// Use the create infos to create a cubemap for every swapchain image.
-	for (uint32_t i = 0; i < swapChain.GetLength(); ++i)
+	_cubeMaps.Reallocate(GetLength() * swapChain.GetLength(), GMEM);
+	for (auto& cubeMap : _cubeMaps)
 	{
-		auto& cubeMap = _frames[i].cubeMap;
 		cubeMap.image = imageHandler.Create(imageCreateInfo);
 		cubeMap.memory = memoryHandler.Allocate(cubeMap.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 		memoryHandler.Bind(cubeMap.image, cubeMap.memory);
@@ -300,9 +305,8 @@ void LightSystem::DestroyCubeMaps()
 	auto& imageHandler = renderer.GetImageHandler();
 	auto& memoryHandler = renderer.GetMemoryHandler();
 
-	for (auto& frame : _frames)
+	for (auto& cubeMap : _cubeMaps)
 	{
-		auto& cubeMap = frame.cubeMap;
 		frameBufferHandler.Destroy(cubeMap.frameBuffer);
 		imageHandler.DestroyView(cubeMap.view);
 		imageHandler.Destroy(cubeMap.image);
@@ -360,10 +364,14 @@ void LightSystem::CreateExtDescriptorDependencies()
 		auto& descriptorSet = _extDescriptorSets[i];
 
 		for (uint32_t j = 0; j < lightCount; ++j)
-			shaderHandler.BindSampler(descriptorSet, 
-				_frames[i].cubeMap.view, 
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
-			    _extSamplers[j + i * lightCount], 1, j);
+		{
+			const uint32_t index = j + i * lightCount;
+
+			shaderHandler.BindSampler(descriptorSet,
+				_cubeMaps[index].view,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				_extSamplers[index], 1, j);
+		}
 	}
 }
 

@@ -21,12 +21,14 @@ layout(location = 0) out Data
 {
     vec3 normal;
     vec2 fragTexCoord;
+    vec3 fragPos; 
 } outData;
 
 void main() 
 {
     outData.normal = inNormal;
     outData.fragTexCoord = inTexCoords;
+    outData.fragPos = vec3(pushConstants.model * vec4(inPosition, 1.0));
 
     gl_Position = camera.projection * camera.view * pushConstants.model * vec4(inPosition, 1);
 }
