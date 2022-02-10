@@ -334,7 +334,7 @@ void LightSystem::CreateExtDescriptorDependencies()
 
 	// Create descriptor sets.
 	const uint32_t length = swapChain.GetLength();
-	_extDescriptorSets = vi::ArrayPtr<VkDescriptorSet>(length, GMEM);
+	_extDescriptorSets.Reallocate(length, GMEM);
 
 	VkDescriptorType types[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
 	uint32_t sizes[] = { length, length };

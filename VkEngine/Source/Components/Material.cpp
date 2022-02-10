@@ -25,7 +25,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	materialBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
-	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
+	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateCube());
 	_fallbackTexture = renderer.GetTextureHandler().Create("Test", "png");
 
 	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChainLength * GetLength(), GMEM);
