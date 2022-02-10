@@ -27,7 +27,7 @@ class LightSystem final : public ce::SmallSystem<Light>, SwapChainExt::Dependenc
 public:
 	struct Info final
 	{
-		size_t size = 8;
+		size_t size = 6;
 		glm::ivec2 shadowResolution{ 512 };
 	};
 
@@ -79,6 +79,7 @@ private:
 
 	vi::ArrayPtr<VkDescriptorSet> _extDescriptorSets;
 	VkDescriptorPool _extDescriptorPool;
+	vi::ArrayPtr<VkSampler> _extSamplers;
 
 	UboAllocator<GeometryUbo> _geometryUboPool;
 	UboAllocator<GeometryUbo> _fragmentUboPool;

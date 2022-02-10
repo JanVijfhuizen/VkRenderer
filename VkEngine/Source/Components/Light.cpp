@@ -189,12 +189,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 		++i;
 	}
 
-	// Bind external descriptor set.
-
-	//const auto extSampler = shaderHandler.CreateSampler();
-	//auto& extDescriptorSet = _extDescriptorSets[imageIndex];
-	//shaderHandler.BindBuffer(extDescriptorSet, _currentFragBuffer, 0, sizeof(FragmentUbo) * i, 0, 0);
-	//shaderHandler.BindSampler(extDescriptorSet, frame.cubeMap.view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, extSampler, 1, 0);
+	shaderHandler.BindBuffer(_extDescriptorSets[imageIndex], _currentFragBuffer, 0, sizeof(FragmentUbo) * i, 0, 0);
 
 	renderPassHandler.End();
 
@@ -318,6 +313,7 @@ void LightSystem::DestroyCubeMaps()
 void LightSystem::CreateExtDescriptorDependencies()
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& swapChain = renderer.GetSwapChain();
 
 	vi::VkLayoutHandler::CreateInfo extLayoutInfo{};
@@ -352,15 +348,32 @@ void LightSystem::CreateExtDescriptorDependencies()
 	descriptorSetCreateInfo.setCount = length;
 	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
 
+	// Bind samplers to external descriptor set.
+	const uint32_t samplerCount = GetLength() * length;
+	_extSamplers.Reallocate(samplerCount, GMEM);
+	for (auto& sampler : _extSamplers)
+		sampler = shaderHandler.CreateSampler();
+
+	const uint32_t lightCount = GetLength();
 	for (uint32_t i = 0; i < length; ++i)
 	{
 		auto& descriptorSet = _extDescriptorSets[i];
-		//shaderHandler.BindBuffer(descriptorSet, geomBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 0, 0);
+
+		for (uint32_t j = 0; j < lightCount; ++j)
+			shaderHandler.BindSampler(descriptorSet, 
+				_frames[i].cubeMap.view, 
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
+			    _extSamplers[j + i * lightCount], 1, j);
 	}
 }
 
 void LightSystem::DestroyExtDescriptorDependencies() const
 {
+	auto& shaderHandler = renderer.GetShaderHandler();
+
+	for (auto& sampler : _extSamplers)
+		shaderHandler.DestroySampler(sampler);
+
 	renderer.GetLayoutHandler().DestroyLayout(_extLayout);
 	renderer.GetDescriptorPoolHandler().Destroy(_extDescriptorPool);
 }

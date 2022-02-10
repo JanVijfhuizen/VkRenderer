@@ -2,12 +2,14 @@
 #extension GL_KHR_vulkan_glsl : enable
 #include "shader.glsl"
 
+#define LIGHT_COUNT 6
+
 // Light mapping.
 layout (set = 0, binding = 0) uniform LightMapInfo
 {
     float f;
-} lightMapInfos[8];
-layout (set = 0, binding = 1) uniform samplerCube lightMaps[8];
+} lightMapInfos[LIGHT_COUNT];
+layout (set = 0, binding = 1) uniform samplerCube lightMaps[LIGHT_COUNT];
 
 // Material.
 layout (set = 2, binding = 0) uniform sampler2D diffuseSampler;
