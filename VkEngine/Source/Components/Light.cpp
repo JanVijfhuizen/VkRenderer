@@ -115,7 +115,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	commandBufferHandler.BeginRecording(frame.commandBuffer);
 
 	// Begin render pass.
-	VkClearValue depthStencil  = { 1, 0 };
+	VkClearValue depthStencil  = {1, 0 };
 	renderPassHandler.Begin(frame.cubeMap.frameBuffer, _renderPass, {}, _shadowResolution, &depthStencil, 1);
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 
@@ -310,6 +310,7 @@ void LightSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.renderPass = _renderPass;
 	pipelineInfo.extent = _shadowResolution;
+	pipelineInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	
 	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }

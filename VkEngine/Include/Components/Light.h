@@ -8,7 +8,7 @@ class MaterialSystem;
 
 struct Light final
 {
-	float range = 5;
+	float range = 50;
 };
 
 struct ShadowCaster final
