@@ -47,7 +47,7 @@ int main()
 		shadowCasters.Insert(quad2);
 		materials.Insert(quad2);
 		quad3Transform.position = { 3, 1, 0 };
-		quad3Transform.rotation.x = 360;
+		//quad3Transform.rotation.x = 360;
 		
 		const auto light = cecsar.Add();
 		auto& lightTransform = transforms.Insert(light);

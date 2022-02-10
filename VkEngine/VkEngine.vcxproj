@@ -193,7 +193,7 @@
     <ClInclude Include="Include\Components\Transform.h" />
     <ClInclude Include="Include\Rendering\Vertex.h" />
     <ClInclude Include="Include\Components\Camera.h" />
-    <ClInclude Include="Include\Rendering\UboPool.h" />
+    <ClInclude Include="Include\Rendering\UboAllocator.h" />
     <ClInclude Include="Shaders\light,frag" />
   </ItemGroup>
   <ItemGroup>

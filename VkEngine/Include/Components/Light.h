@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Rendering/SwapChainExt.h"
 #include "Rendering/ShaderExt.h"
-#include "Rendering/UboPool.h"
+#include "Rendering/UboAllocator.h"
 
 class TransformSystem;
 class MaterialSystem;
@@ -31,13 +31,16 @@ public:
 		glm::ivec2 shadowResolution{ 512 };
 	};
 
-	LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem& materials, 
+	LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
 		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 
-	void Render(VkSemaphore waitSemaphore);
+	void Render(VkSemaphore waitSemaphore, MaterialSystem& materials);
 
-	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore();
+	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore() const;
+
+	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
+	[[nodiscard]] VkDescriptorSet GetDescriptorSet(uint32_t index) const;
 
 private:
 	struct DepthBuffer final
@@ -66,7 +69,6 @@ private:
 		float range;
 	};
 
-	MaterialSystem& _materials;
 	ShadowCasterSystem& _shadowCasters;
 	TransformSystem& _transforms;
 
@@ -75,19 +77,28 @@ private:
 	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
 	VkDescriptorPool _descriptorPool;
 
-	UboPool<GeometryUbo> _geometryUboPool;
-	UboPool<GeometryUbo> _fragmentUboPool;
+	vi::ArrayPtr<VkDescriptorSet> _extDescriptorSets;
+	VkDescriptorPool _extDescriptorPool;
+
+	UboAllocator<GeometryUbo> _geometryUboPool;
+	UboAllocator<GeometryUbo> _fragmentUboPool;
 	vi::ArrayPtr<GeometryUbo> _geometryUbos;
 	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
 	vi::ArrayPtr<Frame> _frames;
 
 	VkDescriptorSetLayout _layout;
+	VkDescriptorSetLayout _extLayout;
 	VkRenderPass _renderPass;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
 
+	VkBuffer _currentFragBuffer;
+
 	void CreateCubeMaps(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
 	void DestroyCubeMaps();
+
+	void CreateExtDescriptorDependencies();
+	void DestroyExtDescriptorDependencies() const;
 
 	void OnRecreateSwapChainAssets() override;
 	void DestroySwapChainAssets() const;

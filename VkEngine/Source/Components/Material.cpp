@@ -5,12 +5,13 @@
 #include "Rendering/Vertex.h"
 #include "Components/Transform.h"
 #include "Rendering/MeshHandler.h"
+#include "Components/Light.h"
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
-	Renderer& renderer, TransformSystem& transforms, 
-	CameraSystem& cameras, const char* shaderName) : 
+	Renderer& renderer, CameraSystem& cameras, 
+	LightSystem& lights, TransformSystem& transforms, const char* shaderName) :
 	System<Material>(cecsar), Dependency(renderer), 
-	_transforms(transforms), _cameras(cameras)
+	_cameras(cameras), _lights(lights), _transforms(transforms)
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& swapChain = renderer.GetSwapChain();
@@ -68,6 +69,7 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
+	pipelineInfo.setLayouts.Add(_lights.GetLayout());
 	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.modules.Add(_shader.vertex);
@@ -108,11 +110,13 @@ void MaterialSystem::Draw()
 	{
 		struct
 		{
+			VkDescriptorSet lighting;
 			VkDescriptorSet camera;
 			VkDescriptorSet material;
 		};
-		VkDescriptorSet values[2];
+		VkDescriptorSet values[3];
 	} sets{};
+	sets.lighting = _lights.GetDescriptorSet(renderer.GetSwapChain().GetImageIndex());
 
 	glm::mat4 modelMatrix;
 

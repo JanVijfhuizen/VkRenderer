@@ -51,8 +51,8 @@ private:
 	TransformSystem* _transforms;
 	CameraSystem* _cameras;
 	MaterialSystem* _materials;
-	ShadowCasterSystem* _shadowCasterSystem;
-	LightSystem* _lightSystem;
+	ShadowCasterSystem* _shadowCasters;
+	LightSystem* _lights;
 
 	GameState* _gameState;
 	BasicPostEffect* _defaultPostEffect = nullptr;
@@ -79,9 +79,9 @@ int Engine<GameState>::Run(const Info& info)
 	_cecsar = GMEM.New<ce::Cecsar>(info.capacity);
 	_transforms = GMEM.New<TransformSystem>(*_cecsar);
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
-	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_transforms, *_cameras, "");
-	_shadowCasterSystem = GMEM.New<ShadowCasterSystem>(*_cecsar);
-	_lightSystem = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_materials, *_shadowCasterSystem, *_transforms);
+	_shadowCasters = GMEM.New<ShadowCasterSystem>(*_cecsar);
+	_lights = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_shadowCasters, *_transforms);
+	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_cameras, *_lights, *_transforms, "");
 
 	_gameState = GMEM.New<GameState>();
 
@@ -123,8 +123,8 @@ int Engine<GameState>::Run(const Info& info)
 
 		swapChain.WaitForImage();
 
-		_lightSystem->Render(swapChain.GetImageAvaiableSemaphore());
-		postEffectHandler.BeginFrame(_lightSystem->GetRenderFinishedSemaphore());
+		_lights->Render(swapChain.GetImageAvaiableSemaphore(), *_materials);
+		postEffectHandler.BeginFrame(_lights->GetRenderFinishedSemaphore());
 
 		_cameras->Update();
 		_materials->Draw();
@@ -148,8 +148,8 @@ int Engine<GameState>::Run(const Info& info)
 		info.cleanup(*this, *_gameState);
 
 	GMEM.Delete(_gameState);
-	GMEM.Delete(_lightSystem);
-	GMEM.Delete(_shadowCasterSystem);
+	GMEM.Delete(_lights);
+	GMEM.Delete(_shadowCasters);
 	GMEM.Delete(_defaultPostEffect);
 	GMEM.Delete(_materials);
 	GMEM.Delete(_cameras);
@@ -189,13 +189,13 @@ CameraSystem& Engine<GameState>::GetCameras() const
 template <typename GameState>
 LightSystem& Engine<GameState>::GetLights() const
 {
-	return *_lightSystem;
+	return *_lights;
 }
 
 template <typename GameState>
 ShadowCasterSystem& Engine<GameState>::GetShadowCasters() const
 {
-	return *_shadowCasterSystem;
+	return *_shadowCasters;
 }
 
 template <typename GameState>

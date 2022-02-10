@@ -4,10 +4,9 @@
 #include "Components/Material.h"
 #include "Components/Transform.h"
 
-LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem& materials,
+LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
 	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info) :
 	SmallSystem<Light>(cecsar, info.size), Dependency(renderer),
-	_materials(materials),
 	_shadowCasters(shadowCasters), _transforms(transforms),
 	_shadowResolution(info.shadowResolution),
 	_geometryUboPool(renderer, info.size, renderer.GetSwapChain().GetLength()),
@@ -74,13 +73,16 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, MaterialSystem&
 	}
 
 	OnRecreateSwapChainAssets();
+	CreateExtDescriptorDependencies();
 }
 
 LightSystem::~LightSystem()
 {
 	DestroySwapChainAssets();
+	DestroyExtDescriptorDependencies();
 
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
+	auto& layoutHandler = renderer.GetLayoutHandler();
 	auto& syncHandler = renderer.GetSyncHandler();
 
 	for (auto& frame : _frames)
@@ -91,12 +93,12 @@ LightSystem::~LightSystem()
 
 	renderer.GetRenderPassHandler().Destroy(_renderPass);
 	renderer.GetShaderExt().DestroyShader(_shader);
-	renderer.GetLayoutHandler().DestroyLayout(_layout);
+	layoutHandler.DestroyLayout(_layout);
 	DestroyCubeMaps();	
 	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
-void LightSystem::Render(const VkSemaphore waitSemaphore)
+void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materials)
 {
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
@@ -115,7 +117,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	commandBufferHandler.BeginRecording(frame.commandBuffer);
 
 	// Begin render pass.
-	VkClearValue depthStencil  = {1, 0 };
+	VkClearValue depthStencil  = { 1, 0 };
 	renderPassHandler.Begin(frame.cubeMap.frameBuffer, _renderPass, {}, _shadowResolution, &depthStencil, 1);
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 
@@ -128,14 +130,15 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 	const auto geomBuffer = _geometryUboPool.CreateBuffer();
 	memoryHandler.Bind(geomBuffer, geomMemory, geometryUboOffset);
-	const auto fragBuffer = _fragmentUboPool.CreateBuffer();
-	memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset);
+
+	_currentFragBuffer = _fragmentUboPool.CreateBuffer();
+	memoryHandler.Bind(_currentFragBuffer, fragMemory, fragmentUboOffset);
 
 	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
 	const float near = 0.1f;
 	glm::mat4 modelMatrix;
 
-	auto mesh = _materials.GetMesh();
+	auto mesh = materials.GetMesh();
 	meshHandler.Bind(mesh);
 
 	for (const auto& [lightIndex, light] : *this)
@@ -164,16 +167,16 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
 	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * GetLength());
 	swapChainExt.Collect(geomBuffer);
-	swapChainExt.Collect(fragBuffer);
+	swapChainExt.Collect(_currentFragBuffer);
 
 	for (const auto& [lightIndex, light] : *this)
 	{
 		auto& descriptorSet = _descriptorSets[offsetMultiplier + i];
 		shaderHandler.BindBuffer(descriptorSet, geomBuffer, sizeof(GeometryUbo) * i, sizeof(GeometryUbo), 0, 0);
-		shaderHandler.BindBuffer(descriptorSet, fragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
+		shaderHandler.BindBuffer(descriptorSet, _currentFragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
 		descriptorPoolHandler.BindSets(&descriptorSet, 1);
 
-		for (const auto& [matIndex, material] : _materials)
+		for (const auto& [matIndex, material] : materials)
 		{
 			const auto& transform = _transforms[matIndex];
 
@@ -185,6 +188,13 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 		++i;
 	}
+
+	// Bind external descriptor set.
+
+	//const auto extSampler = shaderHandler.CreateSampler();
+	//auto& extDescriptorSet = _extDescriptorSets[imageIndex];
+	//shaderHandler.BindBuffer(extDescriptorSet, _currentFragBuffer, 0, sizeof(FragmentUbo) * i, 0, 0);
+	//shaderHandler.BindSampler(extDescriptorSet, frame.cubeMap.view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, extSampler, 1, 0);
 
 	renderPassHandler.End();
 
@@ -198,10 +208,20 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	commandBufferHandler.Submit(submitInfo);
 }
 
-VkSemaphore LightSystem::GetRenderFinishedSemaphore()
+VkSemaphore LightSystem::GetRenderFinishedSemaphore() const
 {
 	auto& swapChain = renderer.GetSwapChain();
 	return _frames[swapChain.GetImageIndex()].signalSemaphore;
+}
+
+VkDescriptorSetLayout LightSystem::GetLayout() const
+{
+	return _extLayout;
+}
+
+VkDescriptorSet LightSystem::GetDescriptorSet(const uint32_t index) const
+{
+	return _extDescriptorSets[index];
 }
 
 void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec2 resolution)
@@ -293,6 +313,56 @@ void LightSystem::DestroyCubeMaps()
 		imageHandler.Destroy(cubeMap.image);
 		memoryHandler.Free(cubeMap.memory);
 	}
+}
+
+void LightSystem::CreateExtDescriptorDependencies()
+{
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& swapChain = renderer.GetSwapChain();
+
+	vi::VkLayoutHandler::CreateInfo extLayoutInfo{};
+	auto& extFragBinding = extLayoutInfo.bindings.Add();
+	extFragBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	extFragBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	extFragBinding.size = sizeof(FragmentUbo);
+	extFragBinding.count = 6;
+	auto& cubeMapsBinding = extLayoutInfo.bindings.Add();
+	cubeMapsBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	cubeMapsBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	cubeMapsBinding.count = 6;
+	_extLayout = renderer.GetLayoutHandler().CreateLayout(extLayoutInfo);
+
+	// Create descriptor sets.
+	const uint32_t length = swapChain.GetLength();
+	_extDescriptorSets = vi::ArrayPtr<VkDescriptorSet>(length, GMEM);
+
+	VkDescriptorType types[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+	uint32_t sizes[] = { length, length };
+
+	vi::VkDescriptorPoolHandler::PoolCreateInfo descriptorPoolCreateInfo{};
+	descriptorPoolCreateInfo.types = types;
+	descriptorPoolCreateInfo.capacities = sizes;
+	descriptorPoolCreateInfo.typeCount = 2;
+	_extDescriptorPool = descriptorPoolHandler.Create(descriptorPoolCreateInfo);
+
+	vi::VkDescriptorPoolHandler::SetCreateInfo descriptorSetCreateInfo{};
+	descriptorSetCreateInfo.layout = _extLayout;
+	descriptorSetCreateInfo.pool = _extDescriptorPool;
+	descriptorSetCreateInfo.outSets = _extDescriptorSets.GetData();
+	descriptorSetCreateInfo.setCount = length;
+	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
+
+	for (uint32_t i = 0; i < length; ++i)
+	{
+		auto& descriptorSet = _extDescriptorSets[i];
+		//shaderHandler.BindBuffer(descriptorSet, geomBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 0, 0);
+	}
+}
+
+void LightSystem::DestroyExtDescriptorDependencies() const
+{
+	renderer.GetLayoutHandler().DestroyLayout(_extLayout);
+	renderer.GetDescriptorPoolHandler().Destroy(_extDescriptorPool);
 }
 
 void LightSystem::OnRecreateSwapChainAssets()

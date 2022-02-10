@@ -2,6 +2,16 @@
 #extension GL_KHR_vulkan_glsl : enable
 #include "shader.glsl"
 
+// Light mapping.
+layout (set = 0, binding = 0) uniform LightMapInfo
+{
+    float f;
+} lightMapInfos[8];
+layout (set = 0, binding = 1) uniform samplerCube lightMaps[8];
+
+// Material.
+layout (set = 2, binding = 0) uniform sampler2D diffuseSampler;
+
 layout(location = 0) in Data
 {
     vec3 normal;
@@ -9,8 +19,6 @@ layout(location = 0) in Data
 } inData;
 
 layout(location = 0) out vec4 outColor;
-
-layout (set = 1, binding = 0) uniform sampler2D diffuseSampler;
 
 void main() 
 {
