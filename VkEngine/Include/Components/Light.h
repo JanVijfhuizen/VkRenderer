@@ -64,8 +64,17 @@ private:
 
 	struct alignas(256) FragmentUbo final
 	{
-		glm::vec3 position;
-		float range;
+		union
+		{
+			// Light data.
+			struct
+			{
+				glm::vec3 position;
+				float range;
+			};
+			// Additional info.
+			uint32_t count;
+		};
 	};
 
 	ShadowCasterSystem& _shadowCasters;
