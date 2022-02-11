@@ -73,11 +73,6 @@ MeshHandler::VertexData<Vertex, Vertex::Index> MeshHandler::GenerateCube(vi::Fre
 	for (auto& vertex : right.vertices)
 		vertex.position.x = 1;
 
-	for (auto index : right.indices)
-	{
-		std::cout << index << " " << right.vertices[index].position.x << " " << right.vertices[index].position.y << " " << right.vertices[index].position.z << std::endl;
-	}
-
 	auto& left = quads[5] = GenerateQuad(x, false, allocator);
 	for (auto& vertex : left.vertices)
 		vertex.position.x = -1;

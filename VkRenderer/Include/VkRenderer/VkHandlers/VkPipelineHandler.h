@@ -40,7 +40,7 @@ namespace vi
 			// Whether or not there can be gaps in the topology (multiple separate meshes).
 			VkBool32 primitiveRestartEnable = VK_FALSE;
 			// Shape of the render target. Usually the same size as the screen.
-			VkExtent2D extent;
+			glm::ivec2 extent;
 			// Clamps depth between 0 and 1.
 			VkBool32 depthClampEnable = VK_FALSE;
 			// Shape of the polygons. Can support things like wireframe.

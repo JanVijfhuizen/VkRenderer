@@ -11,9 +11,9 @@ namespace vi
 		framebufferInfo.renderPass = info.renderPass;
 		framebufferInfo.attachmentCount = info.imageViewCount;
 		framebufferInfo.pAttachments = info.imageViews;
-		framebufferInfo.width = info.extent.width;
-		framebufferInfo.height = info.extent.height;
-		framebufferInfo.layers = 1;
+		framebufferInfo.width = info.extent.x;
+		framebufferInfo.height = info.extent.y;
+		framebufferInfo.layers = info.layerCount;
 
 		VkFramebuffer frameBuffer;
 		const auto result = vkCreateFramebuffer(core.GetLogicalDevice(), &framebufferInfo, nullptr, &frameBuffer);

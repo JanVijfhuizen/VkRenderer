@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "VkRenderer/VkHandlers/VkLayoutHandler.h"
-#include "Rendering/UboPool.h"
+#include "Rendering/UboAllocator.h"
 
 class TransformSystem;
 class Renderer;
@@ -11,8 +11,6 @@ struct Camera final
 	{
 		glm::mat4 view;
 		glm::mat4 projection;
-		float clipFar;
-		float aspectRatio;
 	};
 
 	glm::vec3 lookAt{ 0 };
@@ -40,7 +38,7 @@ private:
 	VkDescriptorSetLayout _layout;
 	VkDescriptorPool _descriptorPool;
 	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
-	UboPool<Camera::Ubo> _uboPool;
+	UboAllocator<Camera::Ubo> _uboPool;
 	vi::ArrayPtr<Camera::Ubo> _ubos;
 
 	[[nodiscard]] uint32_t GetDescriptorStartIndex() const;

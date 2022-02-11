@@ -2,7 +2,7 @@
 
 struct Transform final
 {
-	struct Ubo final
+	struct PushConstant final
 	{
 		glm::mat4 model;
 	};

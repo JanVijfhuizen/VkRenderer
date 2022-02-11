@@ -57,7 +57,7 @@ void CameraSystem::Update()
 
 	const size_t memSize = sizeof(Camera::Ubo) * GetLength();
 	const size_t memOffset = memSize * imageIndex;
-	const float aspectRatio = static_cast<float>(swapChain.GetExtent().width) / swapChain.GetExtent().height;
+	const float aspectRatio = static_cast<float>(swapChain.GetExtent().x) / swapChain.GetExtent().y;
 
 	const auto buffer = _uboPool.CreateBuffer();
 	memoryHandler.Bind(buffer, memory, memOffset);
@@ -72,8 +72,6 @@ void CameraSystem::Update()
 		ubo.view = glm::lookAt(transform.position, camera.lookAt, glm::vec3(0, 1, 0));
 		ubo.projection = glm::perspective(glm::radians(camera.fieldOfView),
 			aspectRatio, camera.clipNear, camera.clipFar);
-		ubo.clipFar = camera.clipFar;
-		ubo.aspectRatio = aspectRatio;
 
 		auto& descriptor = _descriptorSets[descriptorSetStartIndex + i];
 		

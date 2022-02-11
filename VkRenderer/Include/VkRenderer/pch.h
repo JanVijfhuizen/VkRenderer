@@ -16,14 +16,6 @@
 #include "glm/gtx/euler_angles.hpp"
 
 #include "FreeListAllocator.h"
-#include "Utilities.h"
-#include "Iterator.h"
-#include "ArrayPtr.h"
-#include "ViVector.h"
-#include "BinTree.h"
-#include "HashMap.h"
-#include "ViString.h"
-#include "CStrRef.h"
 
 const size_t GMEM_SIZE = 65536;
 
@@ -39,3 +31,12 @@ inline vi::FreeListAllocator GMEM_VOL{ GMEM_SIZE };
 /// Memory allocator used for quick temporary allocations.
 /// </summary>
 inline vi::FreeListAllocator GMEM_TEMP{ GMEM_SIZE };
+
+#include "Iterator.h"
+#include "Utilities.h"
+#include "ArrayPtr.h"
+#include "ViVector.h"
+#include "BinTree.h"
+#include "HashMap.h"
+#include "ViString.h"
+#include "CStrRef.h"

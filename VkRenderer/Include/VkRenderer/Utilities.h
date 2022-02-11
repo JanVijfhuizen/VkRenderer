@@ -107,11 +107,13 @@ namespace vi
 	template <typename T, typename U>
 	void Ut::LinSort(T* arr, U* comparables, const size_t from, const size_t to)
 	{
+		assert(from <= to);
+
 		for (size_t i = from + 1; i < to; ++i)
 		{
 			size_t j = i;
 
-			while (j > 0 && comparables[j] < comparables[j - 1])
+			while (j > from && comparables[j] < comparables[j - 1])
 			{
 				const T temp = arr[j - 1];
 				arr[j - 1] = arr[j];

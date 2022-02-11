@@ -1,16 +1,14 @@
 ﻿#pragma once
 #include "Rendering/SwapChainExt.h"
 #include "Rendering/ShaderExt.h"
-#include "Rendering/MeshHandler.h"
-#include "Rendering/DescriptorPool.h"
+#include "Rendering/UboAllocator.h"
 
 class TransformSystem;
 class MaterialSystem;
-class CameraSystem;
 
 struct Light final
 {
-	float range = 5;
+	float range = 50;
 };
 
 struct ShadowCaster final
@@ -27,50 +25,91 @@ public:
 class LightSystem final : public ce::SmallSystem<Light>, SwapChainExt::Dependency
 {
 public:
+	struct Info final
+	{
+		size_t size = 6;
+		glm::ivec2 shadowResolution{ 512 };
+	};
+
 	LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
-		CameraSystem& cameras, MaterialSystem& materials, 
-		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, size_t size = 8);
+		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 
-	void Draw();
+	void Render(VkSemaphore waitSemaphore, MaterialSystem& materials);
+
+	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore() const;
+
+	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
+	[[nodiscard]] VkDescriptorSet GetDescriptorSet(uint32_t index) const;
 
 private:
-	struct ShadowVertex final
-	{
-		uint32_t index;
-
-		[[nodiscard]] static VkVertexInputBindingDescription GetBindingDescription();
-		[[nodiscard]] static vi::Vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
-	};
-
-	struct Ubo final
-	{
-		glm::vec2 vertices[4];
-		glm::vec2 textureCoordinates[4];
-		float height;
-	};
-
-	struct ShadowMap final
+	struct DepthBuffer final
 	{
 		VkImage image;
+		VkDeviceMemory memory;
 		VkImageView view;
+		VkFramebuffer frameBuffer;
 	};
 
-	CameraSystem& _cameras;
-	MaterialSystem& _materials;
+	struct Frame final
+	{
+		VkCommandBuffer commandBuffer;
+		VkSemaphore signalSemaphore;
+	};
+
+	struct alignas(512) GeometryUbo final
+	{
+		glm::mat4 matrices[6]{};
+	};
+
+	struct alignas(256) FragmentUbo final
+	{
+		union
+		{
+			// Light data.
+			struct
+			{
+				glm::vec3 position;
+				float range;
+			};
+			// Additional info.
+			uint32_t count;
+		};
+	};
+
 	ShadowCasterSystem& _shadowCasters;
 	TransformSystem& _transforms;
 
-	VkDescriptorSetLayout _layout;
+	glm::ivec2 _shadowResolution;
 	Shader _shader;
-	Mesh _mesh;
-	DescriptorPool _descriptorPool{};
-	vi::ArrayPtr<ShadowMap> _shadowMaps{};
+	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
+	VkDescriptorPool _descriptorPool;
 
+	vi::ArrayPtr<VkDescriptorSet> _extDescriptorSets;
+	VkDescriptorPool _extDescriptorPool;
+	vi::ArrayPtr<VkSampler> _extSamplers;
+
+	UboAllocator<GeometryUbo> _geometryUboPool;
+	UboAllocator<GeometryUbo> _fragmentUboPool;
+	vi::ArrayPtr<GeometryUbo> _geometryUbos;
+	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
+	vi::ArrayPtr<Frame> _frames;
+	vi::ArrayPtr<DepthBuffer> _cubeMaps;
+
+	VkDescriptorSetLayout _layout;
+	VkDescriptorSetLayout _extLayout;
+	VkRenderPass _renderPass;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
 
-	void CreateMesh();
+	VkBuffer _currentFragBuffer;
+
+	void CreateCubeMaps(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
+	void DestroyCubeMaps();
+
+	void CreateExtDescriptorDependencies();
+	void DestroyExtDescriptorDependencies() const;
+
 	void OnRecreateSwapChainAssets() override;
 	void DestroySwapChainAssets() const;
 };

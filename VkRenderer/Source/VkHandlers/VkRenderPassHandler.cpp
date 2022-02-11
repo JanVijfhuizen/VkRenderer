@@ -77,6 +77,7 @@ namespace vi
 		renderPassInfo.pSubpasses = &subpass;
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
+		renderPassInfo.pNext = info.pNext;
 
 		VkRenderPass renderPass;
 		const auto result = vkCreateRenderPass(core.GetLogicalDevice(), &renderPassInfo, nullptr, &renderPass);

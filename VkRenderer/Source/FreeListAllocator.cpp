@@ -105,11 +105,12 @@ namespace vi
 			const size_t diff = space - size;
 
 			// If there is still space left over, partition this range into two parts.
+			// > 1 instead of > 0 because it has to be at least large enough for 0 = pNext and 1 = space.
 			if (diff > 1)
 			{
-				space = size;
+				space = size - 2;
 
-				const auto partitioned = reinterpret_cast<size_t*>(&current[size + 2]);
+				const auto partitioned = reinterpret_cast<size_t*>(&current[size]);
 				*reinterpret_cast<size_t**>(current) = partitioned;
 				*reinterpret_cast<size_t**>(partitioned) = next;
 
@@ -119,6 +120,7 @@ namespace vi
 			// If the first memory range was used.
 			if (this->next == current)
 				this->next = reinterpret_cast<size_t*>(*current);
+
 			return &current[2];
 		}
 
@@ -145,6 +147,7 @@ namespace vi
 			// If it's the memory range in front.
 			if (adjecent == current)
 			{
+				// Point to the next partition.
 				*partition = *current;
 				partition[1] += space + 2;
 
@@ -152,11 +155,12 @@ namespace vi
 					next = partition;
 				else
 					*reinterpret_cast<size_t**>(previous) = partition;
+
 				return true;
 			}
 
 			// If it's the memory range behind.
-			const auto currentAdjecent = current + space + 2;
+			const auto currentAdjecent = current + space;
 
 			if (currentAdjecent == partition)
 			{

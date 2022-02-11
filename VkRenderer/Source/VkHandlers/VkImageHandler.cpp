@@ -13,13 +13,14 @@ namespace vi
 		imageInfo.extent.height = static_cast<uint32_t>(info.resolution.y);
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = info.mipLevels;
-		imageInfo.arrayLayers = 1;
+		imageInfo.arrayLayers = info.arrayLayers;
 		imageInfo.format = info.format;
 		imageInfo.tiling = info.tiling;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.usage = info.usage;
 		imageInfo.samples = info.samples;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.flags = info.flags;
 
 		VkImage image;
 		const auto result = vkCreateImage(core.GetLogicalDevice(), &imageInfo, nullptr, &image);
@@ -40,7 +41,7 @@ namespace vi
 		barrier.subresourceRange.baseMipLevel = 0;
 		barrier.subresourceRange.levelCount = info.mipLevels;
 		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.layerCount = info.layerCount;
 
 		VkPipelineStageFlags srcStage = 0;
 		VkPipelineStageFlags dstStage = 0;
@@ -68,7 +69,7 @@ namespace vi
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.image = info.image;
 
-		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.viewType = info.viewType;
 		createInfo.format = info.format;
 
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -80,7 +81,7 @@ namespace vi
 		createInfo.subresourceRange.baseMipLevel = 0;
 		createInfo.subresourceRange.levelCount = info.mipLevels;
 		createInfo.subresourceRange.baseArrayLayer = 0;
-		createInfo.subresourceRange.layerCount = 1;
+		createInfo.subresourceRange.layerCount = info.layerCount;
 
 		VkImageView imageView;
 		const auto result = vkCreateImageView(core.GetLogicalDevice(), &createInfo, nullptr, &imageView);

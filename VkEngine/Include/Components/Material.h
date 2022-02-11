@@ -2,8 +2,10 @@
 #include "Rendering/ShaderExt.h"
 #include "Rendering/MeshHandler.h"
 #include "Rendering/SwapChainExt.h"
-#include "Camera.h"
+#include "Rendering/TextureHandler.h"
 
+class CameraSystem;
+class LightSystem;
 class TransformSystem;
 class Renderer;
 
@@ -16,7 +18,7 @@ class MaterialSystem final : public ce::System<Material>, SwapChainExt::Dependen
 {
 public:
 	explicit MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, 
-		TransformSystem& transforms, CameraSystem& cameras, const char* shaderName);
+		CameraSystem& cameras, LightSystem& lights, TransformSystem& transforms, const char* shaderName);
 	~MaterialSystem();
 
 	void Draw();
@@ -29,8 +31,9 @@ protected:
 	void OnRecreateSwapChainAssets() override;
 
 private:
-	TransformSystem& _transforms;
 	CameraSystem& _cameras;
+	LightSystem& _lights;
+	TransformSystem& _transforms;
 
 	VkDescriptorSetLayout _layout;
 	VkPipeline _pipeline = VK_NULL_HANDLE;

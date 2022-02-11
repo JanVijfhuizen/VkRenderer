@@ -2,11 +2,11 @@
 #include "Rendering/Renderer.h"
 
 template <typename T>
-class UboPool final
+class UboAllocator final
 {
 public:
-	explicit UboPool(Renderer& renderer, size_t bufferSize, size_t capacity);
-	~UboPool();
+	explicit UboAllocator(Renderer& renderer, size_t bufferSize, size_t capacity);
+	~UboAllocator();
 
 	[[nodiscard]] VkBuffer CreateBuffer() const;
 	[[nodiscard]] VkDeviceMemory GetMemory() const;
@@ -21,7 +21,7 @@ private:
 };
 
 template <typename T>
-UboPool<T>::UboPool(Renderer& renderer, const size_t bufferSize, const size_t capacity) :
+UboAllocator<T>::UboAllocator(Renderer& renderer, const size_t bufferSize, const size_t capacity) :
 	_renderer(renderer), _bufferSize(bufferSize)
 {
 	auto& memoryHandler = renderer.GetMemoryHandler();
@@ -36,27 +36,27 @@ UboPool<T>::UboPool(Renderer& renderer, const size_t bufferSize, const size_t ca
 }
 
 template <typename T>
-UboPool<T>::~UboPool()
+UboAllocator<T>::~UboAllocator()
 {
 	auto& memoryHandler = _renderer.GetMemoryHandler();
 	memoryHandler.Free(_memory);
 }
 
 template <typename T>
-VkBuffer UboPool<T>::CreateBuffer() const
+VkBuffer UboAllocator<T>::CreateBuffer() const
 {
 	auto& shaderHandler = _renderer.GetShaderHandler();
 	return shaderHandler.CreateBuffer(sizeof(T) * _bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 }
 
 template <typename T>
-VkDeviceMemory UboPool<T>::GetMemory() const
+VkDeviceMemory UboAllocator<T>::GetMemory() const
 {
 	return _memory;
 }
 
 template <typename T>
-size_t UboPool<T>::GetAlignment() const
+size_t UboAllocator<T>::GetAlignment() const
 {
 	return _bufferMemoryRequirements.alignment;
 }

@@ -1,20 +1,17 @@
 #version 450
 #extension GL_KHR_vulkan_glsl : enable
-#include "shader.glsl"
 
-layout(location = 0) in Data
+layout(set = 0, binding = 1) uniform Light
 {
-    vec2 fragTexCoord;
-} inData;
+	vec3 pos;
+    float range;
+} light;
 
-layout(location = 0) out vec4 outColor;
-
-layout (set = 1, binding = 0) uniform sampler2D diffuseSampler;
+layout (location = 0) in vec4 inFragPos;
 
 void main() 
 {
-    vec4 color = texture(diffuseSampler, inData.fragTexCoord);
-    if(color.a < .01f)
-        discard;
-    outColor = vec4(vec3(1, 0, 0), 1);
+    float lightDistance = length(inFragPos.xyz - light.pos);
+    lightDistance = lightDistance / light.range;
+    gl_FragDepth = lightDistance;
 }

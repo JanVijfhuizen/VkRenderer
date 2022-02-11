@@ -5,12 +5,13 @@
 #include "Rendering/Vertex.h"
 #include "Components/Transform.h"
 #include "Rendering/MeshHandler.h"
+#include "Components/Light.h"
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
-	Renderer& renderer, TransformSystem& transforms, 
-	CameraSystem& cameras, const char* shaderName) : 
+	Renderer& renderer, CameraSystem& cameras, 
+	LightSystem& lights, TransformSystem& transforms, const char* shaderName) :
 	System<Material>(cecsar), Dependency(renderer), 
-	_transforms(transforms), _cameras(cameras)
+	_cameras(cameras), _lights(lights), _transforms(transforms)
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& swapChain = renderer.GetSwapChain();
@@ -24,7 +25,7 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 	materialBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
-	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
+	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateCube());
 	_fallbackTexture = renderer.GetTextureHandler().Create("Test", "png");
 
 	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChainLength * GetLength(), GMEM);
@@ -68,11 +69,12 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
+	pipelineInfo.setLayouts.Add(_lights.GetLayout());
 	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.modules.Add(_shader.vertex);
 	pipelineInfo.modules.Add(_shader.fragment);
-	pipelineInfo.pushConstants.Add({ sizeof(Transform::Ubo), VK_SHADER_STAGE_VERTEX_BIT });
+	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
 	pipelineInfo.extent = postEffectHandler.GetExtent();
 
@@ -94,9 +96,9 @@ uint32_t MaterialSystem::GetDescriptorStartIndex() const
 void MaterialSystem::Draw()
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
-	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& meshHandler = renderer.GetMeshHandler();
 	auto& pipelineHandler = renderer.GetPipelineHandler();
+	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& swapChainExt = renderer.GetSwapChainExt();
 
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
@@ -108,11 +110,13 @@ void MaterialSystem::Draw()
 	{
 		struct
 		{
+			VkDescriptorSet lighting;
 			VkDescriptorSet camera;
 			VkDescriptorSet material;
 		};
-		VkDescriptorSet values[2];
+		VkDescriptorSet values[3];
 	} sets{};
+	sets.lighting = _lights.GetDescriptorSet(renderer.GetSwapChain().GetImageIndex());
 
 	glm::mat4 modelMatrix;
 

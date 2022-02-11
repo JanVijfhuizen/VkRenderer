@@ -73,14 +73,14 @@ public:
 	explicit PostEffectHandler(Renderer& renderer, VkSampleCountFlagBits msaaSamples);
 	~PostEffectHandler();
 
-	void BeginFrame();
+	void BeginFrame(VkSemaphore waitSemaphore);
 	void EndFrame();
 
 	void Draw() const;
 
 	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore() const;
 	[[nodiscard]] VkRenderPass GetRenderPass() const;
-	[[nodiscard]] VkExtent2D GetExtent() const;
+	[[nodiscard]] glm::ivec2 GetExtent() const;
 	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
 	[[nodiscard]] Mesh& GetMesh();
 
@@ -95,7 +95,7 @@ private:
 	Renderer& _renderer;
 	VkSampleCountFlagBits _msaaSamples;
 	VkRenderPass _renderPass = VK_NULL_HANDLE;
-	VkExtent2D _extent;
+	glm::ivec2 _extent;
 
 	uint32_t _imageIndex;
 
@@ -106,6 +106,8 @@ private:
 
 	vi::Vector<PostEffect*> _postEffects{4, GMEM_VOL};
 	vi::Vector<PostEffect::Frame> _frames;
+
+	VkSemaphore _waitSemaphore;
 
 	void LayerBeginFrame(uint32_t index);
 	void LayerEndFrame(uint32_t index) const;

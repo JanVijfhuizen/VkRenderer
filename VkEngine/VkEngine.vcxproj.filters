@@ -110,7 +110,7 @@
     <ClInclude Include="Include\Rendering\MeshHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Rendering\UboPool.h">
+    <ClInclude Include="Include\Rendering\UboAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Rendering\TextureHandler.h">
@@ -125,10 +125,8 @@
     <ClInclude Include="Shaders\light,frag">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\post.vert" />
-    <None Include="Shaders\post.frag" />
-    <None Include="Shaders\light.vert" />
+    <ClInclude Include="Include\Utils\EUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

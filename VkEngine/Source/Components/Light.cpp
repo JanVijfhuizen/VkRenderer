@@ -1,196 +1,401 @@
 ﻿#include "pch.h"
 #include "Components/Light.h"
-#include "VkRenderer/VkHandlers/VkLayoutHandler.h"
 #include "Rendering/Renderer.h"
-#include "Components/Camera.h"
 #include "Components/Material.h"
 #include "Components/Transform.h"
 
-LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer, 
-	CameraSystem& cameras, MaterialSystem& materials, 
-	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const size_t size) :
-	SmallSystem<Light>(cecsar, size), Dependency(renderer), 
-	_cameras(cameras), _materials(materials), _shadowCasters(shadowCasters), _transforms(transforms)
+LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
+	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info) :
+	SmallSystem<Light>(cecsar, info.size), Dependency(renderer),
+	_shadowCasters(shadowCasters), _transforms(transforms),
+	_shadowResolution(info.shadowResolution),
+	_geometryUboPool(renderer, info.size, renderer.GetSwapChain().GetLength()),
+	_fragmentUboPool(renderer, info.size + 1, renderer.GetSwapChain().GetLength()),
+	_geometryUbos(info.size, GMEM),
+	_fragmentUbos(info.size + 1, GMEM),
+	_frames(renderer.GetSwapChain().GetLength(), GMEM)
 {
+	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& renderPassHandler = renderer.GetRenderPassHandler();
 	auto& swapChain = renderer.GetSwapChain();
+	auto& syncHandler = renderer.GetSyncHandler();
 
-	_shader = renderer.GetShaderExt().Load("light-");
+	const uint32_t swapChainLength = swapChain.GetLength();
+
+	ShaderExt::LoadInfo shaderLoadInfo{};
+	shaderLoadInfo.geometry = true;
+	_shader = renderer.GetShaderExt().Load("light-", shaderLoadInfo);
 
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
-	auto& materialBinding = layoutInfo.bindings.Add();
-	materialBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	materialBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	auto& geomBinding = layoutInfo.bindings.Add();
+	geomBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	geomBinding.flag = VK_SHADER_STAGE_GEOMETRY_BIT;
+	geomBinding.size = sizeof(GeometryUbo);
+	auto& fragBinding = layoutInfo.bindings.Add();
+	fragBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	fragBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragBinding.size = sizeof(FragmentUbo);
 	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
 
-	CreateMesh();
+	vi::VkRenderPassHandler::CreateInfo renderPassCreateInfo{};
+	renderPassCreateInfo.useColorAttachment = false;
+	renderPassCreateInfo.useDepthAttachment = true;
+	renderPassCreateInfo.depthStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+	renderPassCreateInfo.depthFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	_renderPass = renderPassHandler.Create(renderPassCreateInfo);
 
-	VkDescriptorType types = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	uint32_t sizes = 32 * swapChain.GetLength();
+	CreateCubeMaps(swapChain, info.shadowResolution);
 
-	_descriptorPool.Construct(renderer, _layout, &types, &sizes, 1, sizes);
-	_shadowMaps = vi::ArrayPtr<ShadowMap>(size * swapChain.GetLength(), GMEM);
+	// Create descriptor sets.
+	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChain.GetLength() * GetLength(), GMEM);
+
+	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uint32_t size = GetLength() * swapChainLength * 2;
+
+	vi::VkDescriptorPoolHandler::PoolCreateInfo descriptorPoolCreateInfo{};
+	descriptorPoolCreateInfo.types = &types;
+	descriptorPoolCreateInfo.capacities = &size;
+	descriptorPoolCreateInfo.typeCount = 1;
+	_descriptorPool = descriptorPoolHandler.Create(descriptorPoolCreateInfo);
+
+	vi::VkDescriptorPoolHandler::SetCreateInfo descriptorSetCreateInfo{};
+	descriptorSetCreateInfo.layout = _layout;
+	descriptorSetCreateInfo.pool = _descriptorPool;
+	descriptorSetCreateInfo.outSets = _descriptorSets.GetData();
+	descriptorSetCreateInfo.setCount = GetLength() * swapChainLength;
+	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
+
+	for (auto& frame : _frames)
+	{
+		frame.commandBuffer = commandBufferHandler.Create();
+		frame.signalSemaphore = syncHandler.CreateSemaphore();
+	}
 
 	OnRecreateSwapChainAssets();
+	CreateExtDescriptorDependencies();
 }
 
 LightSystem::~LightSystem()
 {
-	_descriptorPool.Cleanup();
-	renderer.GetMeshHandler().Destroy(_mesh);
-	renderer.GetShaderExt().DestroyShader(_shader);
-	renderer.GetLayoutHandler().DestroyLayout(_layout);
 	DestroySwapChainAssets();
+	DestroyExtDescriptorDependencies();
+
+	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
+	auto& layoutHandler = renderer.GetLayoutHandler();
+	auto& syncHandler = renderer.GetSyncHandler();
+
+	for (auto& frame : _frames)
+	{
+		commandBufferHandler.Destroy(frame.commandBuffer);
+		syncHandler.DestroySemaphore(frame.signalSemaphore);
+	}
+
+	renderer.GetRenderPassHandler().Destroy(_renderPass);
+	renderer.GetShaderExt().DestroyShader(_shader);
+	layoutHandler.DestroyLayout(_layout);
+	DestroyCubeMaps();	
+	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
-void LightSystem::Draw()
+void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materials)
 {
+	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& memoryHandler = renderer.GetMemoryHandler();
 	auto& meshHandler = renderer.GetMeshHandler();
 	auto& pipelineHandler = renderer.GetPipelineHandler();
+	auto& renderPassHandler = renderer.GetRenderPassHandler();
 	auto& shaderHandler = renderer.GetShaderHandler();
+	auto& swapChain = renderer.GetSwapChain();
 	auto& swapChainExt = renderer.GetSwapChainExt();
 
-	pipelineHandler.Bind(_pipeline, _pipelineLayout);
-	meshHandler.Bind(_mesh);
+	const uint32_t imageIndex = swapChain.GetImageIndex();
+	const uint32_t offsetMultiplier = GetLength() * imageIndex;
 
-	union
+	auto& frame = _frames[imageIndex];
+	commandBufferHandler.BeginRecording(frame.commandBuffer);
+
+	// Begin render pass.
+	VkClearValue depthStencil  = { 1, 0 };
+
+	const size_t geometryUboOffset = sizeof(GeometryUbo) * offsetMultiplier;
+	const size_t fragmentUboOffset = sizeof(FragmentUbo) * offsetMultiplier;
+
+	const auto geomMemory = _geometryUboPool.GetMemory();
+	const auto fragMemory = _fragmentUboPool.GetMemory();
+
+	const auto geomBuffer = _geometryUboPool.CreateBuffer();
+	memoryHandler.Bind(geomBuffer, geomMemory, geometryUboOffset);
+
+	_currentFragBuffer = _fragmentUboPool.CreateBuffer();
+	memoryHandler.Bind(_currentFragBuffer, fragMemory, fragmentUboOffset);
+
+	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
+	const float near = 0.1f;
+	glm::mat4 modelMatrix;
+
+	auto mesh = materials.GetMesh();
+	meshHandler.Bind(mesh);
+
+	uint32_t i = 0;
+	for (const auto& [lightIndex, light] : *this)
 	{
-		struct
-		{
-			VkDescriptorSet camera;
-			VkDescriptorSet shadowCaster;
-		};
-		VkDescriptorSet values[2];
-	} sets{};
+		const auto& lightTransform = _transforms[lightIndex];
+		const auto& position = lightTransform.position;
 
-	const auto fallbackTexture = _materials.GetFallbackTexture();
-	glm::vec2 quadVertices[] = { glm::vec2(-1, -1), {-1, 1}, {1, 1}, {1, -1} };
-	Ubo ubo{};
+		// Update geometry ubo.
+		auto& geomUbo = _geometryUbos[i];
+		auto& shadowFaces = geomUbo.matrices;
 
-	uint32_t sortableIndices[4];
-	float sortableAngles[4];
-	glm::vec2 sortableVertices[4];
+		const glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, light.range);
 
-	for (auto& [camIndex, camera] : _cameras)
+		shadowFaces[0] = glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
+		shadowFaces[1] = glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
+		shadowFaces[2] = glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, -1));
+		shadowFaces[3] = glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, 1));
+		shadowFaces[4] = glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
+		shadowFaces[5] = glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
+
+		for (auto& face : shadowFaces)
+			face = shadowProj * face;
+
+		// Update fragment ubo.
+		auto& fragUbo = _fragmentUbos[i];
+		fragUbo.position = lightTransform.position;
+		fragUbo.range = light.range;
+
+		++i;
+	}
+
+	_fragmentUbos[_fragmentUbos.GetLength() - 1].count = i;
+
+	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
+	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * (GetLength() + 1));
+	swapChainExt.Collect(geomBuffer);
+	swapChainExt.Collect(_currentFragBuffer);
+
+	i = 0;
+	for (const auto& [lightIndex, light] : *this)
 	{
-		sets.camera = _cameras.GetDescriptor(camIndex);
+		auto& cubeMap = _cubeMaps[imageIndex * GetLength() + i];
+		renderPassHandler.Begin(cubeMap.frameBuffer, _renderPass, {}, _shadowResolution, &depthStencil, 1);
+		pipelineHandler.Bind(_pipeline, _pipelineLayout);
 
-		for (const auto& [lightIndex, light] : *this)
+		auto& descriptorSet = _descriptorSets[offsetMultiplier + i];
+		shaderHandler.BindBuffer(descriptorSet, geomBuffer, sizeof(GeometryUbo) * i, sizeof(GeometryUbo), 0, 0);
+		shaderHandler.BindBuffer(descriptorSet, _currentFragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
+		descriptorPoolHandler.BindSets(&descriptorSet, 1);
+
+		for (const auto& [matIndex, material] : materials)
 		{
-			const auto& lightTransform = _transforms[lightIndex];
-			const auto& lightPos = lightTransform.position;
+			const auto& transform = _transforms[matIndex];
 
-			for (const auto& [shadowCasterIndex, shadowCaster] : _shadowCasters)
-			{
-				sets.shadowCaster = _descriptorPool.Get();
+			transform.CreateModelMatrix(modelMatrix);
+			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, modelMatrix);
 
-				assert(_materials.Contains(shadowCasterIndex));
-				assert(_transforms.Contains(shadowCasterIndex));
+			meshHandler.Draw();
+		}
 
-				const auto& material = _materials[shadowCasterIndex];
-				const auto& matTransform = _transforms[shadowCasterIndex];
-				const auto& matPos = matTransform.position;
+		renderPassHandler.End();
 
-				const auto texture = material.texture ? material.texture : &fallbackTexture;
-				const glm::vec3 offset = matPos - lightPos;
-				const glm::vec2 offsetNorm = normalize(offset);
+		++i;
+	}
 
-				vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
-				samplerCreateInfo.minLod = 0;
-				samplerCreateInfo.maxLod = texture->mipLevels;
-				const auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
-				shaderHandler.BindSampler(sets.shadowCaster, texture->imageView, texture->layout, sampler, 0, 0);
+	// Handle external descriptor set.
+	shaderHandler.BindBuffer(_extDescriptorSets[imageIndex], _currentFragBuffer, 0, sizeof(FragmentUbo) * i, 0, 0);
+	shaderHandler.BindBuffer(_extDescriptorSets[imageIndex], _currentFragBuffer, sizeof(FragmentUbo) * GetLength(), sizeof(FragmentUbo), 1, 0);
 
-				descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
+	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
+	submitInfo.buffers = &frame.commandBuffer;
+	submitInfo.waitSemaphore = waitSemaphore;
+	submitInfo.signalSemaphore = frame.signalSemaphore;
+	submitInfo.buffersCount = 1;
 
-				// Calculate the shadow. We know for a fact that the mesh is a quad.
-				ubo.height = offset.z;
-				for (uint32_t i = 0; i < 4; ++i)
-					ubo.vertices[i] = glm::vec2(offset.x, offset.y) + vi::Ut::RotateRadians(quadVertices[i], atan2(offsetNorm.y, offsetNorm.x));
+	commandBufferHandler.EndRecording();
+	commandBufferHandler.Submit(submitInfo);
+}
 
-				// Calculate the angle distance from the center of the quad to get the outer angles.
-				const float centerAngle = atan2(offsetNorm.y, offsetNorm.x);
-				for (uint32_t i = 0; i < 4; ++i)
-				{
-					const glm::vec2 vertPos = glm::vec2(offset) + vi::Ut::RotateDegrees(quadVertices[i], matTransform.rotation.z / 2);
-					sortableVertices[i] = vertPos;
-					sortableIndices[i] = i;
-					const glm::vec2 vertDir = normalize(vertPos);
-					// Calculate angle.
-					const float vertAngle = atan2(vertDir.y, vertDir.x);
-					// Calculate angle offset from center angle.
-					sortableAngles[i] = atan2(sin(vertAngle - centerAngle), cos(vertAngle - centerAngle));
-				}
+VkSemaphore LightSystem::GetRenderFinishedSemaphore() const
+{
+	auto& swapChain = renderer.GetSwapChain();
+	return _frames[swapChain.GetImageIndex()].signalSemaphore;
+}
 
-				// Sort based on center offset.
-				vi::Ut::LinSort(sortableIndices, sortableAngles, 0, 4);
+VkDescriptorSetLayout LightSystem::GetLayout() const
+{
+	return _extLayout;
+}
 
-				ubo.vertices[0] = sortableVertices[sortableIndices[0]];
-				ubo.vertices[1] = sortableVertices[sortableIndices[3]];
+VkDescriptorSet LightSystem::GetDescriptorSet(const uint32_t index) const
+{
+	return _extDescriptorSets[index];
+}
 
-				const glm::vec2 edge = glm::vec2(matPos) + offsetNorm * light.range;
-				const glm::vec2 edgeDir = vi::Ut::RotateDegrees(offsetNorm, 90);
+void LightSystem::CreateCubeMaps(vi::VkCoreSwapchain& swapChain, const glm::ivec2 resolution)
+{
+	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
+	auto& frameBufferHandler = renderer.GetFrameBufferHandler();
+	auto& imageHandler = renderer.GetImageHandler();
+	auto& memoryHandler = renderer.GetMemoryHandler();
+	auto& syncHandler = renderer.GetSyncHandler();
 
-				// Tangent = Opposide / Adjecent
-				// atan(sortableAngles[0]) = ? / edgeLength
-				// atan(sortableAngles[3]) * edgeLength = ?
-				const float edgeLength = length(glm::vec2(matPos) - edge);
-				const float l = atan(sortableAngles[0]) * edgeLength;
-				const float l2 = atan(sortableAngles[3]) * edgeLength;
+	// Create image with 6 sides.
+	vi::VkImageHandler::CreateInfo imageCreateInfo{};
+	imageCreateInfo.resolution = resolution;
+	imageCreateInfo.arrayLayers = 6;
+	imageCreateInfo.format = swapChain.GetDepthBufferFormat();
+	imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-				ubo.vertices[2] = edge - edgeDir * l;
-				ubo.vertices[3] = edge - edgeDir * l2;
+	// Create image view.
+	vi::VkImageHandler::ViewCreateInfo viewCreateInfo{};
+	viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+	viewCreateInfo.layerCount = 6;
+	viewCreateInfo.format = swapChain.GetDepthBufferFormat();
+	viewCreateInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-				ubo.textureCoordinates[0] = { 0, 0 };
-				ubo.textureCoordinates[1] = { 0, 1 };
-				ubo.textureCoordinates[2] = { 1, 1 };
-				ubo.textureCoordinates[3] = { 1, 0 };
+	// Create frame buffer info.
+	vi::VkFrameBufferHandler::CreateInfo frameBufferCreateInfo{};
+	frameBufferCreateInfo.imageViewCount = 1;
+	frameBufferCreateInfo.renderPass = _renderPass;
+	frameBufferCreateInfo.extent = _shadowResolution;
+	frameBufferCreateInfo.layerCount = 6;
 
-				shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, ubo);
-				meshHandler.Draw();
+	// Create transition info.
+	vi::VkImageHandler::TransitionInfo transitionInfo{};
+	transitionInfo.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	transitionInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+	transitionInfo.layerCount = 6;
 
-				swapChainExt.Collect(sampler);
-				swapChainExt.Collect(sets.shadowCaster, _descriptorPool);
-			}
+	// Start transition.
+	auto cmdBuffer = commandBufferHandler.Create();
+	commandBufferHandler.BeginRecording(cmdBuffer);
+
+	// Use the create infos to create a cubemap for every swapchain image.
+	_cubeMaps.Reallocate(GetLength() * swapChain.GetLength(), GMEM);
+	for (auto& cubeMap : _cubeMaps)
+	{
+		cubeMap.image = imageHandler.Create(imageCreateInfo);
+		cubeMap.memory = memoryHandler.Allocate(cubeMap.image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		memoryHandler.Bind(cubeMap.image, cubeMap.memory);
+
+		viewCreateInfo.image = cubeMap.image;
+		cubeMap.view = imageHandler.CreateView(viewCreateInfo);
+
+		transitionInfo.image = cubeMap.image;
+		imageHandler.TransitionLayout(transitionInfo);
+
+		frameBufferCreateInfo.imageViews = &cubeMap.view;
+		cubeMap.frameBuffer = frameBufferHandler.Create(frameBufferCreateInfo);
+	}
+
+	const auto fence = syncHandler.CreateFence();
+
+	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
+	submitInfo.buffers = &cmdBuffer;
+	submitInfo.buffersCount = 1;
+	submitInfo.fence = fence;
+
+	// End recording and execute transitions.
+	commandBufferHandler.EndRecording();
+	commandBufferHandler.Submit(submitInfo);
+	syncHandler.WaitForFence(fence);
+
+	// Destroy command buffer and fence.
+	commandBufferHandler.Destroy(cmdBuffer);
+	syncHandler.DestroyFence(fence);
+}
+
+void LightSystem::DestroyCubeMaps()
+{
+	auto& frameBufferHandler = renderer.GetFrameBufferHandler();
+	auto& imageHandler = renderer.GetImageHandler();
+	auto& memoryHandler = renderer.GetMemoryHandler();
+
+	for (auto& cubeMap : _cubeMaps)
+	{
+		frameBufferHandler.Destroy(cubeMap.frameBuffer);
+		imageHandler.DestroyView(cubeMap.view);
+		imageHandler.Destroy(cubeMap.image);
+		memoryHandler.Free(cubeMap.memory);
+	}
+}
+
+void LightSystem::CreateExtDescriptorDependencies()
+{
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& shaderHandler = renderer.GetShaderHandler();
+	auto& swapChain = renderer.GetSwapChain();
+
+	vi::VkLayoutHandler::CreateInfo extLayoutInfo{};
+	auto& extFragBinding = extLayoutInfo.bindings.Add();
+	extFragBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	extFragBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	extFragBinding.size = sizeof(FragmentUbo);
+	extFragBinding.count = 6;
+	auto& extFragAddInfoBinding = extLayoutInfo.bindings.Add();
+	extFragAddInfoBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	extFragAddInfoBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	extFragAddInfoBinding.size = sizeof(FragmentUbo);
+	auto& cubeMapsBinding = extLayoutInfo.bindings.Add();
+	cubeMapsBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	cubeMapsBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	cubeMapsBinding.count = 6;
+	_extLayout = renderer.GetLayoutHandler().CreateLayout(extLayoutInfo);
+
+	// Create descriptor sets.
+	const uint32_t length = swapChain.GetLength();
+	_extDescriptorSets.Reallocate(length, GMEM);
+
+	VkDescriptorType types[] = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+	uint32_t sizes[] = { length * 2, length };
+
+	vi::VkDescriptorPoolHandler::PoolCreateInfo descriptorPoolCreateInfo{};
+	descriptorPoolCreateInfo.types = types;
+	descriptorPoolCreateInfo.capacities = sizes;
+	descriptorPoolCreateInfo.typeCount = 2;
+	_extDescriptorPool = descriptorPoolHandler.Create(descriptorPoolCreateInfo);
+
+	vi::VkDescriptorPoolHandler::SetCreateInfo descriptorSetCreateInfo{};
+	descriptorSetCreateInfo.layout = _extLayout;
+	descriptorSetCreateInfo.pool = _extDescriptorPool;
+	descriptorSetCreateInfo.outSets = _extDescriptorSets.GetData();
+	descriptorSetCreateInfo.setCount = length;
+	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
+
+	// Bind samplers to external descriptor set.
+	const uint32_t samplerCount = GetLength() * length;
+	_extSamplers.Reallocate(samplerCount, GMEM);
+	for (auto& sampler : _extSamplers)
+		sampler = shaderHandler.CreateSampler();
+
+	const uint32_t lightCount = GetLength();
+	for (uint32_t i = 0; i < length; ++i)
+	{
+		auto& descriptorSet = _extDescriptorSets[i];
+
+		for (uint32_t j = 0; j < lightCount; ++j)
+		{
+			const uint32_t index = j + i * lightCount;
+
+			shaderHandler.BindSampler(descriptorSet,
+				_cubeMaps[index].view,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				_extSamplers[index], 2, j);
 		}
 	}
 }
 
-VkVertexInputBindingDescription LightSystem::ShadowVertex::GetBindingDescription()
+void LightSystem::DestroyExtDescriptorDependencies() const
 {
-	VkVertexInputBindingDescription bindingDescription{};
-	bindingDescription.binding = 0;
-	bindingDescription.stride = sizeof(ShadowVertex);
-	bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-	return bindingDescription;
-}
+	auto& shaderHandler = renderer.GetShaderHandler();
 
-vi::Vector<VkVertexInputAttributeDescription> LightSystem::ShadowVertex::GetAttributeDescriptions()
-{
-	vi::Vector<VkVertexInputAttributeDescription> attributeDescriptions{ 1, GMEM_TEMP, 1 };
+	for (auto& sampler : _extSamplers)
+		shaderHandler.DestroySampler(sampler);
 
-	auto& position = attributeDescriptions[0];
-	position.binding = 0;
-	position.location = 0;
-	position.format = VK_FORMAT_R32_SINT;
-	position.offset = offsetof(ShadowVertex, index);
-
-	return attributeDescriptions;
-}
-
-void LightSystem::CreateMesh()
-{
-	auto& meshHandler = renderer.GetMeshHandler();
-	MeshHandler::VertexData<ShadowVertex> vertData{};
-	vertData.vertices = vi::ArrayPtr<ShadowVertex>{ 4, GMEM_TEMP };
-	
-	Vertex::Index indices[6] = { 0, 1, 2, 0, 2, 3 };
-	vertData.indices = vi::ArrayPtr<Vertex::Index>{ indices, 6 };
-
-	for (uint32_t i = 0; i < 4; ++i)
-		vertData.vertices[i].index = i;
-
-	_mesh = meshHandler.Create(vertData);
+	renderer.GetLayoutHandler().DestroyLayout(_extLayout);
+	renderer.GetDescriptorPoolHandler().Destroy(_extDescriptorPool);
 }
 
 void LightSystem::OnRecreateSwapChainAssets()
@@ -198,19 +403,18 @@ void LightSystem::OnRecreateSwapChainAssets()
 	if (_pipeline)
 		DestroySwapChainAssets();
 
-	auto& postEffectHandler = renderer.GetPostEffectHandler();
-
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
-	pipelineInfo.attributeDescriptions = ShadowVertex::GetAttributeDescriptions();
-	pipelineInfo.bindingDescription = ShadowVertex::GetBindingDescription();
-	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
-	pipelineInfo.setLayouts.Add(_layout);
+	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
+	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
+	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.modules.Add(_shader.vertex);
+	pipelineInfo.modules.Add(_shader.geometry);
 	pipelineInfo.modules.Add(_shader.fragment);
-	pipelineInfo.pushConstants.Add({ sizeof(Ubo), VK_SHADER_STAGE_VERTEX_BIT });
-	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
-	pipelineInfo.extent = postEffectHandler.GetExtent();
-
+	pipelineInfo.setLayouts.Add(_layout);
+	pipelineInfo.renderPass = _renderPass;
+	pipelineInfo.extent = _shadowResolution;
+	pipelineInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	
 	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
