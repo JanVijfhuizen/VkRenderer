@@ -149,21 +149,16 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 		auto& shadowFaces = geomUbo.matrices;
 
 		const glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, light.range);
-		/*
-		shadowFaces[0] = shadowProj * glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
-		shadowFaces[1] = shadowProj * glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
-		shadowFaces[2] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, -1));
-		shadowFaces[3] = shadowProj * glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, -1));
-		shadowFaces[4] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
-		shadowFaces[5] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
-		*/
 
-		shadowFaces[0] = shadowProj * glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
-		shadowFaces[1] = shadowProj * glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
-		shadowFaces[2] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, 1));
-		shadowFaces[3] = shadowProj * glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, 1));
-		shadowFaces[4] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
-		shadowFaces[5] = shadowProj * glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
+		shadowFaces[0] = glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
+		shadowFaces[1] = glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
+		shadowFaces[2] = glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, -1));
+		shadowFaces[3] = glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, 1));
+		shadowFaces[4] = glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
+		shadowFaces[5] = glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
+
+		for (auto& face : shadowFaces)
+			face = shadowProj * face;
 
 		// Update fragment ubo.
 		auto& fragUbo = _fragmentUbos[i];
