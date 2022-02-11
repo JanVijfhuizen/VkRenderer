@@ -154,8 +154,8 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 		shadowFaces[1] = glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
 		shadowFaces[2] = glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, -1));
 		shadowFaces[3] = glm::lookAt(position, position + glm::vec3(0, -1, 0), glm::vec3(0, 0, 1));
-		shadowFaces[4] = glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
-		shadowFaces[5] = glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
+		shadowFaces[4] = glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
+		shadowFaces[5] = glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
 
 		for (auto& face : shadowFaces)
 			face = shadowProj * face;

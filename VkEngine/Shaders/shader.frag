@@ -26,7 +26,8 @@ layout(location = 0) out vec4 outColor;
 
 float ShadowCalculation()
 {
-    vec3 fragToLight = inData.fragPos - lights[0].pos; 
+    vec3 fragToLight = inData.fragPos - lights[0].pos;
+    fragToLight.z *= -1;
     float closestDepth = texture(lightMaps[0], fragToLight).r;
     closestDepth *= lights[0].range;
 
