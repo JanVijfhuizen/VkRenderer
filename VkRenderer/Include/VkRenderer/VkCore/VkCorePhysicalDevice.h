@@ -4,10 +4,11 @@ namespace vi
 {
 	struct VkCoreInfo;
 	struct VkCoreInstance;
+	class VkCore;
 
 	struct VkCorePhysicalDevice final
 	{
-		friend class VkCore;
+		friend VkCore;
 
 	public:
 		/// <summary>

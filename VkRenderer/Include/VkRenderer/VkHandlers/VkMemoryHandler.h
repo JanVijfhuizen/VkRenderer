@@ -3,6 +3,8 @@
 
 namespace vi
 {
+	class VkCore;
+
 	class VkMemoryHandler final : public VkHandler
 	{
 	public:

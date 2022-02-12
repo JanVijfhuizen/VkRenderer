@@ -1,6 +1,15 @@
 ﻿#include "pch.h"
+#include "VkCore/VkCoreSwapchain.h"
 #include "WindowHandler.h"
 #include "VkCore/VkCore.h"
+#include "VkCore/VkCorePhysicalDevice.h"
+#include "VkHandlers/VkCommandBufferHandler.h"
+#include "VkHandlers/VkFrameBufferHandler.h"
+#include "VkHandlers/VkImageHandler.h"
+#include "VkHandlers/VkMemoryHandler.h"
+#include "VkHandlers/VkRenderPassHandler.h"
+#include "VkHandlers/VkSyncHandler.h"
+#include "VkCore/VkCoreLogicalDevice.h"
 
 namespace vi
 {

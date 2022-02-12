@@ -1,5 +1,10 @@
 ﻿#include "pch.h"
+#include "VkRenderer/VkCore/VkCoreInfo.h"
+#include "Rendering/MeshHandler.h"
+#include "Rendering/PostEffectHandler.h"
 #include "Rendering/Renderer.h"
+#include "Rendering/TextureHandler.h"
+#include "Rendering/SwapChainExt.h"
 
 Renderer::Renderer(vi::VkCoreInfo& info, const Info& addInfo) : VkCore(info)
 {

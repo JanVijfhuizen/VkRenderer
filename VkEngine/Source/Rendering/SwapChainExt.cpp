@@ -3,6 +3,11 @@
 #include "VkRenderer/VkCore/VkCore.h"
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/Renderer.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
+#include "VkRenderer/VkHandlers/VkImageHandler.h"
+#include "VkRenderer/VkHandlers/VkFrameBufferHandler.h"
+#include "VkRenderer/VkCore/VkCoreSwapchain.h"
 
 SwapChainExt::Dependency::Dependency(Renderer& renderer) : renderer(renderer)
 {

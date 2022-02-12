@@ -4,10 +4,11 @@ namespace vi
 {
 	struct VkCoreInfo;
 	struct VkCoreInstance;
+	class VkCore;
 
 	struct VkCoreDebugger final
 	{
-		friend class VkCore;
+		friend VkCore;
 
 	public:
 		void Setup(const VkCoreInstance& instance);
@@ -16,7 +17,8 @@ namespace vi
 
 		static void CheckValidationSupport(const VkCoreInfo& info);
 		[[nodiscard]] static VkDebugUtilsMessengerCreateInfoEXT CreateInfo();
-		static void EnableValidationLayers(const VkCoreInfo& info, VkDebugUtilsMessengerCreateInfoEXT& debugInfo, VkInstanceCreateInfo& instanceInfo);
+		static void EnableValidationLayers(const VkCoreInfo& info, 
+			VkDebugUtilsMessengerCreateInfoEXT& debugInfo, VkInstanceCreateInfo& instanceInfo);
 
 		[[nodiscard]] static VkBool32 DebugCallback(
 			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

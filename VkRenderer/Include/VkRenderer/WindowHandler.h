@@ -2,16 +2,16 @@
 
 namespace vi
 {
+	class VkCore;
+	class VkCoreInstance;
+
 	/// <summary>
 	/// Handles the windowing of the application. Can open and close windows.
 	/// </summary>
 	class WindowHandler
 	{
-		friend class VkCore;
-		friend class VkCoreInstance;
-
-		friend class VkRenderer;
-		friend class InstanceFactory;
+		friend VkCore;
+		friend VkCoreInstance;
 
 	public:
 		struct Info final

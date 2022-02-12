@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/Renderer.h"
+#include "VkRenderer/VkHandlers/VkDescriptorPoolHandler.h"
 
 void DescriptorPool::Construct(
     Renderer& renderer, const VkDescriptorSetLayout layout, VkDescriptorType* types,

@@ -4,10 +4,11 @@ namespace vi
 {
 	struct VkCorePhysicalDevice;
 	struct VkCoreLogicalDevice;
+	class VkCore;
 
 	struct VkCoreCommandPool final
 	{
-		friend class VkCore;
+		friend VkCore;
 
 	public:
 		void Setup(VkSurfaceKHR surface, const VkCorePhysicalDevice& physicalDevice, const VkCoreLogicalDevice& logicalDevice);

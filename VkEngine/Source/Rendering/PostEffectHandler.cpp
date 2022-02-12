@@ -2,6 +2,16 @@
 #include "Rendering/PostEffectHandler.h"
 #include "VkRenderer/VkHandlers/VkRenderPassHandler.h"
 #include "Rendering/Renderer.h"
+#include "VkRenderer/VkCore/VkCorePhysicalDevice.h"
+#include "VkRenderer/VkHandlers/VkCommandBufferHandler.h"
+#include "VkRenderer/VkHandlers/VkSyncHandler.h"
+#include "VkRenderer/VkCore/VkCoreSwapchain.h"
+#include "VkRenderer/VkHandlers/VkImageHandler.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
+#include "VkRenderer/VkHandlers/VkFrameBufferHandler.h"
+#include "VkRenderer/VkHandlers/VkLayoutHandler.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
+#include "VkRenderer/VkHandlers/VkDescriptorPoolHandler.h"
 
 PostEffect::PostEffect(Renderer& renderer) : renderer(renderer)
 {

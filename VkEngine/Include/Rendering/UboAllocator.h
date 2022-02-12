@@ -1,5 +1,7 @@
 #pragma once
 #include "Rendering/Renderer.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
 
 template <typename T>
 class UboAllocator final

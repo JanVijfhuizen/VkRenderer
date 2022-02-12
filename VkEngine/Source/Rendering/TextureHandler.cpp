@@ -4,6 +4,11 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include "VkRenderer/VkHandlers/VkSyncHandler.h"
+#include "VkRenderer/VkHandlers/VkCommandBufferHandler.h"
+#include "VkRenderer/VkHandlers/VkImageHandler.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
 
 TextureHandler::TextureHandler(vi::VkCore& core) : VkHandler(core)
 {

@@ -4,10 +4,11 @@ namespace vi
 {
 	struct VkCoreInfo;
 	struct VkCoreDebugger;
+	class VkCore;
 
 	struct VkCoreInstance final
 	{
-		friend class VkCore;
+		friend VkCore;
 
 	public:
 		void Setup(const VkCoreInfo& info);

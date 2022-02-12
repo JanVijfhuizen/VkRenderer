@@ -2,6 +2,10 @@
 #include "VkRenderer/VkHandlers/VkHandler.h"
 #include "Vertex.h"
 #include "VkRenderer/VkCore/VkCore.h"
+#include "VkRenderer/VkHandlers/VkCommandBufferHandler.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
+#include "VkRenderer/VkHandlers/VkSyncHandler.h"
 
 struct Mesh final
 {

@@ -6,6 +6,9 @@
 #include "Components/Transform.h"
 #include "Rendering/MeshHandler.h"
 #include "Components/Light.h"
+#include "VkRenderer/VkHandlers/VkDescriptorPoolHandler.h"
+#include "VkRenderer/VkCore/VkCoreSwapchain.h"
+#include "Rendering/PostEffectHandler.h"
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
 	Renderer& renderer, CameraSystem& cameras, 

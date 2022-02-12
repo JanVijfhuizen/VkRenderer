@@ -2,9 +2,10 @@
 
 namespace vi
 {
-	class WindowHandler;
 	struct VkCoreLogicalDevice;
 	struct VkCorePhysicalDevice;
+	class VkCore;
+	class WindowHandler;
 
 	/// <summary>
 	/// Used to draw directly to the screen.

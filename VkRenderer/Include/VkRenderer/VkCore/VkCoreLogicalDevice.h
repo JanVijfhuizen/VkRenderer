@@ -2,8 +2,9 @@
 
 namespace vi
 {
-	struct VkCoreInfo;
 	struct VkCorePhysicalDevice;
+	struct VkCoreInfo;
+	class VkCore;
 
 	struct Queues final
 	{
@@ -23,7 +24,7 @@ namespace vi
 	/// </summary>
 	struct VkCoreLogicalDevice final
 	{
-		friend class VkCore;
+		friend VkCore;
 
 	public:
 		Queues queues;
