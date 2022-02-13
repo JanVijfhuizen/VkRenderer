@@ -38,10 +38,12 @@ namespace vi
 			vkGetPhysicalDeviceProperties(device, &deviceProperties);
 			vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
+			// If families are not all present, continue.
 			const auto families = GetQueueFamilies(surface, device);
 			if (!families)
 				continue;
 
+			// If extensions are not supported, continue.
 			if (!CheckDeviceExtensionSupport(device, info.deviceExtensions))
 				continue;
 
@@ -52,13 +54,16 @@ namespace vi
 				deviceFeatures
 			};
 
+			// If the device does not support the chosen features, continue.
 			if (!IsDeviceSuitable(surface, deviceInfo))
 				continue;
 
+			// Assign hardware score and add it to the potential candidates.
 			const int32_t score = RateDevice(deviceInfo);
 			candidates.Push({ score, device });
 		}
 
+		// Assign the chosen hardware.
 		assert(!candidates.IsEmpty());
 		_value = candidates.Peek();
 	}
@@ -84,15 +89,18 @@ namespace vi
 		uint32_t i = 0;
 		for (const auto& queueFamily : queueFamilies)
 		{
+			// If the graphics family is present.
 			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 				families.graphics = i;
 
 			VkBool32 presentSupport = false;
 			vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
 
+			// Since this is a renderer made for games, we need to be able to render to the screen.
 			if (presentSupport)
 				families.present = i;
 
+			// If all families have been found.
 			if (families)
 				break;
 			i++;
@@ -123,6 +131,7 @@ namespace vi
 		// Arbitrary increase in score, not sure what to look for to be honest.
 		if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 			score += 1000;
+		// Increase the score based on the maximum resolution supported.
 		score += properties.limits.maxImageDimension2D;
 
 		return score;
@@ -143,6 +152,7 @@ namespace vi
 		for (auto& extension : extensions)
 			hashMap.Insert(extension);
 
+		// Remove all the available extensions and check if the hashmap is now empty (which would suggest that all the extensions are supported).
 		for (const auto& extension : availableExtensions)
 			hashMap.Remove(extension.extensionName);
 
@@ -157,6 +167,7 @@ namespace vi
 		const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts
 			& physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
+		// Iterate over all the sample count enums and return the highest supported one.
 		VkSampleCountFlagBits ret = VK_SAMPLE_COUNT_1_BIT;
 		for (int32_t i = VK_SAMPLE_COUNT_2_BIT; i != VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM; i++)
 		{

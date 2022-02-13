@@ -6,6 +6,9 @@ namespace vi
 	struct VkCoreInstance;
 	class VkCore;
 
+	/// <summary>
+	/// [Editor Only] Handles the editor-only debugging side of Vulkan.
+	/// </summary>
 	struct VkCoreDebugger final
 	{
 		friend VkCore;
@@ -15,8 +18,10 @@ namespace vi
 		void Cleanup(const VkCoreInstance& instance) const;
 		operator VkDebugUtilsMessengerEXT() const;
 
+		// Throws an error if validation layers are not supported.
 		static void CheckValidationSupport(const VkCoreInfo& info);
 		[[nodiscard]] static VkDebugUtilsMessengerCreateInfoEXT CreateInfo();
+		// Enables debugging layers.
 		static void EnableValidationLayers(const VkCoreInfo& info, 
 			VkDebugUtilsMessengerCreateInfoEXT& debugInfo, VkInstanceCreateInfo& instanceInfo);
 

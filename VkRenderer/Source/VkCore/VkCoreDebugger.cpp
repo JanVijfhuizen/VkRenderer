@@ -42,7 +42,7 @@ namespace vi
 		ArrayPtr<VkLayerProperties> availableLayers(layerCount, GMEM_TEMP);
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.GetData());
 
-		// Check if validation layers ara available.
+		// Iterate over all the layers to see if they are available.
 		for (const auto& layer : info.validationLayers)
 		{
 			bool layerFound = false;
@@ -54,6 +54,7 @@ namespace vi
 					break;
 				}
 
+			// If the layer is not available.
 			assert(layerFound);
 		}
 	}

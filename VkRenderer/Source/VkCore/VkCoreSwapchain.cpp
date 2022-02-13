@@ -20,6 +20,8 @@ namespace vi
 
 	VkSurfaceFormatKHR VkCoreSwapchain::ChooseSurfaceFormat(const ArrayPtr<VkSurfaceFormatKHR>& availableFormats)
 	{
+		// Preferably go for SRGB, if it's not present just go with the first one found.
+		// We can basically assume that SRGB is supported on most hardware.
 		for (const auto& availableFormat : availableFormats)
 			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
 				availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
@@ -29,6 +31,8 @@ namespace vi
 
 	VkPresentModeKHR VkCoreSwapchain::ChoosePresentMode(const ArrayPtr<VkPresentModeKHR>& availablePresentModes)
 	{
+		// Preferably go for Mailbox, otherwise go for Fifo.
+		// Fifo is traditional VSync, where mailbox is all that and better, but unlike Fifo is not required to be supported by the hardware.
 		for (const auto& availablePresentMode : availablePresentModes)
 			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
 				return availablePresentMode;
@@ -85,12 +89,15 @@ namespace vi
 		auto& commandBufferHandler = _core.GetCommandBufferHandler();
 		auto& image = _images[_imageIndex];
 
+		// Begin recording the command.
 		commandBufferHandler.BeginRecording(image.commandBuffer);
 
+		// Clear the image.
 		VkClearValue clearColors[2];
 		clearColors[0].color = { 0, 0, 0, 1 };
 		clearColors[1].depthStencil = { 1, 0 };
 
+		// Begin the renderpass and clear the previous drawing on the attached image.
 		_core.GetRenderPassHandler().Begin(image.frameBuffer, _renderPass, {},
 			{ _extent.width, _extent.height }, clearColors, 2);
 	}
@@ -99,6 +106,7 @@ namespace vi
 	{
 		auto& frame = _frames[_frameIndex];
 
+		// Present the objects drawn during this render pass.
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
@@ -124,6 +132,7 @@ namespace vi
 		renderPassHandler.End();
 		commandBufferHandler.EndRecording();
 
+		// Finish the render pass and submit it to the command buffer.
 		VkCommandBufferHandler::SubmitInfo info{};
 		info.buffers = &image.commandBuffer;
 		info.buffersCount = 1;
@@ -141,6 +150,7 @@ namespace vi
 		auto& frame = _frames[_frameIndex];
 		auto& syncHandler = _core.GetSyncHandler();
 
+		// Wait until the swapchain has a new image available.
 		syncHandler.WaitForFence(frame.inFlightFence);
 		const auto result = vkAcquireNextImageKHR(_core.GetLogicalDevice(), 
 			_swapChain, UINT64_MAX, frame.imageAvailableSemaphore, VK_NULL_HANDLE, &_imageIndex);
@@ -174,6 +184,8 @@ namespace vi
 
 	uint32_t VkCoreSwapchain::SupportDetails::GetRecommendedImageCount() const
 	{
+		// Always try to go for one larger than the minimum capability.
+		// More swapchain images mean less time waiting for a previous frame to render.
 		uint32_t imageCount = capabilities.minImageCount + 1;
 
 		const auto& maxImageCount = capabilities.maxImageCount;
@@ -196,11 +208,13 @@ namespace vi
 		const VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(support.formats);
 		_format = surfaceFormat.format;
 
+		// Define the depth buffer formats from which the image handler can choose.
 		const ArrayPtr<VkFormat> depthFormats{3, GMEM_TEMP};
 		depthFormats[0] = VK_FORMAT_D32_SFLOAT;
 		depthFormats[1] = VK_FORMAT_D32_SFLOAT_S8_UINT;
 		depthFormats[2] = VK_FORMAT_D24_UNORM_S8_UINT;
 
+		// Choose the depth buffer format for the depth attachments.
 		_depthBufferFormat = _core.GetImageHandler().FindSupportedFormat(depthFormats,
 			VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
 		);
@@ -222,6 +236,7 @@ namespace vi
 	{
 		auto& syncHandler = _core.GetSyncHandler();
 
+		// Destroy sync objects.
 		for (auto& fence : _inFlight)
 		{
 			if (fence)
@@ -229,6 +244,7 @@ namespace vi
 			fence = VK_NULL_HANDLE;
 		}
 
+		// Destroy the swap chain and the corresponding render pass.
 		_core.GetRenderPassHandler().Destroy(_renderPass);
 		vkDestroySwapchainKHR(_core.GetLogicalDevice(), _swapChain, nullptr);
 
@@ -257,6 +273,7 @@ namespace vi
 			families.present
 		};
 
+		// Create a new swap chain based on the hardware requirements.
 		VkSwapchainCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		createInfo.surface = surface;
@@ -291,6 +308,7 @@ namespace vi
 			Cleanup();
 
 		_swapChain = newSwapchain;
+		// Create a render pass specifically for drawing to the swap chain.
 		_renderPass = _core.GetRenderPassHandler().Create();
 
 		ConstructImages();
@@ -308,6 +326,7 @@ namespace vi
 		uint32_t formatCount;
 		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
 
+		// Get all supported swap chain formats, if any.
 		if (formatCount != 0)
 		{
 			auto& formats = details.formats;
@@ -318,6 +337,7 @@ namespace vi
 		uint32_t presentModeCount;
 		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
 
+		// Get all supported swap chain present modes, if any.
 		if (presentModeCount != 0)
 		{
 			auto& presentModes = details.presentModes;
@@ -338,6 +358,7 @@ namespace vi
 		const auto vkImages = ArrayPtr<VkImage>(length, GMEM_TEMP);
 		vkGetSwapchainImagesKHR(_core.GetLogicalDevice(), _swapChain, &length, vkImages.GetData());
 
+		// Create image views from the color attachments (images are already provided by the swap chain extension).
 		for (uint32_t i = 0; i < length; ++i)
 		{
 			auto& image = _images[i];
@@ -354,6 +375,7 @@ namespace vi
 	{
 		auto& syncHandler = _core.GetSyncHandler();
 
+		// Construct the sync objects.
 		for (auto& frame : _frames)
 		{
 			frame.imageAvailableSemaphore = syncHandler.CreateSemaphore();
@@ -376,6 +398,7 @@ namespace vi
 		const uint32_t length = _images.GetLength();
 		const auto commandBuffers = ArrayPtr<VkCommandBuffer>(length, GMEM_TEMP);
 
+		// Create a reusable command buffer.
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.commandPool = commandPool;
@@ -389,6 +412,7 @@ namespace vi
 		{
 			auto& image = _images[i];
 
+			// Create the depth image attachment.
 			VkImageHandler::CreateInfo imageCreateInfo{};
 			imageCreateInfo.resolution = { _extent.width, _extent.height };
 			imageCreateInfo.format = _depthBufferFormat;
@@ -397,12 +421,14 @@ namespace vi
 			image.depthImageMemory = memoryHandler.Allocate(image.depthImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 			memoryHandler.Bind(image.depthImage, image.depthImageMemory);
 
+			// Create the depth image view.
 			VkImageHandler::ViewCreateInfo imageViewCreateInfo{};
 			imageViewCreateInfo.image = image.depthImage;
 			imageViewCreateInfo.format = _depthBufferFormat;
 			imageViewCreateInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
 			image.depthImageView = imageHandler.CreateView(imageViewCreateInfo);
 
+			// Transition the depth image layout to be that of a depth attachment.
 			auto cmdBuffer = commandBufferHandler.Create();
 			const auto fence = syncHandler.CreateFence();
 
@@ -415,6 +441,8 @@ namespace vi
 			imageHandler.TransitionLayout(transitionInfo);
 			commandBufferHandler.EndRecording();
 
+			// It would be better to do all the swapchain images at once, but the performance gain is neglectable
+			// since it only executes once per swapchain recreation, so I'm a bit lazy here.
 			VkCommandBufferHandler::SubmitInfo submitInfo{};
 			submitInfo.buffers = &cmdBuffer;
 			submitInfo.buffersCount = 1;
@@ -425,6 +453,7 @@ namespace vi
 			commandBufferHandler.Destroy(cmdBuffer);
 			syncHandler.DestroyFence(fence);
 
+			// Create a render target from the color and depth image views.
 			VkFrameBufferHandler::CreateInfo frameBufferCreateInfo{};
 			frameBufferCreateInfo.imageViews = image.imageViews;
 			frameBufferCreateInfo.imageViewCount = 2;
@@ -442,6 +471,7 @@ namespace vi
 		auto& imageHandler = _core.GetImageHandler();
 		auto& memoryHandler = _core.GetMemoryHandler();
 
+		// Destroys the depth image and the frame buffer.
 		for (auto& image : _images)
 		{
 			imageHandler.DestroyView(image.depthImageView);
@@ -458,6 +488,7 @@ namespace vi
 		const uint32_t length = _images.GetLength();
 		const auto& imageHandler = _core.GetImageHandler();
 
+		// Destroy the image views.
 		for (uint32_t i = 0; i < length; ++i)
 		{
 			auto& image = _images[i];
@@ -469,6 +500,7 @@ namespace vi
 	{
 		auto& syncHandler = _core.GetSyncHandler();
 
+		// Destroy the sync objects.
 		for (const auto& frame : _frames)
 		{
 			syncHandler.DestroySemaphore(frame.imageAvailableSemaphore);

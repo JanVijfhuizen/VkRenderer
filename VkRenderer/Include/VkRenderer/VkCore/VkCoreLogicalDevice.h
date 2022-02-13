@@ -6,6 +6,9 @@ namespace vi
 	struct VkCoreInfo;
 	class VkCore;
 
+	/// <summary>
+	/// Contains the queue handles for the various command types.
+	/// </summary>
 	struct Queues final
 	{
 		union
@@ -20,7 +23,7 @@ namespace vi
 	};
 
 	/// <summary>
-	/// Class used by VkCore to set up and manage parts of the renderer.
+	/// Handles the interface created from the selected GPU.
 	/// </summary>
 	struct VkCoreLogicalDevice final
 	{

@@ -6,6 +6,9 @@ namespace vi
 	struct VkCoreDebugger;
 	class VkCore;
 
+	/// <summary>
+	/// Handles the Vulkan instance from which to create the renderer.
+	/// </summary>
 	struct VkCoreInstance final
 	{
 		friend VkCore;

@@ -11,6 +11,7 @@ namespace vi
 		auto appInfo = CreateApplicationInfo(info);
 		const auto extensions = GetExtensions(info);
 
+		// Create the vulkan instance with the selected extensions enabled.
 		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
@@ -40,6 +41,7 @@ namespace vi
 		const auto& name = windowInfo.name.GetData();
 		const auto version = VK_MAKE_VERSION(1, 0, 0);
 
+		// Create the info from which the vulkan instance is created.
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = name;
@@ -56,6 +58,7 @@ namespace vi
 		const auto requiredExtensions = info.windowHandler->GetRequiredExtensions();
 		auto& additionalExtensions = info.instanceExtensions;
 
+		// Disable debug extensions for release mode.
 		uint32_t debugExtensions = 0;
 #ifdef _DEBUG
 		debugExtensions = 1;

@@ -6,6 +6,9 @@ namespace vi
 	struct VkCoreLogicalDevice;
 	class VkCore;
 
+	/// <summary>
+	/// Handles commands like image renders, transitions and transfers.
+	/// </summary>
 	struct VkCoreCommandPool final
 	{
 		friend VkCore;

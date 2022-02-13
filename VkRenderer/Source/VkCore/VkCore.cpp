@@ -28,6 +28,7 @@ namespace vi
 	{
 		assert(info.windowHandler);
 
+		// Set up all the core components.
 		_debugger = GMEM.New<VkCoreDebugger>();
 		_instance = GMEM.New<VkCoreInstance>();
 		_physicalDevice = GMEM.New<VkCorePhysicalDevice>();
@@ -35,6 +36,7 @@ namespace vi
 		_commandPool = GMEM.New<VkCoreCommandPool>();
 		_swapChain = GMEM.New<VkCoreSwapchain>(*this);
 
+		// Set up all the standard utilities.
 		_commandBufferHandler = GMEM.New<VkCommandBufferHandler>(*this);
 		_descriptorPoolHandler = GMEM.New<VkDescriptorPoolHandler>(*this);
 		_frameBufferHandler = GMEM.New<VkFrameBufferHandler>(*this);
@@ -60,9 +62,13 @@ namespace vi
 		_windowHandler = info.windowHandler;
 		_surface = _windowHandler->CreateSurface(*_instance);
 
+		// Choose GPU card.
 		_physicalDevice->Setup(info, *_instance, _surface);
+		// Create interface for said GPU card.
 		_logicalDevice->Setup(info, _surface, *_physicalDevice);
+		// Set up pool of render commands.
 		_commandPool->Setup(_surface, *_physicalDevice, *_logicalDevice);
+		// Construct swap chain for image presentation.
 		_swapChain->Construct();
 	}
 
