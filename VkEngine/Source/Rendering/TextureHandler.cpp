@@ -31,13 +31,16 @@ Texture TextureHandler::Create(const char* name, const char* extension) const
 
 	int32_t w, h, d;
 	const auto tex = Load(path.GetData(), w, h, d);
+	// Calculate the amount of mip map levels, with a minimum of 1.
 	const uint32_t mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(w, h)))) + 1;
 
+	// First create a staging buffer before copying it to a GPU readonly location.
 	const auto texStagingBuffer = shaderHandler.CreateBuffer(sizeof(unsigned char) * w * h * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 	const auto texStagingMem = memoryHandler.Allocate(texStagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	memoryHandler.Bind(texStagingBuffer, texStagingMem);
 	memoryHandler.Map(texStagingMem, tex, 0, w * h * d);
 
+	// Create the image.
 	vi::VkImageHandler::CreateInfo imgCreateInfo{};
 	imgCreateInfo.resolution = { w, h };
 	imgCreateInfo.mipLevels = mipLevels;
@@ -46,6 +49,7 @@ Texture TextureHandler::Create(const char* name, const char* extension) const
 	const auto imgMem = memoryHandler.Allocate(img, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	memoryHandler.Bind(img, imgMem);
 
+	// Transition the images layout.
 	vi::VkImageHandler::TransitionInfo transitionInfo{};
 	transitionInfo.image = img;
 	transitionInfo.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -57,6 +61,7 @@ Texture TextureHandler::Create(const char* name, const char* extension) const
 
 	const auto imgFence = syncHandler.CreateFence();
 
+	// Submit the image layout transition.
 	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
 	submitInfo.buffers = &imgCmd;
 	submitInfo.buffersCount = 1;
@@ -64,6 +69,7 @@ Texture TextureHandler::Create(const char* name, const char* extension) const
 	commandBufferHandler.Submit(submitInfo);
 	syncHandler.WaitForFence(imgFence);
 
+	// Copy the buffer content to the actual image.
 	commandBufferHandler.BeginRecording(imgCmd);
 	shaderHandler.CopyBuffer(texStagingBuffer, img, {w, h});
 	commandBufferHandler.EndRecording();
@@ -79,10 +85,12 @@ Texture TextureHandler::Create(const char* name, const char* extension) const
 
 	GenerateMipMaps(img, { w, h }, mipLevels, VK_FORMAT_R8G8B8A8_SRGB);
 
+	// Create a corresponding image view.
 	vi::VkImageHandler::ViewCreateInfo viewCreateInfo{};
 	viewCreateInfo.image = img;
 	viewCreateInfo.mipLevels = mipLevels;
 
+	// Fill the texture data.
 	Texture texture{};
 	texture.resolution = { w, h };
 	texture.channels = d;
@@ -135,6 +143,7 @@ void TextureHandler::GenerateMipMaps(
 	int32_t mipWidth = resolution.x;
 	int32_t mipHeight = resolution.y;
 
+	// Create all the separate mip levels.
 	for (uint32_t i = 1; i < mipLevels; i++) 
 	{
 		barrier.subresourceRange.baseMipLevel = i - 1;
@@ -149,6 +158,7 @@ void TextureHandler::GenerateMipMaps(
 			0, nullptr,
 			1, &barrier);
 
+		// Copy the original image data into a smaller image.
 		VkImageBlit blit{};
 		blit.srcOffsets[0] = { 0, 0, 0 };
 		blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
@@ -184,6 +194,7 @@ void TextureHandler::GenerateMipMaps(
 		mipHeight = mipHeight == 1 ? mipHeight : mipHeight / 2;
 	}
 
+	// Because this assumes the old and new layout, it isn't a public method.
 	barrier.subresourceRange.baseMipLevel = mipLevels - 1;
 	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
