@@ -2,12 +2,33 @@
 #include "VkCore/VkCore.h"
 #include "WindowHandler.h"
 
+#include "VkCore/VkCoreInfo.h"
+
+#include "VkCore/VkCoreInstance.h"
+#include "VkCore/VkCoreDebugger.h"
+#include "VkCore/VkCorePhysicalDevice.h"
+#include "VkCore/VkCoreLogicalDevice.h"
+#include "VkCore/VkCoreCommandPool.h"
+#include "VkCore/VkCoreSwapchain.h"
+
+#include "VkHandlers/VkCommandBufferHandler.h"
+#include "VkHandlers/VkDescriptorPoolHandler.h"
+#include "VkHandlers/VkFrameBufferHandler.h"
+#include "VkHandlers/VkImageHandler.h"
+#include "VkHandlers/VkLayoutHandler.h"
+#include "VkHandlers/VkMemoryHandler.h"
+#include "VkHandlers/VkPipelineHandler.h"
+#include "VkHandlers/VkRenderPassHandler.h"
+#include "VkHandlers/VkShaderHandler.h"
+#include "VkHandlers/VkSyncHandler.h"
+
 namespace vi
 {
 	VkCore::VkCore(VkCoreInfo& info)
 	{
 		assert(info.windowHandler);
 
+		// Set up all the core components.
 		_debugger = GMEM.New<VkCoreDebugger>();
 		_instance = GMEM.New<VkCoreInstance>();
 		_physicalDevice = GMEM.New<VkCorePhysicalDevice>();
@@ -15,6 +36,7 @@ namespace vi
 		_commandPool = GMEM.New<VkCoreCommandPool>();
 		_swapChain = GMEM.New<VkCoreSwapchain>(*this);
 
+		// Set up all the standard utilities.
 		_commandBufferHandler = GMEM.New<VkCommandBufferHandler>(*this);
 		_descriptorPoolHandler = GMEM.New<VkDescriptorPoolHandler>(*this);
 		_frameBufferHandler = GMEM.New<VkFrameBufferHandler>(*this);
@@ -29,7 +51,6 @@ namespace vi
 		// Add required tags.
 		info.deviceExtensions.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 		info.validationLayers.Add("VK_LAYER_KHRONOS_validation");
-
 		// Check debugging support.
 		VkCoreDebugger::CheckValidationSupport(info);
 
@@ -41,9 +62,13 @@ namespace vi
 		_windowHandler = info.windowHandler;
 		_surface = _windowHandler->CreateSurface(*_instance);
 
+		// Choose GPU card.
 		_physicalDevice->Setup(info, *_instance, _surface);
+		// Create interface for said GPU card.
 		_logicalDevice->Setup(info, _surface, *_physicalDevice);
+		// Set up pool of render commands.
 		_commandPool->Setup(_surface, *_physicalDevice, *_logicalDevice);
+		// Construct swap chain for image presentation.
 		_swapChain->Construct();
 	}
 

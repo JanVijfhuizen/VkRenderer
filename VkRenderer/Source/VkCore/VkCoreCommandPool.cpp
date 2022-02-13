@@ -12,6 +12,7 @@ namespace vi
 	{
 		const auto families = VkCorePhysicalDevice::GetQueueFamilies(surface, physicalDevice);
 
+		// Create a generic pool that will work with any render command, using the graphic command family.
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.queueFamilyIndex = families.graphics;

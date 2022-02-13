@@ -3,6 +3,16 @@
 #include "Rendering/Renderer.h"
 #include "Components/Material.h"
 #include "Components/Transform.h"
+#include "VkRenderer/VkHandlers/VkSyncHandler.h"
+#include "VkRenderer/VkHandlers/VkCommandBufferHandler.h"
+#include "VkRenderer/VkHandlers/VkDescriptorPoolHandler.h"
+#include "VkRenderer/VkHandlers/VkRenderPassHandler.h"
+#include "VkRenderer/VkHandlers/VkLayoutHandler.h"
+#include "VkRenderer/VkCore/VkCoreSwapchain.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
+#include "VkRenderer/VkHandlers/VkImageHandler.h"
+#include "VkRenderer/VkHandlers/VkFrameBufferHandler.h"
 
 LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
 	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info) :

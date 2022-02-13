@@ -3,9 +3,15 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan frame buffers.
+	/// </summary>
 	class VkFrameBufferHandler final : public VkHandler
 	{
 	public:
+		/// <summary>
+		/// Struct that contains information when creating a frame buffer.
+		/// </summary>
 		struct CreateInfo final
 		{
 			// Image views to use.

@@ -5,13 +5,15 @@ namespace vi
 	/// <summary>
 	/// Standard iterator for data containers like vectors/arrays.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
 	template <typename T>
 	class Iterator final
 	{
 	public:
+		// Start of iteration.
 		T* begin;
+		// Length of iteration.
 		size_t length;
+		// Current index of iteration (relative to begin).
 		size_t index;
 
 		T& operator*() const;

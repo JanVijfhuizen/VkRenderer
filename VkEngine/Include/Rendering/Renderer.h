@@ -1,10 +1,5 @@
 ﻿#pragma once
 #include "VkRenderer/VkCore/VkCore.h"
-#include "MeshHandler.h"
-#include "ShaderExt.h"
-#include "SwapChainExt.h"
-#include "TextureHandler.h"
-#include "PostEffectHandler.h"
 
 class Renderer final : public vi::VkCore
 {
@@ -17,11 +12,11 @@ public:
 	explicit Renderer(vi::VkCoreInfo& info, const Info& addInfo);
 	~Renderer();
 
-	[[nodiscard]] MeshHandler& GetMeshHandler() const;
-	[[nodiscard]] ShaderExt& GetShaderExt() const;
-	[[nodiscard]] SwapChainExt& GetSwapChainExt() const;
-	[[nodiscard]] TextureHandler& GetTextureHandler() const;
-	[[nodiscard]] PostEffectHandler& GetPostEffectHandler() const;
+	[[nodiscard]] class MeshHandler& GetMeshHandler() const;
+	[[nodiscard]] class ShaderExt& GetShaderExt() const;
+	[[nodiscard]] class SwapChainExt& GetSwapChainExt() const;
+	[[nodiscard]] class TextureHandler& GetTextureHandler() const;
+	[[nodiscard]] class PostEffectHandler& GetPostEffectHandler() const;
 
 private:
 	MeshHandler* _meshHandler;

@@ -2,6 +2,9 @@
 #include "Components/Camera.h"
 #include "Rendering/Renderer.h"
 #include "Components/Transform.h"
+#include "VkRenderer/VkHandlers/VkDescriptorPoolHandler.h"
+#include "VkRenderer/VkCore/VkCoreSwapchain.h"
+#include "Rendering/SwapChainExt.h"
 
 CameraSystem::CameraSystem(ce::Cecsar& cecsar, 
 	Renderer& renderer, TransformSystem& transforms, const uint32_t capacity) :

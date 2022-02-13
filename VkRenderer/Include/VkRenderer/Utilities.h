@@ -6,7 +6,7 @@ namespace vi
 	#define DEG2_RAD (PI / 180)
 
 	/// <summary>
-	/// Utility class which contains common mathematical functions.
+	/// Utility class which contains common functions that are used in the renderer.
 	/// </summary>
 	class Ut final
 	{
@@ -44,11 +44,14 @@ namespace vi
 		[[nodiscard]] static size_t StrLen(const char* cStr);
 
 		/// <summary>
-		/// Sort by linearly going over the array.
+		/// Sort by linearly going over the array. Sorts from smallest to largest.
 		/// </summary>
 		template <typename T, typename U>
 		static void LinSort(T* arr, U* comparables, size_t from, size_t to);
 
+		/// <summary>
+		/// Swap two values.
+		/// </summary>
 		template <typename T>
 		static void Swap(T& a, T& b);
 	};
@@ -113,6 +116,7 @@ namespace vi
 		{
 			size_t j = i;
 
+			// Move objects backwards as long as the previous entry is larger.
 			while (j > from && comparables[j] < comparables[j - 1])
 			{
 				const T temp = arr[j - 1];

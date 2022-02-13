@@ -1,27 +1,24 @@
 ﻿#pragma once
 
-#include "VkCoreInfo.h"
-#include "VkCoreDebugger.h"
-#include "VkCoreInstance.h"
-#include "VkCorePhysicalDevice.h"
-#include "VkCoreLogicalDevice.h"
-#include "VkCoreSwapchain.h"
-#include "VkCoreCommandPool.h"
-
-#include "../VkHandlers/VkCommandBufferHandler.h"
-#include "../VkHandlers/VkDescriptorPoolHandler.h"
-#include "../VkHandlers/VkFrameBufferHandler.h"
-#include "../VkHandlers/VkImageHandler.h"
-#include "../VkHandlers/VkLayoutHandler.h"
-#include "../VkHandlers/VkMemoryHandler.h"
-#include "../VkHandlers/VkPipelineHandler.h"
-#include "../VkHandlers/VkRenderPassHandler.h"
-#include "../VkHandlers/VkShaderHandler.h"
-#include "../VkHandlers/VkSyncHandler.h"
-
-
 namespace vi
 {
+	struct Queues;
+	class VkCoreCommandPool;
+	class VkCoreDebugger;
+	class VkCoreInstance;
+	class VkCoreLogicalDevice;
+	class VkCorePhysicalDevice;
+	class VkCoreSwapchain;
+	class VkCommandBufferHandler;
+	class VkDescriptorPoolHandler;
+	class VkFrameBufferHandler;
+	class VkImageHandler;
+	class VkLayoutHandler;
+	class VkMemoryHandler;
+	class VkPipelineHandler;
+	class VkRenderPassHandler;
+	class VkShaderHandler;
+	class VkSyncHandler;
 	class WindowHandler;
 
 	/// <summary>
@@ -30,7 +27,7 @@ namespace vi
 	class VkCore
 	{
 	public:
-		explicit VkCore(VkCoreInfo& info);
+		explicit VkCore(class VkCoreInfo& info);
 		~VkCore();
 
 		/// <summary>

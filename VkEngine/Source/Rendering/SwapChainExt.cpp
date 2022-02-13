@@ -3,6 +3,11 @@
 #include "VkRenderer/VkCore/VkCore.h"
 #include "Rendering/DescriptorPool.h"
 #include "Rendering/Renderer.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
+#include "VkRenderer/VkHandlers/VkImageHandler.h"
+#include "VkRenderer/VkHandlers/VkFrameBufferHandler.h"
+#include "VkRenderer/VkCore/VkCoreSwapchain.h"
 
 SwapChainExt::Dependency::Dependency(Renderer& renderer) : renderer(renderer)
 {
@@ -32,12 +37,17 @@ void SwapChainExt::Update()
 	auto& swapChain = core.GetSwapChain();
 	const uint32_t index = swapChain.GetImageIndex();
 
+	// Check all objects in the garbage collection and delete those that have made a full rotation.
+	// In other words, delete those that have passed every swap chain image to make sure that we don't delete
+	// anything that might still be used for images in flight.
 	for (int32_t i = _deleteables.GetCount() - 1; i >= 0; --i)
 	{
 		auto& deleteable = _deleteables[i];
 
+		// If the image has been deleted while this image was available.
 		if (deleteable.index == index)
 		{
+			// If the image was created THIS frame, continue.
 			if(!deleteable.looped)
 			{
 				deleteable.looped = true;
@@ -49,6 +59,7 @@ void SwapChainExt::Update()
 		}
 	}
 
+	// Check if the swap chain has been recreated, and if so, trigger the recreation event for all subscribers.
 	if(swapChain.GetShouldRecreateAssets())
 	{
 		swapChain.Reconstruct();
@@ -128,6 +139,7 @@ void SwapChainExt::Delete(Deleteable& deleteable, const bool calledByDetructor) 
 	auto& memoryHandler = core.GetMemoryHandler();
 	auto& shaderHandler = core.GetShaderHandler();
 
+	// It's not the most readable, but a switch case + a union is pretty fast.
 	switch (deleteable.type)
 	{
 	case Deleteable::Type::buffer:

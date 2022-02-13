@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "Rendering/MeshHandler.h"
 #include "VkRenderer/VkCore/VkCore.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
 
 MeshHandler::MeshHandler(vi::VkCore& core): VkHandler(core)
 {

@@ -1,16 +1,25 @@
 #pragma once
 #include "Rendering/Renderer.h"
+#include "VkRenderer/VkHandlers/VkShaderHandler.h"
+#include "VkRenderer/VkHandlers/VkMemoryHandler.h"
 
+/// <summary>
+/// Manages a chunk of GPU memory and is able to create uniform sized buffers for it.
+/// </summary>
 template <typename T>
 class UboAllocator final
 {
 public:
+	/// <param name="bufferSize">Size of a single buffer.</param>
+	/// <param name="capacity">Maximum amount of buffers that can be linearly bound to the memory.</param>
 	explicit UboAllocator(Renderer& renderer, size_t bufferSize, size_t capacity);
 	~UboAllocator();
 
+	// Create buffer for the managed memory.
 	[[nodiscard]] VkBuffer CreateBuffer() const;
+	// Get the managed memory.
 	[[nodiscard]] VkDeviceMemory GetMemory() const;
-
+	// Get the memory alignment requirement for the buffers.
 	[[nodiscard]] size_t GetAlignment() const;
 
 private:

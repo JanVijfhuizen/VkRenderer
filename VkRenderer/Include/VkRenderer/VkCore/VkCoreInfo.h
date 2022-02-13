@@ -2,13 +2,15 @@
 
 namespace vi
 {
+	class WindowHandler;
+
 	/// <summary>
 	/// Used for customizing the VkCore class.
 	/// </summary>
 	struct VkCoreInfo final
 	{
 		// Handler that sets up the window.
-		class WindowHandler* windowHandler = nullptr;
+		WindowHandler* windowHandler = nullptr;
 		// Extensions for the physical device.
 		Vector<const char*> deviceExtensions{ 1, GMEM_TEMP };
 		// Validation layers used for debugging.

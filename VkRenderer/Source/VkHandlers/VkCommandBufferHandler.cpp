@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "VkHandlers/VkCommandBufferHandler.h"
 #include "VkCore/VkCore.h"
+#include "VkCore/VkCoreLogicalDevice.h"
 
 namespace vi
 {

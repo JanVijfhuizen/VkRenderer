@@ -3,9 +3,15 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan GLSL shaders.
+	/// </summary>
 	class VkShaderHandler final : VkHandler
 	{
 	public:
+		/// <summary>
+		/// Struct that contains information when submitting a (texture) sampler.
+		/// </summary>
 		struct SamplerCreateInfo final
 		{
 			float minLod = 0;

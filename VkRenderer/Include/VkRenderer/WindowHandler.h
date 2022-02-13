@@ -2,18 +2,21 @@
 
 namespace vi
 {
+	class VkCore;
+	class VkCoreInstance;
+
 	/// <summary>
-	/// Handles the windowing of the application. Can open and close windows.
+	/// Handles the windowing of the application.
 	/// </summary>
 	class WindowHandler
 	{
-		friend class VkCore;
-		friend class VkCoreInstance;
-
-		friend class VkRenderer;
-		friend class InstanceFactory;
+		friend VkCore;
+		friend VkCoreInstance;
 
 	public:
+		/// <summary>
+		/// Struct that contains information for creating a window.
+		/// </summary>
 		struct Info final
 		{
 			glm::ivec2 resolution{ 800, 600 };

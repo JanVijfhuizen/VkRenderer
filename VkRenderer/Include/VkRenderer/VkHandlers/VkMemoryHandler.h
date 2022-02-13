@@ -3,6 +3,11 @@
 
 namespace vi
 {
+	class VkCore;
+
+	/// <summary>
+	/// Contains some core functionality for vulkan GPU memory.
+	/// </summary>
 	class VkMemoryHandler final : public VkHandler
 	{
 	public:

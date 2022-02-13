@@ -5,6 +5,9 @@
 #include "Rendering/Renderer.h"
 #include "Components/Camera.h"
 #include "Components/Light.h"
+#include "VkRenderer/VkCore/VkCoreInfo.h"
+#include "VkRenderer/VkCore/VkCoreSwapchain.h"
+#include "Rendering/PostEffectHandler.h"
 
 template <typename GameState>
 class Engine final

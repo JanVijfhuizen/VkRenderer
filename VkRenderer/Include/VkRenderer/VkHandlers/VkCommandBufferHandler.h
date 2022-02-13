@@ -3,9 +3,15 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan command buffers.
+	/// </summary>
 	class VkCommandBufferHandler final : public VkHandler
 	{
 	public:
+		/// <summary>
+		/// Struct that contains information when submitting a command.
+		/// </summary>
 		struct SubmitInfo final
 		{
 			VkCommandBuffer* buffers;

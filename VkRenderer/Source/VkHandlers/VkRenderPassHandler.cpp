@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "VkHandlers/VkRenderPassHandler.h"
 #include "VkCore/VkCore.h"
+#include "VkCore/VkCoreSwapchain.h"
+#include "VkHandlers/VkCommandBufferHandler.h"
 
 namespace vi
 {

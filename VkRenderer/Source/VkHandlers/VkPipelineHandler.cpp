@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "VkHandlers/VkPipelineHandler.h"
 #include "VkCore/VkCore.h"
+#include "VkHandlers/VkCommandBufferHandler.h"
 
 namespace vi
 {
