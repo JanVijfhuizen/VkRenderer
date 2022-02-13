@@ -3,6 +3,9 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan syncronization objects.
+	/// </summary>
 	class VkSyncHandler final : public VkHandler
 	{
 	public:

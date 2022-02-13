@@ -4,6 +4,7 @@ namespace vi
 {
 	/// <summary>
 	/// Hashable data structure that proxies for a c string.
+	/// Because it doesn't own the actual string, it takes up a small space and is cheap to copy.
 	/// </summary>
 	struct CStrRef final
 	{
@@ -25,6 +26,7 @@ namespace vi
 
 	inline size_t CStrRef::operator%(const size_t mod) const
 	{
+		// Hash the string and use it as an index.
 		size_t result = 0;
 		const size_t prime = 31;
 		for (size_t i = 0; i < size; ++i)
@@ -34,6 +36,7 @@ namespace vi
 
 	inline bool CStrRef::operator==(const CStrRef& other) const
 	{
+		// Compare the string.
 		return strcmp(value, other.value);
 	}
 }

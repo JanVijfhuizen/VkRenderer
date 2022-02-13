@@ -15,8 +15,11 @@ namespace vi
 		BinTree();
 		explicit BinTree(size_t size, FreeListAllocator& allocator);
 
+		// Add new object in the tree.
 		void Push(const Node& node);
+		// Look at the top object in the tree.
 		[[nodiscard]] T Peek();
+		// Get and remove the top object in the tree.
 		T Pop();
 
 		void Clear();

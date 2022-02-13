@@ -4,7 +4,7 @@
 namespace vi
 {
 	/// <summary>
-	/// Handles the windowing of the application. Can open and close windows.
+	/// Handles the windowing of the application.
 	/// </summary>
 	class WindowHandlerGLFW final : public WindowHandler
 	{

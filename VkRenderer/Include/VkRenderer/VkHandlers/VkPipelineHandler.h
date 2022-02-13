@@ -3,11 +3,14 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan pipelines.
+	/// </summary>
 	class VkPipelineHandler final : public VkHandler
 	{
 	public:
 		/// <summary>
-		/// Struct that is used when creating a new pipeline.
+		/// Struct that contains information for creating a pipeline.
 		/// </summary>
 		struct CreateInfo final
 		{

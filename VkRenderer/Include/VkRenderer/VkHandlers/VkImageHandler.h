@@ -3,9 +3,15 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan images and views.
+	/// </summary>
 	class VkImageHandler final : public VkHandler
 	{
 	public:
+		/// <summary>
+		/// Struct that contains information when creating an image.
+		/// </summary>
 		struct CreateInfo final
 		{
 			// The resolution of the image.
@@ -26,6 +32,9 @@ namespace vi
 			VkImageCreateFlags flags{};
 		};
 
+		/// <summary>
+		/// Struct that contains information when creating an image view.
+		/// </summary>
 		struct ViewCreateInfo final
 		{
 			// Image to read from.
@@ -42,6 +51,9 @@ namespace vi
 			VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
 		};
 
+		/// <summary>
+		/// Struct that contains information when transitioning the layout of an image.
+		/// </summary>
 		struct TransitionInfo final
 		{
 			// Image to be transitioned.

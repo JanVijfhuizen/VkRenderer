@@ -3,7 +3,7 @@
 namespace vi
 {
 	/// <summary>
-	/// Container used to quickly validate the presence of values.
+	/// Container used to quickly validate if a value is present in the container.
 	/// </summary>
 	template <typename T>
 	class HashMap final : public ArrayPtr<KeyValue<int32_t, T>>
@@ -11,14 +11,17 @@ namespace vi
 	public:
 		HashMap(size_t size, FreeListAllocator& allocator);
 
+		// Add a new value in the container.
 		void Insert(const T& value);
 		/// <returns>A pointer to the value if present, otherwise returns a nullptr.</returns>
 		T* Contains(const T& value);
+		// Remove object if present in the container.
 		void Remove(const T& value);
 
 		[[nodiscard]] size_t GetCount() const;
 		[[nodiscard]] bool IsEmpty() const;
 
+		/// <returns>Target object if present, otherwise returns a nullptr.</returns>
 		[[nodiscard]] T* Find(const T& value);
 
 	private:
@@ -39,6 +42,7 @@ namespace vi
 	template <typename T>
 	void HashMap<T>::Insert(const T& value)
 	{
+		// Don't add it if it already contains something at that spot.
 		if (Contains(value))
 			return;
 
@@ -51,6 +55,7 @@ namespace vi
 
 		assert(_count <= length);
 
+		// Try to fit the object as close to the original hash position as possible.
 		Node* node;
 		do
 		{
@@ -74,12 +79,14 @@ namespace vi
 	{
 		uint32_t index;
 		const auto node = FindNode(value, &index);
+		// If the node is not found, ignore this request.
 		if (!node)
 			return;
 
 		const auto data = ArrayPtr<Node>::GetData();
 		const size_t length = ArrayPtr<Node>::GetLength();
 
+		// Find the node.
 		Node* neighbour = node;
 		while (node->key == neighbour->key)
 		{
@@ -87,6 +94,7 @@ namespace vi
 			neighbour = &data[index];
 		} 
 
+		// Clean the node and replace it with a potential candidate fit for that spot.
 		Node* other = &data[(length + index - 1) % length];
 		*node = *other;
 		*other = { -1, {} };
@@ -119,6 +127,7 @@ namespace vi
 		const int32_t hash = ToHash(value);
 		int32_t index = hash;
 
+		// Try and find the node based on the hash and the value.
 		Node* node;
 		do
 		{

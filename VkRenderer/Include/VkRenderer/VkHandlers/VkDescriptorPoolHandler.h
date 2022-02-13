@@ -3,9 +3,15 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan descriptor pools.
+	/// </summary>
 	class VkDescriptorPoolHandler final : public VkHandler
 	{
 	public:
+		/// <summary>
+		/// Struct that contains information when creating a descriptor pool.
+		/// </summary>
 		struct PoolCreateInfo final
 		{
 			// All the types of buffers the sets can have.
@@ -15,6 +21,9 @@ namespace vi
 			uint32_t typeCount;
 		};
 
+		/// <summary>
+		/// Struct that contains information when submitting a descriptor set.
+		/// </summary>
 		struct SetCreateInfo final
 		{
 			// Pool to be allocated from.

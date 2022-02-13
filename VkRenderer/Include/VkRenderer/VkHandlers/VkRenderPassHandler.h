@@ -3,9 +3,15 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan render passes.
+	/// </summary>
 	class VkRenderPassHandler final : public VkHandler
 	{
 	public:
+		/// <summary>
+		/// Struct that contains information for creating a render pass.
+		/// </summary>
 		struct CreateInfo final
 		{
 			bool useColorAttachment = true;

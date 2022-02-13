@@ -80,7 +80,7 @@ namespace vi
 	}
 
 	template <typename T>
-	void Vector<T>::Remove(const T& instance, bool removeAllInstances)
+	void Vector<T>::Remove(const T& instance, const bool removeAllInstances)
 	{
 		const auto data = ArrayPtr<T>::GetData();
 

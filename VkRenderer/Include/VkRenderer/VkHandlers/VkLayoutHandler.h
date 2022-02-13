@@ -3,11 +3,14 @@
 
 namespace vi
 {
+	/// <summary>
+	/// Contains some core functionality for vulkan descriptor layouts.
+	/// </summary>
 	class VkLayoutHandler final : public VkHandler
 	{
 	public:
 		/// <summary>
-		/// Struct that is used when creating a new descriptor set layout.
+		/// Struct that contains information for creating a layout.
 		/// </summary>
 		struct CreateInfo final
 		{
