@@ -1,11 +1,16 @@
 ﻿#pragma once
 #include "VkRenderer/VkCore/VkCore.h"
 
+/// <summary>
+/// Handy class that extends VkCore and manages some core rendering classes.
+/// </summary>
 class Renderer final : public vi::VkCore
 {
 public:
+	// Used to create the renderer with.
 	struct Info final
 	{
+		// Anti aliasing sample count. Will be lowered if the hardware doesn't support it.
 		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	};
 

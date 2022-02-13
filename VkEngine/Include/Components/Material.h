@@ -23,7 +23,7 @@ public:
 
 	void Draw();
 
-	[[nodiscard]] Shader GetShader() const;
+	[[nodiscard]] Shader& GetShader();
 	[[nodiscard]] Mesh GetMesh() const;
 	[[nodiscard]] Texture GetFallbackTexture() const;
 

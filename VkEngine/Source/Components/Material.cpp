@@ -75,8 +75,8 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.setLayouts.Add(_lights.GetLayout());
 	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
 	pipelineInfo.setLayouts.Add(_layout);
-	pipelineInfo.modules.Add(_shader.vertex);
-	pipelineInfo.modules.Add(_shader.fragment);
+	for (auto& module : _shader.modules)
+		pipelineInfo.modules.Add(module);
 	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
 	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
 	pipelineInfo.extent = postEffectHandler.GetExtent();
@@ -154,7 +154,7 @@ void MaterialSystem::Draw()
 	}
 }
 
-Shader MaterialSystem::GetShader() const
+Shader& MaterialSystem::GetShader()
 {
 	return _shader;
 }

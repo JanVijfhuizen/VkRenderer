@@ -417,9 +417,8 @@ void LightSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
-	pipelineInfo.modules.Add(_shader.vertex);
-	pipelineInfo.modules.Add(_shader.geometry);
-	pipelineInfo.modules.Add(_shader.fragment);
+	for (auto& module : _shader.modules)
+		pipelineInfo.modules.Add(module);
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.renderPass = _renderPass;
 	pipelineInfo.extent = _shadowResolution;

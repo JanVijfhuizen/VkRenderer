@@ -9,6 +9,8 @@ void DescriptorPool::Construct(
 {
     _renderer = &renderer;
     _layout = layout;
+    // Copy types and capacities to volatile memory.
+    // Even though these arrays are not volatile at all, it's better to have them close to the actual volatile part of the pool.
     _types = vi::ArrayPtr<VkDescriptorType>{ types, typeCount, GMEM_VOL };
     _capacities = vi::ArrayPtr<uint32_t>{ capacities, typeCount, GMEM_VOL };
     _blockSize = blockSize;
@@ -40,6 +42,7 @@ void DescriptorPool::AddBlock()
 {
     auto& handler = _renderer->GetDescriptorPoolHandler();
 
+    // Create a new descriptor based on the requirements.
     vi::VkDescriptorPoolHandler::PoolCreateInfo poolCreateInfo{};
     poolCreateInfo.types = _types.GetData();
     poolCreateInfo.capacities = _capacities.GetData();

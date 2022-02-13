@@ -7,6 +7,9 @@
 #include "VkRenderer/VkHandlers/VkMemoryHandler.h"
 #include "VkRenderer/VkHandlers/VkSyncHandler.h"
 
+/// <summary>
+/// Struct that contains relevant mesh data.
+/// </summary>
 struct Mesh final
 {
 	VkBuffer vertexBuffer;
@@ -16,9 +19,13 @@ struct Mesh final
 	uint32_t indexCount;
 };
 
+/// <summary>
+/// Contains engine specific mesh related methods.
+/// </summary>
 class MeshHandler final : public vi::VkHandler
 {
 public:
+	// Struct from which to create a new mesh.
 	template <typename Vert = Vertex, typename Ind = Vertex::Index>
 	struct VertexData final
 	{
@@ -26,6 +33,7 @@ public:
 		vi::ArrayPtr<Ind> indices{};
 	};
 
+	// The axes to use as the forward direction.
 	enum ForwardAxis
 	{
 		x, y, z
@@ -33,13 +41,19 @@ public:
 
 	explicit MeshHandler(vi::VkCore& core);
 
+	// Generate vertex data for a quad rotated based on the forward axis.
 	[[nodiscard]] static VertexData<Vertex, Vertex::Index> GenerateQuad(ForwardAxis axis = z, bool counterClockwise = false, vi::FreeListAllocator& allocator = GMEM_TEMP);
+	// Generate vertex data for a cube.
 	[[nodiscard]] static VertexData<Vertex, Vertex::Index> GenerateCube(vi::FreeListAllocator& allocator = GMEM_TEMP);
 
+	// Create a mesh based on the given vertex data.
 	template <typename Vert = Vertex, typename Ind = Vertex::Index>
 	[[nodiscard]] Mesh Create(const VertexData<Vert, Ind>& vertexData) const;
+	// Bind a mesh to use it for drawing purposes.
 	void Bind(Mesh& mesh);
+	// Draw the mesh based on the bound pipeline and shaders.
 	void Draw() const;
+	// Destroy the mesh.
 	void Destroy(const Mesh& mesh) const;
 
 private:

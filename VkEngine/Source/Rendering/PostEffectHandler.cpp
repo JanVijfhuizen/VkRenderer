@@ -72,8 +72,8 @@ void BasicPostEffect::OnRecreateAssets()
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.setLayouts.Add(postEffectHandler.GetLayout());
-	pipelineInfo.modules.Add(_shader.vertex);
-	pipelineInfo.modules.Add(_shader.fragment);
+	for (auto& module : _shader.modules)
+		pipelineInfo.modules.Add(module);
 	pipelineInfo.renderPass = swapChain.GetRenderPass();
 	pipelineInfo.extent = swapChain.GetExtent();
 

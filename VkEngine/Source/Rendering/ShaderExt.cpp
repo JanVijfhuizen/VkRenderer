@@ -19,9 +19,16 @@ Shader ShaderExt::Load(const char* name, const LoadInfo& info) const
 		{"geom.spv", GMEM_TEMP },
 		{"frag.spv", GMEM_TEMP }
 	};
+	VkShaderStageFlagBits shaderStageFlags[3]
+	{
+		VK_SHADER_STAGE_VERTEX_BIT,
+		VK_SHADER_STAGE_GEOMETRY_BIT,
+		VK_SHADER_STAGE_FRAGMENT_BIT
+	};
 
 	Shader shader{};
 
+	// Check for vertex, geometry and fragment shaders, if any.
 	for (uint32_t i = 0; i < 3; ++i)
 	{
 		if (!info.values[i])
@@ -29,7 +36,10 @@ Shader ShaderExt::Load(const char* name, const LoadInfo& info) const
 
 		vi::String postFix{ postFixes[i], GMEM_TEMP };
 		const auto code = ToCode(middle, postFix);
-		shader.modules[i].module = handler.CreateModule(code);
+
+		auto& module = shader.modules.Add();
+		module.module = handler.CreateModule(code);
+		module.flags = shaderStageFlags[i];
 	}
 
 	return shader;
