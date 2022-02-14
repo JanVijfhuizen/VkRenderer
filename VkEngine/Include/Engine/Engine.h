@@ -8,6 +8,7 @@
 #include "VkRenderer/VkCore/VkCoreInfo.h"
 #include "VkRenderer/VkCore/VkCoreSwapchain.h"
 #include "Rendering/PostEffectHandler.h"
+#include "Components/Renderer.h"
 
 template <typename GameState>
 class Engine final
@@ -36,12 +37,13 @@ public:
 	[[nodiscard]] int Run(const Info& info);
 	[[nodiscard]] bool IsRunning() const;
 
-	[[nodiscard]] VulkanRenderer& GetRenderer() const;
+	[[nodiscard]] VulkanRenderer& GetVulkanRenderer() const;
 	[[nodiscard]] ce::Cecsar& GetCecsar() const;
 
 	[[nodiscard]] CameraSystem& GetCameras() const;
 	[[nodiscard]] LightSystem& GetLights() const;
 	[[nodiscard]] MaterialSystem& GetMaterials() const;
+	[[nodiscard]] RenderSystem& GetRenderers() const;
 	[[nodiscard]] TransformSystem& GetTransforms() const;
 	[[nodiscard]] ShadowCasterSystem& GetShadowCasters() const;
 
@@ -54,6 +56,7 @@ private:
 	TransformSystem* _transforms;
 	CameraSystem* _cameras;
 	MaterialSystem* _materials;
+	RenderSystem* _renderers;
 	ShadowCasterSystem* _shadowCasters;
 	LightSystem* _lights;
 
@@ -84,7 +87,8 @@ int Engine<GameState>::Run(const Info& info)
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
 	_shadowCasters = GMEM.New<ShadowCasterSystem>(*_cecsar);
 	_lights = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_shadowCasters, *_transforms);
-	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_cameras, *_lights, *_transforms, "");
+	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer);
+	_renderers = GMEM.New<RenderSystem>(*_cecsar, *_renderer, *_materials, *_cameras, *_lights, *_transforms, "");
 
 	_gameState = GMEM.New<GameState>();
 
@@ -130,7 +134,7 @@ int Engine<GameState>::Run(const Info& info)
 		postEffectHandler.BeginFrame(_lights->GetRenderFinishedSemaphore());
 
 		_cameras->Update();
-		_materials->Draw();
+		_renderers->Draw();
 
 		if (info.renderUpdate)
 			info.renderUpdate(*this, *_gameState, outQuit);
@@ -154,6 +158,7 @@ int Engine<GameState>::Run(const Info& info)
 	GMEM.Delete(_lights);
 	GMEM.Delete(_shadowCasters);
 	GMEM.Delete(_defaultPostEffect);
+	GMEM.Delete(_renderers);
 	GMEM.Delete(_materials);
 	GMEM.Delete(_cameras);
 	GMEM.Delete(_transforms);
@@ -172,7 +177,7 @@ bool Engine<GameState>::IsRunning() const
 }
 
 template <typename GameState>
-VulkanRenderer& Engine<GameState>::GetRenderer() const
+VulkanRenderer& Engine<GameState>::GetVulkanRenderer() const
 {
 	return *_renderer;
 }
@@ -211,4 +216,10 @@ template <typename GameState>
 MaterialSystem& Engine<GameState>::GetMaterials() const
 {
 	return *_materials;
+}
+
+template <typename GameState>
+RenderSystem& Engine<GameState>::GetRenderers() const
+{
+	return *_renderers;
 }

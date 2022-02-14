@@ -16,12 +16,13 @@ int main()
 
 	info.start = [](Engine<GameState>& engine, GameState& gameState)
 	{
-		gameState.texture = engine.GetRenderer().GetTextureHandler().Create("Feather", "png");
+		gameState.texture = engine.GetVulkanRenderer().GetTextureHandler().Create("Feather", "png");
 
 		auto& cecsar = engine.GetCecsar();
 		auto& cameras = engine.GetCameras();
 		auto& lights = engine.GetLights();
 		auto& materials = engine.GetMaterials();
+		auto& renderers = engine.GetRenderers();
 		auto& shadowCasters = engine.GetShadowCasters();
 		auto& transforms = engine.GetTransforms();
 
@@ -34,6 +35,7 @@ int main()
 		const auto ground = cecsar.Add();
 		auto& groundTransform = transforms.Insert(ground);
 		materials.Insert(ground);
+		renderers.Insert(ground);
 		groundTransform.scale = glm::vec3(150, 150, 1);
 		groundTransform.position.z = 1;
 
@@ -41,12 +43,14 @@ int main()
 		transforms.Insert(quad1);
 		shadowCasters.Insert(quad1);
 		auto& mat = materials.Insert(quad1);
+		renderers.Insert(quad1);
 		mat.texture = &gameState.texture;
 		
 		const auto quad2 = cecsar.Add();
 		auto& quad3Transform = transforms.Insert(quad2);
 		shadowCasters.Insert(quad2);
 		materials.Insert(quad2);
+		renderers.Insert(quad2);
 		quad3Transform.position = { 3, 1, 0 };
 		//quad3Transform.rotation.x = 360;
 		
@@ -78,7 +82,7 @@ int main()
 
 	info.cleanup = [](Engine<GameState>& engine, GameState& gameState)
 	{
-		engine.GetRenderer().GetTextureHandler().Destroy(gameState.texture);
+		engine.GetVulkanRenderer().GetTextureHandler().Destroy(gameState.texture);
 	};
 
 	auto engine = GMEM.New<Engine<GameState>>();
