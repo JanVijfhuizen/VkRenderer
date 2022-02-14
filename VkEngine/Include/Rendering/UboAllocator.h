@@ -1,5 +1,5 @@
 #pragma once
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "VkRenderer/VkHandlers/VkShaderHandler.h"
 #include "VkRenderer/VkHandlers/VkMemoryHandler.h"
 
@@ -12,7 +12,7 @@ class UboAllocator final
 public:
 	/// <param name="bufferSize">Size of a single buffer.</param>
 	/// <param name="capacity">Maximum amount of buffers that can be linearly bound to the memory.</param>
-	explicit UboAllocator(Renderer& renderer, size_t bufferSize, size_t capacity);
+	explicit UboAllocator(VulkanRenderer& renderer, size_t bufferSize, size_t capacity);
 	~UboAllocator();
 
 	// Create buffer for the managed memory.
@@ -23,14 +23,14 @@ public:
 	[[nodiscard]] size_t GetAlignment() const;
 
 private:
-	Renderer& _renderer;
+	VulkanRenderer& _renderer;
 	VkDeviceMemory _memory;
 	VkMemoryRequirements _bufferMemoryRequirements;
 	size_t _bufferSize;
 };
 
 template <typename T>
-UboAllocator<T>::UboAllocator(Renderer& renderer, const size_t bufferSize, const size_t capacity) :
+UboAllocator<T>::UboAllocator(VulkanRenderer& renderer, const size_t bufferSize, const size_t capacity) :
 	_renderer(renderer), _bufferSize(bufferSize)
 {
 	auto& memoryHandler = renderer.GetMemoryHandler();

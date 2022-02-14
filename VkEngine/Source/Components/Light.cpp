@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "Components/Light.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "Components/Material.h"
 #include "Components/Transform.h"
 #include "VkRenderer/VkHandlers/VkSyncHandler.h"
@@ -14,7 +14,7 @@
 #include "VkRenderer/VkHandlers/VkImageHandler.h"
 #include "VkRenderer/VkHandlers/VkFrameBufferHandler.h"
 
-LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
+LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer,
 	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info) :
 	SmallSystem<Light>(cecsar, info.size), Dependency(renderer),
 	_shadowCasters(shadowCasters), _transforms(transforms),
@@ -145,7 +145,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 	const float near = 0.1f;
 	glm::mat4 modelMatrix;
 
-	auto mesh = materials.GetMesh();
+	auto mesh = materials.GetFallbackMesh();
 	meshHandler.Bind(mesh);
 
 	uint32_t i = 0;
@@ -416,10 +416,9 @@ void LightSystem::OnRecreateSwapChainAssets()
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
-	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
-	pipelineInfo.modules.Add(_shader.vertex);
-	pipelineInfo.modules.Add(_shader.geometry);
-	pipelineInfo.modules.Add(_shader.fragment);
+	pipelineInfo.pushConstants.Add({ sizeof(glm::mat4), VK_SHADER_STAGE_VERTEX_BIT });
+	for (auto& module : _shader.modules)
+		pipelineInfo.modules.Add(module);
 	pipelineInfo.setLayouts.Add(_layout);
 	pipelineInfo.renderPass = _renderPass;
 	pipelineInfo.extent = _shadowResolution;

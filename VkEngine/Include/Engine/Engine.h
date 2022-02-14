@@ -2,7 +2,7 @@
 #include "VkRenderer/WindowHandlerGLFW.h"
 #include "Components/Material.h"
 #include "Components/Transform.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "Components/Camera.h"
 #include "Components/Light.h"
 #include "VkRenderer/VkCore/VkCoreInfo.h"
@@ -36,7 +36,7 @@ public:
 	[[nodiscard]] int Run(const Info& info);
 	[[nodiscard]] bool IsRunning() const;
 
-	[[nodiscard]] Renderer& GetRenderer() const;
+	[[nodiscard]] VulkanRenderer& GetRenderer() const;
 	[[nodiscard]] ce::Cecsar& GetCecsar() const;
 
 	[[nodiscard]] CameraSystem& GetCameras() const;
@@ -48,7 +48,7 @@ public:
 private:
 	bool _isRunning = false;
 	vi::WindowHandlerGLFW* _windowHandler;
-	Renderer* _renderer;
+	VulkanRenderer* _renderer;
 	ce::Cecsar* _cecsar;
 
 	TransformSystem* _transforms;
@@ -71,12 +71,12 @@ int Engine<GameState>::Run(const Info& info)
 
 	{
 		vi::VkCoreInfo vkInfo{};
-		Renderer::Info addInfo{};
+		VulkanRenderer::Info addInfo{};
 		addInfo.msaaSamples = info.msaaSamples;
 		vkInfo.windowHandler = _windowHandler;
 		if(info.useRenderDoc)
 			vkInfo.validationLayers.Add("VK_LAYER_RENDERDOC_Capture");
-		_renderer = GMEM.New<Renderer>(vkInfo, addInfo);
+		_renderer = GMEM.New<VulkanRenderer>(vkInfo, addInfo);
 	}
 
 	_cecsar = GMEM.New<ce::Cecsar>(info.capacity);
@@ -172,7 +172,7 @@ bool Engine<GameState>::IsRunning() const
 }
 
 template <typename GameState>
-Renderer& Engine<GameState>::GetRenderer() const
+VulkanRenderer& Engine<GameState>::GetRenderer() const
 {
 	return *_renderer;
 }

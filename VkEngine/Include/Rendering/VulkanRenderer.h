@@ -1,16 +1,21 @@
 ﻿#pragma once
 #include "VkRenderer/VkCore/VkCore.h"
 
-class Renderer final : public vi::VkCore
+/// <summary>
+/// Handy class that extends VkCore and manages some core rendering classes.
+/// </summary>
+class VulkanRenderer final : public vi::VkCore
 {
 public:
+	// Used to create the renderer with.
 	struct Info final
 	{
+		// Anti aliasing sample count. Will be lowered if the hardware doesn't support it.
 		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	};
 
-	explicit Renderer(vi::VkCoreInfo& info, const Info& addInfo);
-	~Renderer();
+	explicit VulkanRenderer(vi::VkCoreInfo& info, const Info& addInfo);
+	~VulkanRenderer();
 
 	[[nodiscard]] class MeshHandler& GetMeshHandler() const;
 	[[nodiscard]] class ShaderExt& GetShaderExt() const;

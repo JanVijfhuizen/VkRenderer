@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Components\Light.cpp" />
+    <ClCompile Include="Source\Components\Renderer.cpp" />
     <ClCompile Include="Source\Rendering\PostEffectHandler.cpp" />
     <ClCompile Include="Source\Rendering\TextureHandler.cpp" />
     <ClCompile Include="Source\Rendering\MeshHandler.cpp" />
@@ -159,7 +160,7 @@
     <ClCompile Include="Source\Rendering\DescriptorPool.cpp" />
     <ClCompile Include="Source\Components\Camera.cpp" />
     <ClCompile Include="Source\Rendering\ShaderExt.cpp" />
-    <ClCompile Include="Source\Rendering\Renderer.cpp" />
+    <ClCompile Include="Source\Rendering\VulkanRenderer.cpp" />
     <ClCompile Include="Source\Utils\FileReader.cpp" />
     <ClCompile Include="Source\Rendering\Vertex.cpp" />
     <ClCompile Include="Source\Components\Material.cpp" />
@@ -182,7 +183,7 @@
     <ClInclude Include="Include\Rendering\DescriptorPool.h" />
     <ClInclude Include="Include\Rendering\PostEffectHandler.h" />
     <ClInclude Include="Include\Rendering\SwapChainExt.h" />
-    <ClInclude Include="Include\Rendering\Renderer.h" />
+    <ClInclude Include="Include\Rendering\VulkanRenderer.h" />
     <ClInclude Include="Include\Rendering\ShaderExt.h" />
     <ClInclude Include="Include\Rendering\MeshHandler.h" />
     <ClInclude Include="Include\Rendering\TextureHandler.h" />
@@ -195,6 +196,7 @@
     <ClInclude Include="Include\Components\Camera.h" />
     <ClInclude Include="Include\Rendering\UboAllocator.h" />
     <ClInclude Include="Shaders\light,frag" />
+    <ClInclude Include="Include\Components\Renderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VkRenderer\VkRenderer.vcxproj">

@@ -11,25 +11,32 @@
 #include "Rendering/PostEffectHandler.h"
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
-	Renderer& renderer, CameraSystem& cameras, 
+	VulkanRenderer& renderer, CameraSystem& cameras, 
 	LightSystem& lights, TransformSystem& transforms, const char* shaderName) :
 	System<Material>(cecsar), Dependency(renderer), 
 	_cameras(cameras), _lights(lights), _transforms(transforms)
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& layoutHandler = renderer.GetLayoutHandler();
+	auto& meshHandler = renderer.GetMeshHandler();
+	auto& shaderExt = renderer.GetShaderExt();
 	auto& swapChain = renderer.GetSwapChain();
+	auto& textureHandler = renderer.GetTextureHandler();
+
 	const uint32_t swapChainLength = swapChain.GetLength();
 
-	_shader = renderer.GetShaderExt().Load(shaderName);
+	_shader = shaderExt.Load(shaderName);
 
+	// Create material layout.
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	auto& materialBinding = layoutInfo.bindings.Add();
 	materialBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	materialBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
-	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
+	_layout = layoutHandler.CreateLayout(layoutInfo);
 
-	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateCube());
-	_fallbackTexture = renderer.GetTextureHandler().Create("Test", "png");
+	// Create fallback mesh and texture.
+	_fallbackMesh = meshHandler.Create(MeshHandler::GenerateCube());
+	_fallbackTexture = textureHandler.Create("Test", "png");
 
 	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChainLength * GetLength(), GMEM);
 
@@ -54,12 +61,19 @@ MaterialSystem::MaterialSystem(ce::Cecsar& cecsar,
 
 MaterialSystem::~MaterialSystem()
 {
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& layoutHandler = renderer.GetLayoutHandler();
+	auto& meshHandler = renderer.GetMeshHandler();
+	auto& shaderExt = renderer.GetShaderExt();
+	auto& textureHandler = renderer.GetTextureHandler();
+
 	DestroySwapChainAssets();
-	renderer.GetLayoutHandler().DestroyLayout(_layout);
-	renderer.GetShaderExt().DestroyShader(_shader);
-	renderer.GetTextureHandler().Destroy(_fallbackTexture);
-	renderer.GetMeshHandler().Destroy(_mesh);
-	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
+
+	layoutHandler.DestroyLayout(_layout);
+	shaderExt.DestroyShader(_shader);
+	textureHandler.Destroy(_fallbackTexture);
+	meshHandler.Destroy(_fallbackMesh);
+	descriptorPoolHandler.Destroy(_descriptorPool);
 }
 
 void MaterialSystem::OnRecreateSwapChainAssets()
@@ -67,26 +81,31 @@ void MaterialSystem::OnRecreateSwapChainAssets()
 	if (_pipeline)
 		DestroySwapChainAssets();
 
+	auto& pipelineHandler = renderer.GetPipelineHandler();
 	auto& postEffectHandler = renderer.GetPostEffectHandler();
 
+	// This pipeline is assuming the usage of a model with standard vertices.
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.setLayouts.Add(_lights.GetLayout());
 	pipelineInfo.setLayouts.Add(_cameras.GetLayout());
 	pipelineInfo.setLayouts.Add(_layout);
-	pipelineInfo.modules.Add(_shader.vertex);
-	pipelineInfo.modules.Add(_shader.fragment);
-	pipelineInfo.pushConstants.Add({ sizeof(Transform::PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
+	for (auto& module : _shader.modules)
+		pipelineInfo.modules.Add(module);
+	pipelineInfo.pushConstants.Add({ sizeof(glm::mat4), VK_SHADER_STAGE_VERTEX_BIT });
+
+	// This assumes the state of the engine currently draws to the post effect handler, and not to the swap chain.
 	pipelineInfo.renderPass = postEffectHandler.GetRenderPass();
 	pipelineInfo.extent = postEffectHandler.GetExtent();
 
-	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
+	pipelineHandler.Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
 void MaterialSystem::DestroySwapChainAssets() const
 {
-	renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
+	auto& pipelineHandler = renderer.GetPipelineHandler();
+	pipelineHandler.Destroy(_pipeline, _pipelineLayout);
 }
 
 uint32_t MaterialSystem::GetDescriptorStartIndex() const
@@ -102,10 +121,11 @@ void MaterialSystem::Draw()
 	auto& meshHandler = renderer.GetMeshHandler();
 	auto& pipelineHandler = renderer.GetPipelineHandler();
 	auto& shaderHandler = renderer.GetShaderHandler();
+	auto& swapChain = renderer.GetSwapChain();
 	auto& swapChainExt = renderer.GetSwapChainExt();
 
+	// Bind pipeline.
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
-	meshHandler.Bind(_mesh);
 
 	const uint32_t startIndex = GetDescriptorStartIndex();
 
@@ -119,8 +139,10 @@ void MaterialSystem::Draw()
 		};
 		VkDescriptorSet values[3];
 	} sets{};
-	sets.lighting = _lights.GetDescriptorSet(renderer.GetSwapChain().GetImageIndex());
+	sets.lighting = _lights.GetDescriptorSet(swapChain.GetImageIndex());
 
+	Mesh* mesh = &_fallbackMesh;
+	Texture* texture = &_fallbackTexture;
 	glm::mat4 modelMatrix;
 
 	for (auto& [camIndex, camera] : _cameras)
@@ -131,8 +153,8 @@ void MaterialSystem::Draw()
 		{
 			sets.material = _descriptorSets[startIndex + matIndex];
 
-			const auto texture = material.texture ? material.texture : &_fallbackTexture;
-
+			// Bind texture.
+			texture = material.texture ? material.texture : &_fallbackTexture;
 			vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
 			samplerCreateInfo.minLod = 0;
 			samplerCreateInfo.maxLod = texture->mipLevels;
@@ -140,13 +162,19 @@ void MaterialSystem::Draw()
 			samplerCreateInfo.maxFilter = VK_FILTER_NEAREST;
 			const auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
 			shaderHandler.BindSampler(sets.material, texture->imageView, texture->layout, sampler, 0, 0);
-			
+
+			// Bind descriptor sets.
 			descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));
 
 			const auto& transform = _transforms[matIndex];
 
+			// Update the world transformation as a mat4x4.
 			transform.CreateModelMatrix(modelMatrix);
 			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, modelMatrix);
+
+			// Bind and draw mesh.
+			mesh = material.mesh ? material.mesh : &_fallbackMesh;
+			meshHandler.Bind(*mesh);
 			meshHandler.Draw();
 
 			swapChainExt.Collect(sampler);
@@ -154,17 +182,17 @@ void MaterialSystem::Draw()
 	}
 }
 
-Shader MaterialSystem::GetShader() const
+Shader& MaterialSystem::GetShader()
 {
 	return _shader;
 }
 
-Mesh MaterialSystem::GetMesh() const
+Mesh& MaterialSystem::GetFallbackMesh()
 {
-	return _mesh;
+	return _fallbackMesh;
 }
 
-Texture MaterialSystem::GetFallbackTexture() const
+Texture& MaterialSystem::GetFallbackTexture()
 {
 	return _fallbackTexture;
 }

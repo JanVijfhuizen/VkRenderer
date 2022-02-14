@@ -24,7 +24,10 @@ public:
 	[[nodiscard]] vi::Iterator<Instance> end() const;
 
 private:
+	// A combination of the value and dense array.
+	// This is done to make iteration, which fetches both value and sparse index, faster.
 	vi::Vector<Instance> _instances;
+	// Pointers to the dense/value array.
 	vi::ArrayPtr<int32_t> _sparse;
 };
 

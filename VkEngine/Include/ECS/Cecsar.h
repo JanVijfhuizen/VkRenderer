@@ -13,12 +13,17 @@ namespace ce
 	{
 		friend Cecsar;
 
+		// Validation.
 		[[nodiscard]] operator bool() const;
+		// Converts to identifier.
 		[[nodiscard]] bool operator ==(const Entity& other) const;
+		// Converts to index.
 		[[nodiscard]] operator uint32_t() const;
 
 	private:
+		// Can be used to compare entities.
 		uint32_t _identifier = 0;
+		// Can be used to access entity-owned components.
 		uint32_t _index;
 	};
 
@@ -59,17 +64,15 @@ namespace ce
 		[[nodiscard]] size_t GetCapacity() const;
 
 	private:
-		struct Instance final
-		{
-			Entity value;
-			uint32_t next = UINT32_MAX;
-		};
-
+		// Dense array of instances.
 		vi::ArrayPtr<uint32_t> _instances;
+		// List of empty spots in instances.
 		vi::BinTree<uint32_t> _open;
-		size_t _capacity;
+		// Instances count.
 		size_t _count = 0;
+		// Used to give every newly created entity a unique identifier.
 		size_t _numCreatedEntities = 0;
+		// Subscribed systems.
 		vi::Vector<ISystem*> _systems{ 32, GMEM_VOL };
 	};
 
