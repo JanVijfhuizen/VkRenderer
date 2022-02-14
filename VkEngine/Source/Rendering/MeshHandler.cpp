@@ -106,10 +106,14 @@ MeshHandler::VertexData<Vertex, Vertex::Index> MeshHandler::GenerateCube(vi::Fre
 
 void MeshHandler::Bind(Mesh& mesh)
 {
+	if (&mesh == _boundMesh)
+		return;
+
 	auto& shaderHandler = core.GetShaderHandler();
 	shaderHandler.BindVertexBuffer(mesh.vertexBuffer);
 	shaderHandler.BindIndicesBuffer(mesh.indexBuffer);
 	_boundIndexCount = mesh.indexCount;
+	_boundMesh = &mesh;
 }
 
 void MeshHandler::Draw() const

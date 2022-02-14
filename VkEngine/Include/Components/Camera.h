@@ -19,6 +19,9 @@ struct Camera final
 	float clipFar = 100;
 };
 
+/// <summary>
+/// System that handles the camera components.
+/// </summary>
 class CameraSystem final : public ce::SmallSystem<Camera>
 {
 public:
@@ -35,11 +38,17 @@ private:
 	Renderer& _renderer;
 	TransformSystem& _transforms;
 
+	// Camera external layout, used in other rendering systems like the default material system.
 	VkDescriptorSetLayout _layout;
+	// Descriptor pool used for the cameras.
 	VkDescriptorPool _descriptorPool;
+	// Descriptor sets used per-frame (all the cameras are batched in one go).
 	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
+	// Pool of camera ubos.
 	UboAllocator<Camera::Ubo> _uboPool;
+	// Ubos that are attached to the camera descriptor sets.
 	vi::ArrayPtr<Camera::Ubo> _ubos;
 
+	// Get the current descriptor index based on the swap chain image index.
 	[[nodiscard]] uint32_t GetDescriptorStartIndex() const;
 };

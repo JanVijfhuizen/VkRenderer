@@ -9,11 +9,18 @@ class LightSystem;
 class TransformSystem;
 class Renderer;
 
+/// <summary>
+/// Component that handles the standard rendering for an entity.
+/// </summary>
 struct Material
 {
+	Mesh* mesh = nullptr;
 	Texture* texture = nullptr;
 };
 
+/// <summary>
+/// System that handles the material components.
+/// </summary>
 class MaterialSystem final : public ce::System<Material>, SwapChainExt::Dependency
 {
 public:
@@ -24,7 +31,7 @@ public:
 	void Draw();
 
 	[[nodiscard]] Shader& GetShader();
-	[[nodiscard]] Mesh GetMesh() const;
+	[[nodiscard]] Mesh& GetFallbackMesh();
 	[[nodiscard]] Texture GetFallbackTexture() const;
 
 protected:
@@ -41,7 +48,7 @@ private:
 	VkDescriptorPool _descriptorPool;
 	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
 	Shader _shader;
-	Mesh _mesh;
+	Mesh _fallbackMesh;
 	Texture _fallbackTexture;
 
 	void DestroySwapChainAssets() const;

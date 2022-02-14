@@ -13,13 +13,17 @@ CameraSystem::CameraSystem(ce::Cecsar& cecsar,
 	_uboPool(renderer, capacity, renderer.GetSwapChain().GetLength())
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& layoutHandler = renderer.GetLayoutHandler();
 	auto& swapChain = renderer.GetSwapChain();
+
 	const uint32_t swapChainLength = swapChain.GetLength();
 
+	// Create camera external layout.
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	layoutInfo.bindings.Add(GetBindingInfo());
-	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
+	_layout = layoutHandler.CreateLayout(layoutInfo);
 
+	// Only needs a single ubo per camera.
 	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	uint32_t size = swapChainLength * capacity;
 
@@ -53,15 +57,22 @@ void CameraSystem::Update()
 	auto& swapChain = _renderer.GetSwapChain();
 	auto& swapChainExt = _renderer.GetSwapChainExt();
 
+	// Calculate starting index for the descriptor sets,
+	// since they are reused.
 	const uint32_t imageIndex = swapChain.GetImageIndex();
 	const uint32_t descriptorSetStartIndex = GetDescriptorStartIndex();
 
+	// Reuse a single memory block for all the different frames and cameras.
 	const auto memory = _uboPool.GetMemory();
 
+	// Size of the frame memory block.
 	const size_t memSize = sizeof(Camera::Ubo) * GetLength();
+	// Offset from the start of the memory adress based on swap chain image index.
 	const size_t memOffset = memSize * imageIndex;
-	const float aspectRatio = static_cast<float>(swapChain.GetExtent().x) / swapChain.GetExtent().y;
+	const auto extent = swapChain.GetExtent();
+	const float aspectRatio = static_cast<float>(extent.x) / extent.y;
 
+	// Create a buffer per frame and batch all the cameras in one go.
 	const auto buffer = _uboPool.CreateBuffer();
 	memoryHandler.Bind(buffer, memory, memOffset);
 

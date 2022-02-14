@@ -6,22 +6,34 @@
 class TransformSystem;
 class MaterialSystem;
 
+/// <summary>
+/// Component that can be used as a light source for other entities.
+/// </summary>
 struct Light final
 {
 	float range = 50;
 };
 
+/// <summary>
+/// Component that can be used as a shadow caster for the lighting system.
+/// </summary>
 struct ShadowCaster final
 {
 	
 };
 
+/// <summary>
+/// System that handles the shadow caster components.
+/// </summary>
 class ShadowCasterSystem final : public ce::System<ShadowCaster>
 {
 public:
 	explicit ShadowCasterSystem(ce::Cecsar& cecsar);
 };
 
+/// <summary>
+/// System that handles the light components.
+/// </summary>
 class LightSystem final : public ce::SmallSystem<Light>, SwapChainExt::Dependency
 {
 public:

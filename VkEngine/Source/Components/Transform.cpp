@@ -16,9 +16,9 @@ void Transform::CreateModelMatrix(glm::mat4& outMat) const
 	outMat = glm::translate(outMat, position);
 
 	const auto euler = glm::eulerAngleXYZ(
-		glm::radians(rotation.x) * .5f,
-		glm::radians(rotation.y) * .5f,
-		glm::radians(rotation.z) * .5f);
+		glm::radians(rotation.x),
+		glm::radians(rotation.y),
+		glm::radians(rotation.z));
 
 	outMat *= euler;
 	outMat = glm::scale(outMat, scale);
