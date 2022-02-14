@@ -97,7 +97,10 @@ LightSystem::~LightSystem()
 	DestroyExtDescriptorDependencies();
 
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& layoutHandler = renderer.GetLayoutHandler();
+	auto& renderPassHandler = renderer.GetRenderPassHandler();
+	auto& shaderHandler = renderer.GetShaderExt();
 	auto& syncHandler = renderer.GetSyncHandler();
 
 	for (auto& frame : _frames)
@@ -106,11 +109,11 @@ LightSystem::~LightSystem()
 		syncHandler.DestroySemaphore(frame.signalSemaphore);
 	}
 
-	renderer.GetRenderPassHandler().Destroy(_renderPass);
-	renderer.GetShaderExt().DestroyShader(_shader);
+	renderPassHandler.Destroy(_renderPass);
+	shaderHandler.DestroyShader(_shader);
 	layoutHandler.DestroyLayout(_layout);
 	DestroyCubeMaps();	
-	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
+	descriptorPoolHandler.Destroy(_descriptorPool);
 }
 
 void LightSystem::Render(const VkSemaphore waitSemaphore)
@@ -347,6 +350,7 @@ void LightSystem::DestroyCubeMaps()
 void LightSystem::CreateExtDescriptorDependencies()
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& layoutHandler = renderer.GetLayoutHandler();
 	auto& shaderHandler = renderer.GetShaderHandler();
 	auto& swapChain = renderer.GetSwapChain();
 
@@ -364,7 +368,7 @@ void LightSystem::CreateExtDescriptorDependencies()
 	cubeMapsBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	cubeMapsBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	cubeMapsBinding.count = 6;
-	_extLayout = renderer.GetLayoutHandler().CreateLayout(extLayoutInfo);
+	_extLayout = layoutHandler.CreateLayout(extLayoutInfo);
 
 	// Create descriptor sets.
 	const uint32_t length = swapChain.GetLength();
@@ -412,17 +416,21 @@ void LightSystem::CreateExtDescriptorDependencies()
 
 void LightSystem::DestroyExtDescriptorDependencies() const
 {
+	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& layoutHandler = renderer.GetLayoutHandler();
 	auto& shaderHandler = renderer.GetShaderHandler();
 
 	for (auto& sampler : _extSamplers)
 		shaderHandler.DestroySampler(sampler);
 
-	renderer.GetLayoutHandler().DestroyLayout(_extLayout);
-	renderer.GetDescriptorPoolHandler().Destroy(_extDescriptorPool);
+	layoutHandler.DestroyLayout(_extLayout);
+	descriptorPoolHandler.Destroy(_extDescriptorPool);
 }
 
 void LightSystem::OnRecreateSwapChainAssets()
 {
+	auto& pipelineHandler = renderer.GetPipelineHandler();
+
 	if (_pipeline)
 		DestroySwapChainAssets();
 
@@ -437,12 +445,13 @@ void LightSystem::OnRecreateSwapChainAssets()
 	pipelineInfo.extent = _shadowResolution;
 	pipelineInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	
-	renderer.GetPipelineHandler().Create(pipelineInfo, _pipeline, _pipelineLayout);
+	pipelineHandler.Create(pipelineInfo, _pipeline, _pipelineLayout);
 }
 
 void LightSystem::DestroySwapChainAssets() const
 {
-	renderer.GetPipelineHandler().Destroy(_pipeline, _pipelineLayout);
+	auto& pipelineHandler = renderer.GetPipelineHandler();
+	pipelineHandler.Destroy(_pipeline, _pipelineLayout);
 }
 
 ShadowCasterSystem::ShadowCasterSystem(ce::Cecsar& cecsar) : System<ShadowCaster>(cecsar)
