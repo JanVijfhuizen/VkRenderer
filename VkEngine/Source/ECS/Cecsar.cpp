@@ -28,7 +28,7 @@ namespace ce
 		return _cecsar;
 	}
 
-	Cecsar::Cecsar(const size_t capacity) : _capacity(capacity)
+	Cecsar::Cecsar(const size_t capacity)
 	{
 		_instances = vi::ArrayPtr<uint32_t>{capacity, GMEM};
 		_open = vi::BinTree<uint32_t>{capacity, GMEM};
@@ -41,15 +41,16 @@ namespace ce
 
 	Entity Cecsar::Add()
 	{
-		assert(_count < _capacity);
+		assert(_count < _instances.GetLength());
 
 		uint32_t index = _count;
 		if(!_open.IsEmpty())
 			index = _open.Pop();
 
+		// Create a new entity with target index and a unique identifier.
 		Entity entity{};
 		entity._index = index;
-		entity._identifier = _numCreatedEntities;
+		entity._identifier = _numCreatedEntities++;
 		_count++;
 		return entity;
 	}
@@ -57,6 +58,7 @@ namespace ce
 	void Cecsar::RemoveAt(const uint32_t sparseIndex)
 	{
 		_count--;
+		// Remove all attached components.
 		for (auto& system : _systems)
 			system->RemoveAt(sparseIndex);
 		_open.Push({ static_cast<int32_t>(sparseIndex), sparseIndex });
@@ -69,6 +71,6 @@ namespace ce
 
 	size_t Cecsar::GetCapacity() const
 	{
-		return _capacity;
+		return _instances.GetLength();
 	}
 }

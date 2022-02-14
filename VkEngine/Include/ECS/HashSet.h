@@ -15,6 +15,7 @@ public:
 
 	virtual T& Insert(uint32_t sparseIndex, const T& value = {});
 	virtual void RemoveAt(uint32_t sparseIndex);
+	[[nodiscard]] bool Contains(uint32_t sparseIndex);
 
 	[[nodiscard]] size_t GetLength() const;
 
@@ -22,16 +23,23 @@ public:
 	[[nodiscard]] vi::Iterator<Instance> end() const;
 
 private:
+	/// <summary>
+	/// Struct that hashes based on it's sparse index.
+	/// </summary>
 	struct Hashable final
 	{
+		// Dense pointer.
 		uint32_t value;
+		// Hashable.
 		uint32_t denseIndex;
 
 		[[nodiscard]] size_t operator%(size_t mod) const;
 		[[nodiscard]] bool operator==(const Hashable& other) const;
 	};
 
+	// Dense set.
 	vi::Vector<Instance> _instances;
+	// "Sparse" set with pointers to the instances.
 	vi::HashMap<Hashable> _hashMap;
 };
 
@@ -54,6 +62,10 @@ template <typename T>
 T& HashSet<T>::Insert(const uint32_t sparseIndex, const T& value)
 {
 	assert(_instances.GetCount() < _instances.GetLength());
+	Hashable* hashable = _hashMap.Find({ sparseIndex, 0 });
+	if (hashable)
+		return _instances[hashable->value].value;
+
 	const uint32_t count = _instances.GetCount();
 	_hashMap.Insert({ sparseIndex, count });
 	return _instances.Add({ sparseIndex, value }).value;
@@ -76,6 +88,12 @@ void HashSet<T>::RemoveAt(const uint32_t sparseIndex)
 		auto& keypairDenseIndex = keyPair.value.denseIndex;
 		keypairDenseIndex -= keypairDenseIndex > denseIndex ? 1 : 0;
 	}
+}
+
+template <typename T>
+bool HashSet<T>::Contains(const uint32_t sparseIndex)
+{
+	return _hashMap.Find({ sparseIndex, 0 });
 }
 
 template <typename T>

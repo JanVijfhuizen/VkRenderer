@@ -20,6 +20,7 @@ PostEffect::PostEffect(Renderer& renderer) : renderer(renderer)
 
 BasicPostEffect::BasicPostEffect(Renderer& renderer, const char* shaderName) : PostEffect(renderer)
 {
+	// Load shader based on the given name.
 	auto& shaderExt = renderer.GetShaderExt();
 	_shader = shaderExt.Load(shaderName);
 }
@@ -41,13 +42,16 @@ void BasicPostEffect::Draw(Frame& frame)
 	auto& postEffectHandler = renderer.GetPostEffectHandler();
 	auto& swapChainext = renderer.GetSwapChainExt();
 
+	// Bind pipeline and render quad.
 	pipelineHandler.Bind(_pipeline, _pipelineLayout);
 	meshHandler.Bind(postEffectHandler.GetMesh());
 
+	// Create a color sampler.
 	const auto sampler = shaderHandler.CreateSampler();
 	shaderHandler.BindSampler(frame.descriptorSet, frame.imageView, 
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, sampler, 0, 0);
 
+	// Create a depth sampler.
 	vi::VkShaderHandler::SamplerCreateInfo depthSamplerCreateInfo{};
 	depthSamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 	depthSamplerCreateInfo.adressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
@@ -55,6 +59,8 @@ void BasicPostEffect::Draw(Frame& frame)
 	shaderHandler.BindSampler(frame.descriptorSet, frame.depthImageView, 
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, depthSampler, 1, 0);
 
+	// Bind descriptor sets and draw post effect quad.
+	// Inputs are the color and depth images of the previous pass.
 	descriptorPoolHandler.BindSets(&frame.descriptorSet, 1);
 	meshHandler.Draw();
 
@@ -68,12 +74,14 @@ void BasicPostEffect::OnRecreateAssets()
 	auto& pipelineHandler = renderer.GetPipelineHandler();
 	auto& postEffectHandler = renderer.GetPostEffectHandler();
 
+	// Create a pipeline based on the created shader in startup.
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
 	pipelineInfo.setLayouts.Add(postEffectHandler.GetLayout());
 	for (auto& module : _shader.modules)
 		pipelineInfo.modules.Add(module);
+	// Use the standard swapchain renderpass and extent.
 	pipelineInfo.renderPass = swapChain.GetRenderPass();
 	pipelineInfo.extent = swapChain.GetExtent();
 
@@ -89,8 +97,10 @@ void BasicPostEffect::DestroyAssets()
 PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlagBits msaaSamples) : 
 	VkHandler(renderer), Dependency(renderer), _renderer(renderer), _msaaSamples(msaaSamples)
 {
+	auto& meshHandler = renderer.GetMeshHandler();
 	auto& swapChain = renderer.GetSwapChain();
 
+	// Define layout with a color and depth texture input.
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	auto& samplerBinding = layoutInfo.bindings.Add();
 	samplerBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -102,7 +112,8 @@ PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlag
 	uint32_t blockSize = 8 * swapChain.GetLength();
 	_descriptorPool.Construct(_renderer, _layout, &uboType, &blockSize, 1, blockSize / 2);
 
-	_mesh = renderer.GetMeshHandler().Create(MeshHandler::GenerateQuad());
+	// Create render quad.
+	_mesh = meshHandler.Create(MeshHandler::GenerateQuad());
 	_frames.Reallocate(_postEffects.GetLength() * swapChain.GetLength(), GMEM_VOL);
 
 	OnRecreateSwapChainAssets();
@@ -110,8 +121,11 @@ PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlag
 
 PostEffectHandler::~PostEffectHandler()
 {
-	_renderer.GetLayoutHandler().DestroyLayout(_layout);
-	_renderer.GetMeshHandler().Destroy(_mesh);
+	auto& layoutHandler = _renderer.GetLayoutHandler();
+	auto& meshHandler = _renderer.GetMeshHandler();
+
+	layoutHandler.DestroyLayout(_layout);
+	meshHandler.Destroy(_mesh);
 	DestroySwapChainAssets(true);
 	_descriptorPool.Cleanup();
 }
@@ -119,6 +133,7 @@ PostEffectHandler::~PostEffectHandler()
 void PostEffectHandler::BeginFrame(const VkSemaphore waitSemaphore)
 {
 	_waitSemaphore = waitSemaphore;
+	// Render everything to the first render pass.
 	LayerBeginFrame(0);
 }
 
@@ -131,14 +146,17 @@ void PostEffectHandler::EndFrame()
 	const uint32_t swapChainLength = swapChain.GetLength();
 	const uint32_t count = _postEffects.GetCount();
 
+	// Iterate and execute every post effect render pass.
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		auto& postEffect = _postEffects[i];
 		auto& frame = _frames[swapChainLength * i + _imageIndex];
 
+		// End current render pass.
 		LayerEndFrame(i);
 		if(i < count - 1)
 		{
+			// Begin new render pass.
 			LayerBeginFrame(i + 1);
 			postEffect->Draw(frame);
 		}
@@ -147,6 +165,7 @@ void PostEffectHandler::EndFrame()
 
 void PostEffectHandler::Draw() const
 {
+	// Draw the final render pass directly to the swap chain.
 	const uint32_t index = _postEffects.GetCount() - 1;
 	auto& finalLayer = _postEffects[index];
 	finalLayer->Draw(GetActiveFrame(index));
@@ -154,6 +173,7 @@ void PostEffectHandler::Draw() const
 
 VkSemaphore PostEffectHandler::GetRenderFinishedSemaphore() const
 {
+	// Get the render finished semaphore from the last post effect layer.
 	const uint32_t index = _postEffects.GetCount() - 1;
 	return GetActiveFrame(index).renderFinishedSemaphore;
 }
@@ -180,6 +200,7 @@ Mesh& PostEffectHandler::GetMesh()
 
 void PostEffectHandler::Add(PostEffect* postEffect)
 {
+	// Add a new post effect and create the layer assets for it.
 	_postEffects.Add(postEffect);
 
 	auto& swapChain = _renderer.GetSwapChain();
@@ -196,12 +217,15 @@ bool PostEffectHandler::IsEmpty() const
 
 void PostEffectHandler::OnRecreateSwapChainAssets()
 {
+	// If the render pass has been created before, it means that the previous assets need to be destroyed.
 	if (_renderPass)
 		DestroySwapChainAssets(false);
 
 	auto& renderPassHandler = _renderer.GetRenderPassHandler();
 	auto& swapChain = _renderer.GetSwapChain();
 
+	// This could basically use the same render pass as the swapchain, but I'm explicitely making it here too just to be safe.
+	// In case I ever change the swapchain render pass this would still work.
 	vi::VkRenderPassHandler::CreateInfo renderPassCreateInfo{};
 	renderPassCreateInfo.useColorAttachment = true;
 	renderPassCreateInfo.colorFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -209,6 +233,7 @@ void PostEffectHandler::OnRecreateSwapChainAssets()
 	renderPassCreateInfo.depthStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 	renderPassCreateInfo.depthFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	_renderPass = renderPassHandler.Create(renderPassCreateInfo);
+	// Update post effect resolution.
 	_extent = swapChain.GetExtent();
 
 	for (uint32_t i = 0; i < _postEffects.GetCount(); ++i)
@@ -221,6 +246,7 @@ void PostEffectHandler::LayerBeginFrame(const uint32_t index)
 	auto& renderPassHandler = core.GetRenderPassHandler();
 	auto& swapChain = core.GetSwapChain();
 
+	// Get the current swap chain image index.
 	_imageIndex = swapChain.GetImageIndex();
 
 	auto& frame = GetActiveFrame(index);
@@ -230,6 +256,7 @@ void PostEffectHandler::LayerBeginFrame(const uint32_t index)
 	clearColors[0].color = { 0, 0, 0, 1 };
 	clearColors[1].depthStencil = { 1, 0 };
 
+	// Begin this frame's render pass.
 	renderPassHandler.Begin(frame.frameBuffer, _renderPass, {},
 		_extent, clearColors, 2);
 }
@@ -244,6 +271,9 @@ void PostEffectHandler::LayerEndFrame(const uint32_t index) const
 	renderPassHandler.End();
 	commandBufferHandler.EndRecording();
 
+	// Submit the swap chain layer render.
+	// The goal here is to send all layer submits to the GPU without having to stall the CPU.
+	// Therefore I'm using semaphores instead of fences to sequence them correctly.
 	vi::VkCommandBufferHandler::SubmitInfo info{};
 	info.buffers = &frame.commandBuffer;
 	info.buffersCount = 1;
@@ -262,9 +292,11 @@ void PostEffectHandler::RecreateLayerAssets(const uint32_t index)
 	auto& swapChain = _renderer.GetSwapChain();
 	auto& syncHandler = _renderer.GetSyncHandler();
 
+	// Set up the first render pass to use anti aliasing, if enabled and if the device supports it.
 	auto msaaSamples = vi::VkCorePhysicalDevice::GetMaxUsableSampleCount(_renderer.GetPhysicalDevice());
 	msaaSamples = vi::Ut::Min(_msaaSamples, msaaSamples);
-	
+
+	// Get color and depth image formats.
 	const auto format = swapChain.GetFormat();
 	const auto depthBufferFormat = swapChain.GetDepthBufferFormat();
 
@@ -279,6 +311,7 @@ void PostEffectHandler::RecreateLayerAssets(const uint32_t index)
 		frame.commandBuffer = commandBufferHandler.Create();
 		frame.renderFinishedSemaphore = syncHandler.CreateSemaphore();
 
+		// Create color image for the layer.
 		vi::VkImageHandler::CreateInfo colorImageCreateInfo{};
 		colorImageCreateInfo.resolution = _extent;
 		colorImageCreateInfo.format = format;
@@ -287,6 +320,7 @@ void PostEffectHandler::RecreateLayerAssets(const uint32_t index)
 			colorImageCreateInfo.samples = msaaSamples;
 		frame.colorImage = imageHandler.Create(colorImageCreateInfo);
 
+		// Create depth image for the layer.
 		vi::VkImageHandler::CreateInfo depthImageCreateInfo{};
 		depthImageCreateInfo.resolution = _extent;
 		depthImageCreateInfo.format = depthBufferFormat;
@@ -310,6 +344,7 @@ void PostEffectHandler::RecreateLayerAssets(const uint32_t index)
 		depthViewCreateInfo.aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
 		frame.depthImageView = imageHandler.CreateView(depthViewCreateInfo);
 
+		// Create render target.
 		vi::VkFrameBufferHandler::CreateInfo frameBufferCreateInfo{};
 		frameBufferCreateInfo.imageViews = frame.imageViews;
 		frameBufferCreateInfo.imageViewCount = 2;
@@ -333,6 +368,7 @@ void PostEffectHandler::DestroyLayerAssets(const uint32_t index, const bool call
 	const uint32_t swapChainLength = swapChain.GetLength();
 	PostEffect::Frame* start = &GetStartFrame(index);
 
+	// Destroy the contents in the layers.
 	for (uint32_t i = 0; i < swapChainLength; ++i)
 	{
 		auto& frame = start[i];
@@ -365,7 +401,7 @@ void PostEffectHandler::DestroySwapChainAssets(const bool calledByDestructor) co
 		DestroyLayerAssets(i, calledByDestructor);
 }
 
-PostEffect::Frame& PostEffectHandler::GetStartFrame(uint32_t index) const
+PostEffect::Frame& PostEffectHandler::GetStartFrame(const uint32_t index) const
 {
 	return _frames[_renderer.GetSwapChain().GetLength() * index];
 }
