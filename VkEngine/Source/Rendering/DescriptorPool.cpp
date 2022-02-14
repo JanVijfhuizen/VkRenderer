@@ -1,10 +1,10 @@
 ﻿#include "pch.h"
 #include "Rendering/DescriptorPool.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "VkRenderer/VkHandlers/VkDescriptorPoolHandler.h"
 
 void DescriptorPool::Construct(
-    Renderer& renderer, const VkDescriptorSetLayout layout, VkDescriptorType* types,
+    VulkanRenderer& renderer, const VkDescriptorSetLayout layout, VkDescriptorType* types,
 	uint32_t* capacities, const uint32_t typeCount, const uint32_t blockSize)
 {
     _renderer = &renderer;

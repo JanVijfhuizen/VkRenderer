@@ -11,7 +11,7 @@
 #include "Rendering/PostEffectHandler.h"
 
 MaterialSystem::MaterialSystem(ce::Cecsar& cecsar, 
-	Renderer& renderer, CameraSystem& cameras, 
+	VulkanRenderer& renderer, CameraSystem& cameras, 
 	LightSystem& lights, TransformSystem& transforms, const char* shaderName) :
 	System<Material>(cecsar), Dependency(renderer), 
 	_cameras(cameras), _lights(lights), _transforms(transforms)
@@ -192,7 +192,7 @@ Mesh& MaterialSystem::GetFallbackMesh()
 	return _fallbackMesh;
 }
 
-Texture MaterialSystem::GetFallbackTexture() const
+Texture& MaterialSystem::GetFallbackTexture()
 {
 	return _fallbackTexture;
 }

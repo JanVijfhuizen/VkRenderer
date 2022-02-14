@@ -2,14 +2,14 @@
 #include "Rendering/SwapChainExt.h"
 #include "VkRenderer/VkCore/VkCore.h"
 #include "Rendering/DescriptorPool.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "VkRenderer/VkHandlers/VkShaderHandler.h"
 #include "VkRenderer/VkHandlers/VkMemoryHandler.h"
 #include "VkRenderer/VkHandlers/VkImageHandler.h"
 #include "VkRenderer/VkHandlers/VkFrameBufferHandler.h"
 #include "VkRenderer/VkCore/VkCoreSwapchain.h"
 
-SwapChainExt::Dependency::Dependency(Renderer& renderer) : renderer(renderer)
+SwapChainExt::Dependency::Dependency(VulkanRenderer& renderer) : renderer(renderer)
 {
 	auto& swapChainExt = renderer.GetSwapChainExt();
 	swapChainExt._dependencies.Add(this);

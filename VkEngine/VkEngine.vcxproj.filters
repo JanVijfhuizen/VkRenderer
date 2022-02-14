@@ -36,7 +36,7 @@
     <ClCompile Include="Source\Utils\FileReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\Renderer.cpp">
+    <ClCompile Include="Source\Rendering\VulkanRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\ShaderExt.cpp">
@@ -61,6 +61,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Components\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Components\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,7 +92,7 @@
     <ClInclude Include="Include\Utils\FileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Rendering\Renderer.h">
+    <ClInclude Include="Include\Rendering\VulkanRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Rendering\ShaderExt.h">
@@ -126,6 +129,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Utils\EUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Components\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

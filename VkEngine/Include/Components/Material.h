@@ -7,7 +7,7 @@
 class CameraSystem;
 class LightSystem;
 class TransformSystem;
-class Renderer;
+class VulkanRenderer;
 
 /// <summary>
 /// Component that handles the standard rendering for an entity.
@@ -24,7 +24,7 @@ struct Material
 class MaterialSystem final : public ce::System<Material>, SwapChainExt::Dependency
 {
 public:
-	explicit MaterialSystem(ce::Cecsar& cecsar, Renderer& renderer, 
+	explicit MaterialSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, 
 		CameraSystem& cameras, LightSystem& lights, TransformSystem& transforms, const char* shaderName);
 	~MaterialSystem();
 
@@ -32,7 +32,7 @@ public:
 
 	[[nodiscard]] Shader& GetShader();
 	[[nodiscard]] Mesh& GetFallbackMesh();
-	[[nodiscard]] Texture GetFallbackTexture() const;
+	[[nodiscard]] Texture& GetFallbackTexture();
 
 protected:
 	void OnRecreateSwapChainAssets() override;

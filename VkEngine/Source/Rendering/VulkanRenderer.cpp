@@ -2,11 +2,11 @@
 #include "VkRenderer/VkCore/VkCoreInfo.h"
 #include "Rendering/MeshHandler.h"
 #include "Rendering/PostEffectHandler.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "Rendering/TextureHandler.h"
 #include "Rendering/SwapChainExt.h"
 
-Renderer::Renderer(vi::VkCoreInfo& info, const Info& addInfo) : VkCore(info)
+VulkanRenderer::VulkanRenderer(vi::VkCoreInfo& info, const Info& addInfo) : VkCore(info)
 {
 	_meshHandler = GMEM.New<MeshHandler>(*this);
 	_shaderExt = GMEM.New<ShaderExt>(*this);
@@ -15,7 +15,7 @@ Renderer::Renderer(vi::VkCoreInfo& info, const Info& addInfo) : VkCore(info)
 	_postEffectHandler = GMEM.New<PostEffectHandler>(*this, addInfo.msaaSamples);
 }
 
-Renderer::~Renderer()
+VulkanRenderer::~VulkanRenderer()
 {
 	GMEM.Delete(_postEffectHandler);
 	GMEM.Delete(_textureHandler);
@@ -24,27 +24,27 @@ Renderer::~Renderer()
 	GMEM.Delete(_swapChainExt);
 }
 
-MeshHandler& Renderer::GetMeshHandler() const
+MeshHandler& VulkanRenderer::GetMeshHandler() const
 {
 	return *_meshHandler;
 }
 
-ShaderExt& Renderer::GetShaderExt() const
+ShaderExt& VulkanRenderer::GetShaderExt() const
 {
 	return *_shaderExt;
 }
 
-SwapChainExt& Renderer::GetSwapChainExt() const
+SwapChainExt& VulkanRenderer::GetSwapChainExt() const
 {
 	return *_swapChainExt;
 }
 
-TextureHandler& Renderer::GetTextureHandler() const
+TextureHandler& VulkanRenderer::GetTextureHandler() const
 {
 	return *_textureHandler;
 }
 
-PostEffectHandler& Renderer::GetPostEffectHandler() const
+PostEffectHandler& VulkanRenderer::GetPostEffectHandler() const
 {
 	return *_postEffectHandler;
 }

@@ -3,7 +3,7 @@
 #include "Rendering/UboAllocator.h"
 
 class TransformSystem;
-class Renderer;
+class VulkanRenderer;
 
 struct Camera final
 {
@@ -25,7 +25,7 @@ struct Camera final
 class CameraSystem final : public ce::SmallSystem<Camera>
 {
 public:
-	explicit CameraSystem(ce::Cecsar& cecsar, Renderer& renderer, TransformSystem& transforms, uint32_t capacity = 1);
+	explicit CameraSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, TransformSystem& transforms, uint32_t capacity = 1);
 	~CameraSystem();
 
 	void Update();
@@ -35,7 +35,7 @@ public:
 	[[nodiscard]] static vi::VkLayoutHandler::CreateInfo::Binding GetBindingInfo();
 
 private:
-	Renderer& _renderer;
+	VulkanRenderer& _renderer;
 	TransformSystem& _transforms;
 
 	// Camera external layout, used in other rendering systems like the default material system.

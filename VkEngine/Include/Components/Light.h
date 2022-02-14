@@ -43,7 +43,7 @@ public:
 		glm::ivec2 shadowResolution{ 512 };
 	};
 
-	LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
+	LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer,
 		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 

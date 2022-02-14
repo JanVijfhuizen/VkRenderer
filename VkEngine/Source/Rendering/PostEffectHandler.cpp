@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Rendering/PostEffectHandler.h"
 #include "VkRenderer/VkHandlers/VkRenderPassHandler.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "VkRenderer/VkCore/VkCorePhysicalDevice.h"
 #include "VkRenderer/VkHandlers/VkCommandBufferHandler.h"
 #include "VkRenderer/VkHandlers/VkSyncHandler.h"
@@ -13,12 +13,12 @@
 #include "VkRenderer/VkHandlers/VkShaderHandler.h"
 #include "VkRenderer/VkHandlers/VkDescriptorPoolHandler.h"
 
-PostEffect::PostEffect(Renderer& renderer) : renderer(renderer)
+PostEffect::PostEffect(VulkanRenderer& renderer) : renderer(renderer)
 {
 
 }
 
-BasicPostEffect::BasicPostEffect(Renderer& renderer, const char* shaderName) : PostEffect(renderer)
+BasicPostEffect::BasicPostEffect(VulkanRenderer& renderer, const char* shaderName) : PostEffect(renderer)
 {
 	// Load shader based on the given name.
 	auto& shaderExt = renderer.GetShaderExt();
@@ -94,7 +94,7 @@ void BasicPostEffect::DestroyAssets()
 	pipelineHandler.Destroy(_pipeline, _pipelineLayout);
 }
 
-PostEffectHandler::PostEffectHandler(Renderer& renderer, const VkSampleCountFlagBits msaaSamples) : 
+PostEffectHandler::PostEffectHandler(VulkanRenderer& renderer, const VkSampleCountFlagBits msaaSamples) : 
 	VkHandler(renderer), Dependency(renderer), _renderer(renderer), _msaaSamples(msaaSamples)
 {
 	auto& meshHandler = renderer.GetMeshHandler();

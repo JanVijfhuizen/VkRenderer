@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "Components/Light.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "Components/Material.h"
 #include "Components/Transform.h"
 #include "VkRenderer/VkHandlers/VkSyncHandler.h"
@@ -14,7 +14,7 @@
 #include "VkRenderer/VkHandlers/VkImageHandler.h"
 #include "VkRenderer/VkHandlers/VkFrameBufferHandler.h"
 
-LightSystem::LightSystem(ce::Cecsar& cecsar, Renderer& renderer,
+LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer,
 	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info) :
 	SmallSystem<Light>(cecsar, info.size), Dependency(renderer),
 	_shadowCasters(shadowCasters), _transforms(transforms),

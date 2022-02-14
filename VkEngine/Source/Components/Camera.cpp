@@ -1,13 +1,13 @@
 ﻿#include "pch.h"
 #include "Components/Camera.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/VulkanRenderer.h"
 #include "Components/Transform.h"
 #include "VkRenderer/VkHandlers/VkDescriptorPoolHandler.h"
 #include "VkRenderer/VkCore/VkCoreSwapchain.h"
 #include "Rendering/SwapChainExt.h"
 
 CameraSystem::CameraSystem(ce::Cecsar& cecsar, 
-	Renderer& renderer, TransformSystem& transforms, const uint32_t capacity) :
+	VulkanRenderer& renderer, TransformSystem& transforms, const uint32_t capacity) :
 	SmallSystem<Camera>(cecsar, capacity),
 	_renderer(renderer), _transforms(transforms),
 	_uboPool(renderer, capacity, renderer.GetSwapChain().GetLength())

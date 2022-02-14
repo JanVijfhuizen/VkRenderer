@@ -6,7 +6,7 @@
 #include "MeshHandler.h"
 
 class PostEffectHandler;
-class Renderer;
+class VulkanRenderer;
 
 /// <summary>
 /// Inherit from this to create a post effect from scratch.
@@ -56,9 +56,9 @@ public:
 	virtual void Draw(Frame& frame) = 0;
 
 protected:
-	Renderer& renderer;
+	VulkanRenderer& renderer;
 
-	explicit PostEffect(Renderer& renderer);
+	explicit PostEffect(VulkanRenderer& renderer);
 	// Called by the swap chain recreation event and startup.
 	virtual void OnRecreateAssets() = 0;
 	// Called by the swap chain recreation event and cleanup.
@@ -71,7 +71,7 @@ protected:
 class BasicPostEffect final : public PostEffect
 {
 public:
-	explicit BasicPostEffect(Renderer& renderer, const char* shaderName);
+	explicit BasicPostEffect(VulkanRenderer& renderer, const char* shaderName);
 	~BasicPostEffect();
 
 	void Draw(Frame& frame) override;
@@ -91,7 +91,7 @@ private:
 class PostEffectHandler final : public vi::VkHandler, public SwapChainExt::Dependency
 {
 public:
-	explicit PostEffectHandler(Renderer& renderer, VkSampleCountFlagBits msaaSamples);
+	explicit PostEffectHandler(VulkanRenderer& renderer, VkSampleCountFlagBits msaaSamples);
 	~PostEffectHandler();
 
 	void BeginFrame(VkSemaphore waitSemaphore);
@@ -114,7 +114,7 @@ protected:
 	void OnRecreateSwapChainAssets() override;
 
 private:
-	Renderer& _renderer;
+	VulkanRenderer& _renderer;
 	VkSampleCountFlagBits _msaaSamples;
 	VkRenderPass _renderPass = VK_NULL_HANDLE;
 	glm::ivec2 _extent;

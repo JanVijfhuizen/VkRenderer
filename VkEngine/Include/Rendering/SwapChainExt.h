@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "VkRenderer/VkHandlers/VkHandler.h"
 
-class Renderer;
+class VulkanRenderer;
 class DescriptorPool;
 
 /// <summary>
@@ -23,14 +23,14 @@ public:
 		friend SwapChainExt;
 
 	public:
-		explicit Dependency(Renderer& renderer);
+		explicit Dependency(VulkanRenderer& renderer);
 		virtual ~Dependency();
 
 	protected:
 		// Event that fires when the swap chain is being recreated.
 		virtual void OnRecreateSwapChainAssets() = 0;
 
-		Renderer& renderer;
+		VulkanRenderer& renderer;
 	};
 
 	explicit SwapChainExt(vi::VkCore& core);
