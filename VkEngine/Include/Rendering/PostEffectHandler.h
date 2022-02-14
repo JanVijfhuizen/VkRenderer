@@ -53,7 +53,7 @@ public:
 	};
 
 	// Post effect specific method to inherit from.
-	virtual void Draw(Frame& frame) = 0;
+	virtual void Render(Frame& frame) = 0;
 
 protected:
 	VulkanRenderer& renderer;
@@ -74,7 +74,7 @@ public:
 	explicit BasicPostEffect(VulkanRenderer& renderer, const char* shaderName);
 	~BasicPostEffect();
 
-	void Draw(Frame& frame) override;
+	void Render(Frame& frame) override;
 
 private:
 	Shader _shader;
@@ -97,13 +97,14 @@ public:
 	void BeginFrame(VkSemaphore waitSemaphore);
 	void EndFrame();
 
-	void Draw() const;
+	void Render() const;
 
+	/// <returns>Semaphore which triggers once all the post effects have been drawn.</returns>
 	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore() const;
 	[[nodiscard]] VkRenderPass GetRenderPass() const;
 	[[nodiscard]] glm::ivec2 GetExtent() const;
 	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
-	/// <return>Render quad.</return>
+	/// <returns>Render quad.</returns>
 	[[nodiscard]] Mesh& GetMesh();
 
 	void Add(PostEffect* postEffect);

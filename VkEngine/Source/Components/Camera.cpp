@@ -10,7 +10,7 @@ CameraSystem::CameraSystem(ce::Cecsar& cecsar,
 	VulkanRenderer& renderer, TransformSystem& transforms, const uint32_t capacity) :
 	SmallSystem<Camera>(cecsar, capacity),
 	_renderer(renderer), _transforms(transforms),
-	_uboPool(renderer, capacity, renderer.GetSwapChain().GetLength())
+	_uboAllocator(renderer, capacity, renderer.GetSwapChain().GetLength())
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& layoutHandler = renderer.GetLayoutHandler();
@@ -63,7 +63,7 @@ void CameraSystem::Update()
 	const uint32_t descriptorSetStartIndex = GetDescriptorStartIndex();
 
 	// Reuse a single memory block for all the different frames and cameras.
-	const auto memory = _uboPool.GetMemory();
+	const auto memory = _uboAllocator.GetMemory();
 
 	// Size of the frame memory block.
 	const size_t memSize = sizeof(Camera::Ubo) * GetLength();
@@ -73,7 +73,7 @@ void CameraSystem::Update()
 	const float aspectRatio = static_cast<float>(extent.x) / extent.y;
 
 	// Create a buffer per frame and batch all the cameras in one go.
-	const auto buffer = _uboPool.CreateBuffer();
+	const auto buffer = _uboAllocator.CreateBuffer();
 	memoryHandler.Bind(buffer, memory, memOffset);
 
 	uint32_t i = 0;

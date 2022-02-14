@@ -138,8 +138,8 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	const auto geomBuffer = _geometryUboPool.CreateBuffer();
 	memoryHandler.Bind(geomBuffer, geomMemory, geometryUboOffset);
 
-	_currentFragBuffer = _fragmentUboPool.CreateBuffer();
-	memoryHandler.Bind(_currentFragBuffer, fragMemory, fragmentUboOffset);
+	const auto fragBuffer = _fragmentUboPool.CreateBuffer();
+	memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset);
 
 	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
 	const float near = 0.1f;
@@ -183,7 +183,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
 	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * (GetLength() + 1));
 	swapChainExt.Collect(geomBuffer);
-	swapChainExt.Collect(_currentFragBuffer);
+	swapChainExt.Collect(fragBuffer);
 
 	i = 0;
 	for (const auto& [lightIndex, light] : *this)
@@ -194,7 +194,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 		auto& descriptorSet = _descriptorSets[offsetMultiplier + i];
 		shaderHandler.BindBuffer(descriptorSet, geomBuffer, sizeof(GeometryUbo) * i, sizeof(GeometryUbo), 0, 0);
-		shaderHandler.BindBuffer(descriptorSet, _currentFragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
+		shaderHandler.BindBuffer(descriptorSet, fragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
 		descriptorPoolHandler.BindSets(&descriptorSet, 1);
 
 		for (const auto& [matIndex, material] : _materials)
@@ -213,8 +213,8 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	}
 
 	// Handle external descriptor set.
-	shaderHandler.BindBuffer(_extDescriptorSets[imageIndex], _currentFragBuffer, 0, sizeof(FragmentUbo) * i, 0, 0);
-	shaderHandler.BindBuffer(_extDescriptorSets[imageIndex], _currentFragBuffer, sizeof(FragmentUbo) * GetLength(), sizeof(FragmentUbo), 1, 0);
+	shaderHandler.BindBuffer(_extDescriptorSets[imageIndex], fragBuffer, 0, sizeof(FragmentUbo) * i, 0, 0);
+	shaderHandler.BindBuffer(_extDescriptorSets[imageIndex], fragBuffer, sizeof(FragmentUbo) * GetLength(), sizeof(FragmentUbo), 1, 0);
 
 	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
 	submitInfo.buffers = &frame.commandBuffer;

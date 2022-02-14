@@ -44,8 +44,8 @@ private:
 	VkDescriptorPool _descriptorPool;
 	// Descriptor sets used per-frame (all the cameras are batched in one go).
 	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
-	// Pool of camera ubos.
-	UboAllocator<Camera::Ubo> _uboPool;
+	// Allocator from which to get update bound ubos.
+	UboAllocator<Camera::Ubo> _uboAllocator;
 	// Ubos that are attached to the camera descriptor sets.
 	vi::ArrayPtr<Camera::Ubo> _ubos;
 
