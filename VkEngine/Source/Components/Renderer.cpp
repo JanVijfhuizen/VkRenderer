@@ -18,10 +18,8 @@ RenderSystem::RenderSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, Materia
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& layoutHandler = renderer.GetLayoutHandler();
-	auto& meshHandler = renderer.GetMeshHandler();
 	auto& shaderExt = renderer.GetShaderExt();
 	auto& swapChain = renderer.GetSwapChain();
-	auto& textureHandler = renderer.GetTextureHandler();
 
 	const uint32_t swapChainLength = swapChain.GetLength();
 
@@ -59,9 +57,7 @@ RenderSystem::~RenderSystem()
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& layoutHandler = renderer.GetLayoutHandler();
-	auto& meshHandler = renderer.GetMeshHandler();
 	auto& shaderExt = renderer.GetShaderExt();
-	auto& textureHandler = renderer.GetTextureHandler();
 
 	DestroySwapChainAssets();
 
@@ -96,8 +92,9 @@ void RenderSystem::Draw()
 	} sets{};
 	sets.lighting = _lights.GetDescriptorSet(swapChain.GetImageIndex());
 
-	Mesh* mesh;
-	Texture* texture;
+	Mesh* mesh = nullptr;
+	meshHandler.Bind(_materials.GetFallbackMesh());
+
 	glm::mat4 modelMatrix;
 
 	for (auto& [camIndex, camera] : _cameras)
@@ -110,7 +107,7 @@ void RenderSystem::Draw()
 			sets.material = _descriptorSets[startIndex + renderIndex];
 
 			// Bind texture.
-			texture = material.texture ? material.texture : &_materials.GetFallbackTexture();
+			Texture* texture = material.texture ? material.texture : &_materials.GetFallbackTexture();
 			vi::VkShaderHandler::SamplerCreateInfo samplerCreateInfo{};
 			samplerCreateInfo.minLod = 0;
 			samplerCreateInfo.maxLod = texture->mipLevels;
@@ -129,8 +126,11 @@ void RenderSystem::Draw()
 			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, modelMatrix);
 
 			// Bind and draw mesh.
-			mesh = material.mesh ? material.mesh : &_materials.GetFallbackMesh();
-			meshHandler.Bind(*mesh);
+			if (mesh != material.mesh)
+			{
+				mesh = material.mesh;
+				meshHandler.Bind(mesh ? *mesh : _materials.GetFallbackMesh());
+			}
 			meshHandler.Draw();
 
 			swapChainExt.Collect(sampler);

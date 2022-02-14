@@ -86,8 +86,8 @@ int Engine<GameState>::Run(const Info& info)
 	_transforms = GMEM.New<TransformSystem>(*_cecsar);
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
 	_shadowCasters = GMEM.New<ShadowCasterSystem>(*_cecsar);
-	_lights = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_shadowCasters, *_transforms);
 	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer);
+	_lights = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_materials, *_shadowCasters, *_transforms);
 	_renderers = GMEM.New<RenderSystem>(*_cecsar, *_renderer, *_materials, *_cameras, *_lights, *_transforms, "");
 
 	_gameState = GMEM.New<GameState>();
@@ -130,7 +130,7 @@ int Engine<GameState>::Run(const Info& info)
 
 		swapChain.WaitForImage();
 
-		_lights->Render(swapChain.GetImageAvaiableSemaphore(), *_materials);
+		_lights->Render(swapChain.GetImageAvaiableSemaphore());
 		postEffectHandler.BeginFrame(_lights->GetRenderFinishedSemaphore());
 
 		_cameras->Update();

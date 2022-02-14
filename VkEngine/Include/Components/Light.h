@@ -43,11 +43,11 @@ public:
 		glm::ivec2 shadowResolution{ 512 };
 	};
 
-	LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer,
+	LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialSystem& materials,
 		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 
-	void Render(VkSemaphore waitSemaphore, MaterialSystem& materials);
+	void Render(VkSemaphore waitSemaphore);
 
 	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore() const;
 
@@ -89,6 +89,7 @@ private:
 		};
 	};
 
+	MaterialSystem& _materials;
 	ShadowCasterSystem& _shadowCasters;
 	TransformSystem& _transforms;
 

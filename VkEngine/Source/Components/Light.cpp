@@ -14,10 +14,10 @@
 #include "VkRenderer/VkHandlers/VkImageHandler.h"
 #include "VkRenderer/VkHandlers/VkFrameBufferHandler.h"
 
-LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer,
+LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialSystem& materials,
 	ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info) :
 	SmallSystem<Light>(cecsar, info.size), Dependency(renderer),
-	_shadowCasters(shadowCasters), _transforms(transforms),
+	_materials(materials), _shadowCasters(shadowCasters), _transforms(transforms),
 	_shadowResolution(info.shadowResolution),
 	_geometryUboPool(renderer, info.size, renderer.GetSwapChain().GetLength()),
 	_fragmentUboPool(renderer, info.size + 1, renderer.GetSwapChain().GetLength()),
@@ -108,7 +108,7 @@ LightSystem::~LightSystem()
 	renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
 }
 
-void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materials)
+void LightSystem::Render(const VkSemaphore waitSemaphore)
 {
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
@@ -145,7 +145,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 	const float near = 0.1f;
 	glm::mat4 modelMatrix;
 
-	auto mesh = materials.GetFallbackMesh();
+	auto& mesh = _materials.GetFallbackMesh();
 	meshHandler.Bind(mesh);
 
 	uint32_t i = 0;
@@ -197,7 +197,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore, MaterialSystem& materi
 		shaderHandler.BindBuffer(descriptorSet, _currentFragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
 		descriptorPoolHandler.BindSets(&descriptorSet, 1);
 
-		for (const auto& [matIndex, material] : materials)
+		for (const auto& [matIndex, material] : _materials)
 		{
 			const auto& transform = _transforms[matIndex];
 
