@@ -23,7 +23,7 @@ class RenderSystem final : public ce::System<Renderer>, SwapChainExt::Dependency
 {
 public:
 	explicit RenderSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialSystem& materials,
-		CameraSystem& cameras, LightSystem& lights, TransformSystem& transforms, const char* shaderName);
+		CameraSystem& cameras, LightSystem& lights, TransformSystem& transforms, const char* shaderName = "");
 	~RenderSystem();
 
 	void Draw();

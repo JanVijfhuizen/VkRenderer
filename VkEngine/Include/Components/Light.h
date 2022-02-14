@@ -119,7 +119,6 @@ private:
 	// External samplers for the cubemaps.
 	vi::ArrayPtr<VkSampler> _extSamplers;
 
-	// TODO place these in one memory space.
 	UboAllocator<GeometryUbo> _geometryUboPool;
 	UboAllocator<FragmentUbo> _fragmentUboPool;
 	vi::ArrayPtr<GeometryUbo> _geometryUbos;
@@ -142,6 +141,7 @@ private:
 	void CreateCubeMaps(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
 	void DestroyCubeMaps();
 
+	// Sets up the buffers to make sure the cubemaps can be used externally.
 	void CreateExtDescriptorDependencies();
 	void DestroyExtDescriptorDependencies() const;
 

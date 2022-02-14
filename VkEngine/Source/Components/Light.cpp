@@ -27,7 +27,9 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 {
 	auto& commandBufferHandler = renderer.GetCommandBufferHandler();
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
+	auto& layoutHandler = renderer.GetLayoutHandler();
 	auto& renderPassHandler = renderer.GetRenderPassHandler();
+	auto& shaderHandler = renderer.GetShaderExt();
 	auto& swapChain = renderer.GetSwapChain();
 	auto& syncHandler = renderer.GetSyncHandler();
 
@@ -35,8 +37,9 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 
 	ShaderExt::LoadInfo shaderLoadInfo{};
 	shaderLoadInfo.geometry = true;
-	_shader = renderer.GetShaderExt().Load("light-", shaderLoadInfo);
+	_shader = shaderHandler.Load("light-", shaderLoadInfo);
 
+	// Set up layout for rendering to the cubemaps.
 	vi::VkLayoutHandler::CreateInfo layoutInfo{};
 	auto& geomBinding = layoutInfo.bindings.Add();
 	geomBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -46,7 +49,7 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 	fragBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	fragBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	fragBinding.size = sizeof(FragmentUbo);
-	_layout = renderer.GetLayoutHandler().CreateLayout(layoutInfo);
+	_layout = layoutHandler.CreateLayout(layoutInfo);
 
 	vi::VkRenderPassHandler::CreateInfo renderPassCreateInfo{};
 	renderPassCreateInfo.useColorAttachment = false;
@@ -55,6 +58,7 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 	renderPassCreateInfo.depthFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	_renderPass = renderPassHandler.Create(renderPassCreateInfo);
 
+	// Create the image assets for the cubemaps.
 	CreateCubeMaps(swapChain, info.shadowResolution);
 
 	// Create descriptor sets.
@@ -76,6 +80,7 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 	descriptorSetCreateInfo.setCount = GetLength() * swapChainLength;
 	descriptorPoolHandler.CreateSets(descriptorSetCreateInfo);
 
+	// Set up sync objects for GPU syncronization.
 	for (auto& frame : _frames)
 	{
 		frame.commandBuffer = commandBufferHandler.Create();
@@ -127,7 +132,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	commandBufferHandler.BeginRecording(frame.commandBuffer);
 
 	// Begin render pass.
-	VkClearValue depthStencil  = { 1, 0 };
+	VkClearValue depthStencil  = { 1.f, 0 };
 
 	const size_t geometryUboOffset = sizeof(GeometryUbo) * offsetMultiplier;
 	const size_t fragmentUboOffset = sizeof(FragmentUbo) * offsetMultiplier;
@@ -135,9 +140,9 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	const auto geomMemory = _geometryUboPool.GetMemory();
 	const auto fragMemory = _fragmentUboPool.GetMemory();
 
+	// Create frame bound buffers.
 	const auto geomBuffer = _geometryUboPool.CreateBuffer();
 	memoryHandler.Bind(geomBuffer, geomMemory, geometryUboOffset);
-
 	const auto fragBuffer = _fragmentUboPool.CreateBuffer();
 	memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset);
 
@@ -148,6 +153,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	auto& mesh = _materials.GetFallbackMesh();
 	meshHandler.Bind(mesh);
 
+	// Forward all the lighting information to the UBO buffer arrays.
 	uint32_t i = 0;
 	for (const auto& [lightIndex, light] : *this)
 	{
@@ -160,6 +166,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 		const glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, light.range);
 
+		// Define the view matrices for every cubemap face.
 		shadowFaces[0] = glm::lookAt(position, position + glm::vec3(1, 0, 0), glm::vec3(0, -1, 0));
 		shadowFaces[1] = glm::lookAt(position, position + glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0));
 		shadowFaces[2] = glm::lookAt(position, position + glm::vec3(0, 1, 0), glm::vec3(0, 0, -1));
@@ -167,6 +174,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 		shadowFaces[4] = glm::lookAt(position, position + glm::vec3(0, 0, -1), glm::vec3(0, -1, 0));
 		shadowFaces[5] = glm::lookAt(position, position + glm::vec3(0, 0, 1), glm::vec3(0, -1, 0));
 
+		// Multiply view matrices by the camera projection.
 		for (auto& face : shadowFaces)
 			face = shadowProj * face;
 
@@ -178,13 +186,16 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 		++i;
 	}
 
-	_fragmentUbos[_fragmentUbos.GetLength() - 1].count = i;
+	// Use the final index of the fragment ubos as the additional info struct.
+	auto& additionalLightingInfo = _fragmentUbos[_fragmentUbos.GetLength() - 1];
+	additionalLightingInfo.count = i;
 
 	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
 	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * (GetLength() + 1));
 	swapChainExt.Collect(geomBuffer);
 	swapChainExt.Collect(fragBuffer);
 
+	// Actually start drawing the models based on the earlier calculated cubemap shadows.
 	i = 0;
 	for (const auto& [lightIndex, light] : *this)
 	{
@@ -197,6 +208,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 		shaderHandler.BindBuffer(descriptorSet, fragBuffer, sizeof(FragmentUbo) * i, sizeof(FragmentUbo), 1, 0);
 		descriptorPoolHandler.BindSets(&descriptorSet, 1);
 
+		// Draw everything that has a material, not taking into consideration the different renderers.
 		for (const auto& [matIndex, material] : _materials)
 		{
 			const auto& transform = _transforms[matIndex];
@@ -380,6 +392,7 @@ void LightSystem::CreateExtDescriptorDependencies()
 	for (auto& sampler : _extSamplers)
 		sampler = shaderHandler.CreateSampler();
 
+	// Already bind all the cubemap samplers to the descriptors, because it won't change.
 	const uint32_t lightCount = GetLength();
 	for (uint32_t i = 0; i < length; ++i)
 	{
