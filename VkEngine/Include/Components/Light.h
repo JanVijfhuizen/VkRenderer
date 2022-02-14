@@ -119,8 +119,8 @@ private:
 	// External samplers for the cubemaps.
 	vi::ArrayPtr<VkSampler> _extSamplers;
 
-	UboAllocator<GeometryUbo> _geometryUboPool;
-	UboAllocator<FragmentUbo> _fragmentUboPool;
+	UboAllocator<GeometryUbo> _geometryUboAllocator;
+	UboAllocator<FragmentUbo> _fragmentUboAllocator;
 	vi::ArrayPtr<GeometryUbo> _geometryUbos;
 	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
 

@@ -60,6 +60,12 @@ int main()
 		lightTransform.position.y -= 1;
 		lights.Insert(light);
 
+		const auto light2 = cecsar.Add();
+		auto& light2Transform = transforms.Insert(light2);
+		lightTransform.position.x -= 2;
+		light2Transform.position.y += 1;
+		//lights.Insert(light2);
+
 		cameraTransform.position.y += 15;
 	};
 

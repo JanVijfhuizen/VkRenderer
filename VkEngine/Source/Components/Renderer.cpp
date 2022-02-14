@@ -97,6 +97,9 @@ void RenderSystem::Draw()
 
 	glm::mat4 modelMatrix;
 
+	vi::VkShaderHandler::SamplerBindInfo bindInfo{};
+	bindInfo.bindingIndex = 0;
+
 	for (auto& [camIndex, camera] : _cameras)
 	{
 		sets.camera = _cameras.GetDescriptor(camIndex);
@@ -114,7 +117,12 @@ void RenderSystem::Draw()
 			samplerCreateInfo.minFilter = VK_FILTER_NEAREST;
 			samplerCreateInfo.maxFilter = VK_FILTER_NEAREST;
 			const auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
-			shaderHandler.BindSampler(sets.material, texture->imageView, texture->layout, sampler, 0, 0);
+
+			bindInfo.set = sets.material;
+			bindInfo.imageView = texture->imageView;
+			bindInfo.layout = texture->layout;
+			bindInfo.sampler = sampler;		
+			shaderHandler.BindSampler(bindInfo);
 
 			// Bind descriptor sets.
 			descriptorPoolHandler.BindSets(sets.values, sizeof sets / sizeof(VkDescriptorSet));

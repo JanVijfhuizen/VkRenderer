@@ -76,6 +76,11 @@ void CameraSystem::Update()
 	const auto buffer = _uboAllocator.CreateBuffer();
 	memoryHandler.Bind(buffer, memory, memOffset);
 
+	vi::VkShaderHandler::BufferBindInfo bindInfo{};
+	bindInfo.buffer = buffer;
+	bindInfo.range = sizeof(Camera::Ubo);
+	bindInfo.bindingIndex = 0;
+
 	uint32_t i = 0;
 	for (auto& [index, camera] : *this)
 	{
@@ -88,8 +93,11 @@ void CameraSystem::Update()
 			aspectRatio, camera.clipNear, camera.clipFar);
 
 		auto& descriptor = _descriptorSets[descriptorSetStartIndex + i];
-		
-		shaderHandler.BindBuffer(descriptor, buffer, sizeof(Camera::Ubo) * i, sizeof(Camera::Ubo), 0, 0);
+
+		bindInfo.set = descriptor;
+		bindInfo.offset = sizeof(Camera::Ubo) * i;
+		shaderHandler.BindBuffer(bindInfo);
+
 		i++;
 	}
 

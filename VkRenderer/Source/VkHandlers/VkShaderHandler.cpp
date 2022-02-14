@@ -57,26 +57,20 @@ namespace vi
 		return sampler;
 	}
 
-	void VkShaderHandler::BindSampler(
-		const VkDescriptorSet set, 
-		const VkImageView imageView, 
-		const VkImageLayout layout,
-		const VkSampler sampler, 
-		const uint32_t bindingIndex, 
-		const uint32_t arrayIndex) const
+	void VkShaderHandler::BindSampler(const SamplerBindInfo& bindInfo) const
 	{
 		VkDescriptorImageInfo imageInfo{};
-		imageInfo.imageLayout = layout;
-		imageInfo.imageView = imageView;
-		imageInfo.sampler = sampler;
+		imageInfo.imageLayout = bindInfo.layout;
+		imageInfo.imageView = bindInfo.imageView;
+		imageInfo.sampler = bindInfo.sampler;
 
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = set;
-		descriptorWrite.dstBinding = bindingIndex;
-		descriptorWrite.dstArrayElement = arrayIndex;
+		descriptorWrite.dstSet = bindInfo.set;
+		descriptorWrite.dstBinding = bindInfo.bindingIndex;
+		descriptorWrite.dstArrayElement = bindInfo.arrayIndex;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.descriptorCount = bindInfo.count;
 		descriptorWrite.pImageInfo = &imageInfo;
 
 		vkUpdateDescriptorSets(core.GetLogicalDevice(), 1, &descriptorWrite, 0, nullptr);
@@ -112,26 +106,20 @@ namespace vi
 		vkCmdBindIndexBuffer(core.GetCommandBufferHandler().GetCurrent(), buffer, 0, VK_INDEX_TYPE_UINT16);
 	}
 
-	void VkShaderHandler::BindBuffer(
-		const VkDescriptorSet set, 
-		const VkBuffer buffer, 
-		const VkDeviceSize offset, 
-		const VkDeviceSize range,
-		const uint32_t bindingIndex, 
-		const uint32_t arrayIndex) const
+	void VkShaderHandler::BindBuffer(const BufferBindInfo& bindInfo) const
 	{
 		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = buffer;
-		bufferInfo.offset = offset;
-		bufferInfo.range = range;
+		bufferInfo.buffer = bindInfo.buffer;
+		bufferInfo.offset = bindInfo.offset;
+		bufferInfo.range = bindInfo.range;
 
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = set;
-		descriptorWrite.dstBinding = bindingIndex;
-		descriptorWrite.dstArrayElement = arrayIndex;
+		descriptorWrite.dstSet = bindInfo.set;
+		descriptorWrite.dstBinding = bindInfo.bindingIndex;
+		descriptorWrite.dstArrayElement = bindInfo.arrayIndex;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.descriptorCount = bindInfo.count;
 		descriptorWrite.pBufferInfo = &bufferInfo;
 
 		vkUpdateDescriptorSets(core.GetLogicalDevice(), 1, &descriptorWrite, 0, nullptr);

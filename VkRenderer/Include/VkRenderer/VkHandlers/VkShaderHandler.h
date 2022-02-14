@@ -22,6 +22,34 @@ namespace vi
 			VkSamplerAddressMode adressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		};
 
+		/// <summary>
+		/// Struct that contains information when binding a (texture) sampler.
+		/// </summary>
+		struct SamplerBindInfo final
+		{
+			VkDescriptorSet set;
+			VkImageView imageView;
+			VkImageLayout layout;
+			VkSampler sampler;
+			uint32_t bindingIndex;
+			uint32_t arrayIndex = 0;
+			uint32_t count = 1;
+		};
+
+		/// <summary>
+		/// Struct that contains information when binding a buffer.
+		/// </summary>
+		struct BufferBindInfo final
+		{
+			VkDescriptorSet set;
+			VkBuffer buffer;
+			VkDeviceSize offset;
+			VkDeviceSize range;
+			uint32_t bindingIndex;
+			uint32_t arrayIndex = 0;
+			uint32_t count = 1;
+		};
+
 		explicit VkShaderHandler(VkCore& core);
 
 		/// <summary> Draws a list of vertices based on the given pipeline.</summary>
@@ -33,14 +61,14 @@ namespace vi
 
 		/// <returns>Object that can be used to use images as attachments during shader stages.</returns>
 		[[nodiscard]] VkSampler CreateSampler(const SamplerCreateInfo& info = {}) const;
-		void BindSampler(VkDescriptorSet set, VkImageView imageView, VkImageLayout layout, VkSampler sampler, uint32_t bindingIndex, uint32_t arrayIndex) const;
+		void BindSampler(const SamplerBindInfo& bindInfo) const;
 		void DestroySampler(VkSampler sampler) const;
 
 		/// <returns>Object that can be used to attach memory data during shader stages.</returns>
 		[[nodiscard]] VkBuffer CreateBuffer(VkDeviceSize size, VkBufferUsageFlags flags) const;
 		void BindVertexBuffer(VkBuffer buffer) const;
 		void BindIndicesBuffer(VkBuffer buffer) const;
-		void BindBuffer(VkDescriptorSet set, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range, uint32_t bindingIndex, uint32_t arrayIndex) const;
+		void BindBuffer(const BufferBindInfo& bindInfo) const;
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize srcOffset = 0, VkDeviceSize dstOffset = 0) const;
 		void CopyBuffer(VkBuffer srcBuffer, VkImage dstImage, glm::ivec2 resolution) const;
 		void DestroyBuffer(VkBuffer buffer) const;
