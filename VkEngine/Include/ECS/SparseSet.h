@@ -7,16 +7,16 @@ template <typename T>
 class SparseSet
 {
 public:
-	typedef vi::KeyValue<uint32_t, T> Instance;
+	typedef vi::KeyValue<uint16_t, T> Instance;
 
-	T& operator [](uint32_t sparseIndex) const;
+	T& operator [](uint16_t sparseIndex) const;
 
-	explicit SparseSet(size_t size, vi::FreeListAllocator& allocator = GMEM);
+	explicit SparseSet(uint16_t size, vi::FreeListAllocator& allocator = GMEM);
 
-	virtual T& Insert(uint32_t sparseIndex, const T& value = {});
-	virtual void RemoveAt(uint32_t sparseIndex);
-	virtual void Swap(uint32_t aSparseIndex, uint32_t bSparseIndex);
-	[[nodiscard]] bool Contains(uint32_t sparseIndex);
+	virtual T& Insert(uint16_t sparseIndex, const T& value = {});
+	virtual void RemoveAt(uint16_t sparseIndex);
+	virtual void Swap(uint16_t aSparseIndex, uint16_t bSparseIndex);
+	[[nodiscard]] bool Contains(uint16_t sparseIndex);
 
 	[[nodiscard]] size_t GetLength() const;
 
@@ -32,20 +32,20 @@ private:
 };
 
 template <typename T>
-T& SparseSet<T>::operator[](const uint32_t sparseIndex) const
+T& SparseSet<T>::operator[](const uint16_t sparseIndex) const
 {
 	return _instances[_sparse[sparseIndex]].value;
 }
 
 template <typename T>
-SparseSet<T>::SparseSet(const size_t size, vi::FreeListAllocator& allocator) : 
+SparseSet<T>::SparseSet(const uint16_t size, vi::FreeListAllocator& allocator) :
 	_instances(size, allocator), _sparse(size, allocator, -1)
 {
 
 }
 
 template <typename T>
-T& SparseSet<T>::Insert(const uint32_t sparseIndex, const T& value)
+T& SparseSet<T>::Insert(const uint16_t sparseIndex, const T& value)
 {
 	assert(sparseIndex < _instances.GetLength());
 	if (Contains(sparseIndex))
@@ -59,7 +59,7 @@ T& SparseSet<T>::Insert(const uint32_t sparseIndex, const T& value)
 }
 
 template <typename T>
-void SparseSet<T>::RemoveAt(const uint32_t sparseIndex)
+void SparseSet<T>::RemoveAt(const uint16_t sparseIndex)
 {
 	if (!Contains(sparseIndex))
 		return;
@@ -70,20 +70,20 @@ void SparseSet<T>::RemoveAt(const uint32_t sparseIndex)
 	_instances.RemoveAt(denseIndex);
 
 	// Update sparse.
-	const uint32_t otherSparseIndex = _instances[_instances.GetCount()].key;
+	const uint16_t otherSparseIndex = _instances[_instances.GetCount()].key;
 	_sparse[otherSparseIndex] = denseIndex;
 	denseIndex = -1;
 }
 
 template <typename T>
-void SparseSet<T>::Swap(const uint32_t aSparseIndex, const uint32_t bSparseIndex)
+void SparseSet<T>::Swap(const uint16_t aSparseIndex, const uint16_t bSparseIndex)
 {
 	_instances.Swap(_sparse[aSparseIndex], _sparse[bSparseIndex]);
 	_sparse.Swap(aSparseIndex, bSparseIndex);
 }
 
 template <typename T>
-bool SparseSet<T>::Contains(const uint32_t sparseIndex)
+bool SparseSet<T>::Contains(const uint16_t sparseIndex)
 {
 	return _sparse[sparseIndex] != -1;
 }

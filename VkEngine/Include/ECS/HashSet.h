@@ -7,15 +7,15 @@ template <typename T>
 class HashSet
 {
 public:
-	typedef vi::KeyValue<uint32_t, T> Instance;
+	typedef vi::KeyValue<uint16_t, T> Instance;
 
-	[[nodiscard]] T& operator[] (uint32_t sparseIndex);
+	[[nodiscard]] T& operator[] (uint16_t sparseIndex);
 
-	explicit HashSet(size_t size, vi::FreeListAllocator& allocator = GMEM);
+	explicit HashSet(uint16_t size, vi::FreeListAllocator& allocator = GMEM);
 
-	virtual T& Insert(uint32_t sparseIndex, const T& value = {});
-	virtual void RemoveAt(uint32_t sparseIndex);
-	[[nodiscard]] bool Contains(uint32_t sparseIndex);
+	virtual T& Insert(uint16_t sparseIndex, const T& value = {});
+	virtual void RemoveAt(uint16_t sparseIndex);
+	[[nodiscard]] bool Contains(uint16_t sparseIndex);
 
 	[[nodiscard]] size_t GetLength() const;
 
@@ -29,9 +29,9 @@ private:
 	struct Hashable final
 	{
 		// Dense pointer.
-		uint32_t value;
+		uint16_t value;
 		// Hashable.
-		uint32_t denseIndex;
+		uint16_t denseIndex;
 
 		[[nodiscard]] size_t operator%(size_t mod) const;
 		[[nodiscard]] bool operator==(const Hashable& other) const;
@@ -44,7 +44,7 @@ private:
 };
 
 template <typename T>
-T& HashSet<T>::operator[](const uint32_t sparseIndex)
+T& HashSet<T>::operator[](const uint16_t sparseIndex)
 {
 	Hashable* hashable = _hashMap.Find({ sparseIndex, 0 });
 	assert(hashable);
@@ -52,33 +52,33 @@ T& HashSet<T>::operator[](const uint32_t sparseIndex)
 }
 
 template <typename T>
-HashSet<T>::HashSet(const size_t size, vi::FreeListAllocator& allocator) :
+HashSet<T>::HashSet(const uint16_t size, vi::FreeListAllocator& allocator) :
 	_instances(size, allocator), _hashMap(size, allocator)
 {
 	
 }
 
 template <typename T>
-T& HashSet<T>::Insert(const uint32_t sparseIndex, const T& value)
+T& HashSet<T>::Insert(const uint16_t sparseIndex, const T& value)
 {
 	assert(_instances.GetCount() < _instances.GetLength());
 	Hashable* hashable = _hashMap.Find({ sparseIndex, 0 });
 	if (hashable)
 		return _instances[hashable->value].value;
 
-	const uint32_t count = _instances.GetCount();
+	const uint16_t count = _instances.GetCount();
 	_hashMap.Insert({ sparseIndex, count });
 	return _instances.Add({ sparseIndex, value }).value;
 }
 
 template <typename T>
-void HashSet<T>::RemoveAt(const uint32_t sparseIndex)
+void HashSet<T>::RemoveAt(const uint16_t sparseIndex)
 {
 	Hashable* hashable = _hashMap.Find({ sparseIndex, 0 });
 	if (!hashable)
 		return;
 
-	const uint32_t denseIndex = hashable->denseIndex;
+	const uint16_t denseIndex = hashable->denseIndex;
 	_instances.RemoveAt(denseIndex);
 	_hashMap.Remove({ sparseIndex, 0});
 
@@ -91,7 +91,7 @@ void HashSet<T>::RemoveAt(const uint32_t sparseIndex)
 }
 
 template <typename T>
-bool HashSet<T>::Contains(const uint32_t sparseIndex)
+bool HashSet<T>::Contains(const uint16_t sparseIndex)
 {
 	return _hashMap.Find({ sparseIndex, 0 });
 }

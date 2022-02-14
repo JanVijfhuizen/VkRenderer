@@ -18,13 +18,13 @@ namespace ce
 		// Converts to identifier.
 		[[nodiscard]] bool operator ==(const Entity& other) const;
 		// Converts to index.
-		[[nodiscard]] operator uint32_t() const;
+		[[nodiscard]] operator uint16_t() const;
 
 	private:
 		// Can be used to compare entities.
-		uint32_t _identifier = 0;
+		uint16_t _identifier = 0;
 		// Can be used to access entity-owned components.
-		uint32_t _index;
+		uint16_t _index;
 	};
 
 	/// <summary>
@@ -50,7 +50,7 @@ namespace ce
 	class Cecsar final
 	{
 	public:
-		explicit Cecsar(size_t capacity);
+		explicit Cecsar(uint16_t capacity);
 
 		/// <summary>
 		/// When a system is subscribed, they can properly function in the ECS environment.<br>
@@ -58,18 +58,18 @@ namespace ce
 		/// </summary>
 		void SubscribeSystem(ISystem* system);
 		[[nodiscard]] Entity Add();
-		void RemoveAt(uint32_t sparseIndex);
+		void RemoveAt(uint16_t sparseIndex);
 
-		[[nodiscard]] size_t GetCount() const;
+		[[nodiscard]] uint16_t GetCount() const;
 		[[nodiscard]] size_t GetCapacity() const;
 
 	private:
 		// Dense array of instances.
-		vi::ArrayPtr<uint32_t> _instances;
+		vi::ArrayPtr<uint16_t> _instances;
 		// List of empty spots in instances.
-		vi::BinTree<uint32_t> _open;
+		vi::BinTree<uint16_t> _open;
 		// Instances count.
-		size_t _count = 0;
+		uint16_t _count = 0;
 		// Used to give every newly created entity a unique identifier.
 		size_t _numCreatedEntities = 0;
 		// Subscribed systems.

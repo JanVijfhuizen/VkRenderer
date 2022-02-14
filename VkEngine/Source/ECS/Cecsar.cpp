@@ -13,7 +13,7 @@ namespace ce
 		return _identifier == other._identifier;
 	}
 
-	Entity::operator unsigned() const
+	Entity::operator uint16_t() const
 	{
 		return _index;
 	}
@@ -28,10 +28,10 @@ namespace ce
 		return _cecsar;
 	}
 
-	Cecsar::Cecsar(const size_t capacity)
+	Cecsar::Cecsar(const uint16_t capacity)
 	{
-		_instances = vi::ArrayPtr<uint32_t>{capacity, GMEM};
-		_open = vi::BinTree<uint32_t>{capacity, GMEM};
+		_instances = vi::ArrayPtr<uint16_t>{capacity, GMEM};
+		_open = vi::BinTree<uint16_t>{capacity, GMEM};
 	}
 
 	void Cecsar::SubscribeSystem(ISystem* system)
@@ -43,7 +43,7 @@ namespace ce
 	{
 		assert(_count < _instances.GetLength());
 
-		uint32_t index = _count;
+		uint16_t index = _count;
 		if(!_open.IsEmpty())
 			index = _open.Pop();
 
@@ -55,16 +55,16 @@ namespace ce
 		return entity;
 	}
 
-	void Cecsar::RemoveAt(const uint32_t sparseIndex)
+	void Cecsar::RemoveAt(const uint16_t sparseIndex)
 	{
 		_count--;
 		// Remove all attached components.
 		for (auto& system : _systems)
 			system->RemoveAt(sparseIndex);
-		_open.Push({ static_cast<int32_t>(sparseIndex), sparseIndex });
+		_open.Push({ static_cast<uint16_t>(sparseIndex), sparseIndex });
 	}
 
-	size_t Cecsar::GetCount() const
+	uint16_t Cecsar::GetCount() const
 	{
 		return _count;
 	}
