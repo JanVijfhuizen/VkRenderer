@@ -33,7 +33,7 @@ BasicPostEffect::~BasicPostEffect()
 	shaderExt.DestroyShader(_shader);
 }
 
-void BasicPostEffect::Draw(Frame& frame)
+void BasicPostEffect::Render(Frame& frame)
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& shaderHandler = renderer.GetShaderHandler();
@@ -158,17 +158,17 @@ void PostEffectHandler::EndFrame()
 		{
 			// Begin new render pass.
 			LayerBeginFrame(i + 1);
-			postEffect->Draw(frame);
+			postEffect->Render(frame);
 		}
 	}
 }
 
-void PostEffectHandler::Draw() const
+void PostEffectHandler::Render() const
 {
 	// Draw the final render pass directly to the swap chain.
 	const uint32_t index = _postEffects.GetCount() - 1;
 	auto& finalLayer = _postEffects[index];
-	finalLayer->Draw(GetActiveFrame(index));
+	finalLayer->Render(GetActiveFrame(index));
 }
 
 VkSemaphore PostEffectHandler::GetRenderFinishedSemaphore() const

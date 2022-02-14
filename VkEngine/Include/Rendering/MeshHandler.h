@@ -57,7 +57,6 @@ public:
 	void Destroy(const Mesh& mesh) const;
 
 private:
-	Mesh* _boundMesh = nullptr;
 	uint32_t _boundIndexCount = UINT32_MAX;
 };
 

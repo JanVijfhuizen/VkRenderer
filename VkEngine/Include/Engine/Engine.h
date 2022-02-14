@@ -8,14 +8,21 @@
 #include "VkRenderer/VkCore/VkCoreInfo.h"
 #include "VkRenderer/VkCore/VkCoreSwapchain.h"
 #include "Rendering/PostEffectHandler.h"
+#include "Components/Renderer.h"
 
+/// <summary>
+/// An engine specifically made for a single game.
+/// </summary>
+/// <typeparam name="GameState"></typeparam>
 template <typename GameState>
 class Engine final
 {
 public:
 	struct Info final
 	{
+		// Maximum amount of entities in the scene.
 		size_t capacity = 1e2f;
+		// Debug using render doc.
 		bool useRenderDoc = false;
 		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
@@ -36,12 +43,13 @@ public:
 	[[nodiscard]] int Run(const Info& info);
 	[[nodiscard]] bool IsRunning() const;
 
-	[[nodiscard]] VulkanRenderer& GetRenderer() const;
+	[[nodiscard]] VulkanRenderer& GetVulkanRenderer() const;
 	[[nodiscard]] ce::Cecsar& GetCecsar() const;
 
 	[[nodiscard]] CameraSystem& GetCameras() const;
 	[[nodiscard]] LightSystem& GetLights() const;
 	[[nodiscard]] MaterialSystem& GetMaterials() const;
+	[[nodiscard]] RenderSystem& GetRenderers() const;
 	[[nodiscard]] TransformSystem& GetTransforms() const;
 	[[nodiscard]] ShadowCasterSystem& GetShadowCasters() const;
 
@@ -51,11 +59,12 @@ private:
 	VulkanRenderer* _renderer;
 	ce::Cecsar* _cecsar;
 
-	TransformSystem* _transforms;
 	CameraSystem* _cameras;
-	MaterialSystem* _materials;
-	ShadowCasterSystem* _shadowCasters;
 	LightSystem* _lights;
+	MaterialSystem* _materials;
+	RenderSystem* _renderers;
+	ShadowCasterSystem* _shadowCasters;
+	TransformSystem* _transforms;
 
 	GameState* _gameState;
 	BasicPostEffect* _defaultPostEffect = nullptr;
@@ -69,6 +78,7 @@ int Engine<GameState>::Run(const Info& info)
 
 	_windowHandler = GMEM.New<vi::WindowHandlerGLFW>();
 
+	// Create the vulkan renderer.
 	{
 		vi::VkCoreInfo vkInfo{};
 		VulkanRenderer::Info addInfo{};
@@ -82,9 +92,10 @@ int Engine<GameState>::Run(const Info& info)
 	_cecsar = GMEM.New<ce::Cecsar>(info.capacity);
 	_transforms = GMEM.New<TransformSystem>(*_cecsar);
 	_cameras = GMEM.New<CameraSystem>(*_cecsar, *_renderer, *_transforms);
+	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer);
 	_shadowCasters = GMEM.New<ShadowCasterSystem>(*_cecsar);
-	_lights = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_shadowCasters, *_transforms);
-	_materials = GMEM.New<MaterialSystem>(*_cecsar, *_renderer, *_cameras, *_lights, *_transforms, "");
+	_lights = GMEM.New<LightSystem>(*_cecsar, *_renderer, *_materials, *_shadowCasters, *_transforms);
+	_renderers = GMEM.New<RenderSystem>(*_cecsar, *_renderer, *_materials, *_cameras, *_lights, *_transforms);
 
 	_gameState = GMEM.New<GameState>();
 
@@ -97,12 +108,14 @@ int Engine<GameState>::Run(const Info& info)
 	if (info.start)
 		info.start(*this, *_gameState);
 
+	// The post effect handler needs at least one post effect to be able to use MSAA.
 	if(postEffectHandler.IsEmpty())
 	{
 		_defaultPostEffect = GMEM.New<BasicPostEffect>(*_renderer, "post-");
 		postEffectHandler.Add(_defaultPostEffect);
 	}
 
+	// Game update.
 	while (true)
 	{
 		bool outQuit = false;
@@ -126,20 +139,23 @@ int Engine<GameState>::Run(const Info& info)
 
 		swapChain.WaitForImage();
 
-		_lights->Render(swapChain.GetImageAvaiableSemaphore(), *_materials);
+		// Render the lights before rendering anything else, since they might want to use the lightmaps.
+		_lights->Render(swapChain.GetImageAvaiableSemaphore());
+		// Render the scene to the first post effect layer.
 		postEffectHandler.BeginFrame(_lights->GetRenderFinishedSemaphore());
 
 		_cameras->Update();
-		_materials->Draw();
+		_renderers->Draw();
 
 		if (info.renderUpdate)
 			info.renderUpdate(*this, *_gameState, outQuit);
 		if (outQuit)
 			break;
 
+		// End the post effect rendering and render the result to the swapchain.
 		postEffectHandler.EndFrame();
 		swapChain.BeginFrame(false);
-		postEffectHandler.Draw();
+		postEffectHandler.Render();
 		
 		swapChain.EndFrame(postEffectHandler.GetRenderFinishedSemaphore());
 		swapChainExt.Update();
@@ -151,6 +167,7 @@ int Engine<GameState>::Run(const Info& info)
 		info.cleanup(*this, *_gameState);
 
 	GMEM.Delete(_gameState);
+	GMEM.Delete(_renderers);
 	GMEM.Delete(_lights);
 	GMEM.Delete(_shadowCasters);
 	GMEM.Delete(_defaultPostEffect);
@@ -172,7 +189,7 @@ bool Engine<GameState>::IsRunning() const
 }
 
 template <typename GameState>
-VulkanRenderer& Engine<GameState>::GetRenderer() const
+VulkanRenderer& Engine<GameState>::GetVulkanRenderer() const
 {
 	return *_renderer;
 }
@@ -211,4 +228,10 @@ template <typename GameState>
 MaterialSystem& Engine<GameState>::GetMaterials() const
 {
 	return *_materials;
+}
+
+template <typename GameState>
+RenderSystem& Engine<GameState>::GetRenderers() const
+{
+	return *_renderers;
 }

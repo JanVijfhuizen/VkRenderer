@@ -37,25 +37,34 @@ public:
 class LightSystem final : public ce::SmallSystem<Light>, SwapChainExt::Dependency
 {
 public:
+	/// <summary>
+	/// Struct used to construct the light system.
+	/// </summary>
 	struct Info final
 	{
+		// Maximum amount of lights present.
+		// Make sure this corresponds to the shader code.
 		size_t size = 6;
+		// Individual face sizes of the cubemap the light is rendered to.
 		glm::ivec2 shadowResolution{ 512 };
 	};
 
-	LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer,
+	LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialSystem& materials,
 		ShadowCasterSystem& shadowCasters, TransformSystem& transforms, const Info& info = {});
 	~LightSystem();
 
-	void Render(VkSemaphore waitSemaphore, MaterialSystem& materials);
+	void Render(VkSemaphore waitSemaphore);
 
+	/// <returns>Semaphore which triggers once all the lights have been drawn.</returns>
 	[[nodiscard]] VkSemaphore GetRenderFinishedSemaphore() const;
 
 	[[nodiscard]] VkDescriptorSetLayout GetLayout() const;
 	[[nodiscard]] VkDescriptorSet GetDescriptorSet(uint32_t index) const;
 
 private:
-	struct DepthBuffer final
+	// Contains buffers and memory to a depth-only cubemap.
+	// This is used for point lights to render the scene from every direction (camera origin being the light itself).
+	struct CubeMapDepthBuffer final
 	{
 		VkImage image;
 		VkDeviceMemory memory;
@@ -63,17 +72,21 @@ private:
 		VkFramebuffer frameBuffer;
 	};
 
+	// Contains sync objects used to syncronize rendering with the next commands.
 	struct Frame final
 	{
 		VkCommandBuffer commandBuffer;
 		VkSemaphore signalSemaphore;
 	};
 
+	// UBO that contains a view matrix for every cubemap face, all multiplied by a projection matrix.
 	struct alignas(512) GeometryUbo final
 	{
 		glm::mat4 matrices[6]{};
 	};
 
+	// UBO that contains data for a single light, but can also be used as a general light info struct.
+	// I have chosen to use a union and to put it into the same struct for the simple reason of having it be aligned in memory.
 	struct alignas(256) FragmentUbo final
 	{
 		union
@@ -89,36 +102,46 @@ private:
 		};
 	};
 
+	MaterialSystem& _materials;
 	ShadowCasterSystem& _shadowCasters;
 	TransformSystem& _transforms;
 
+	// Resolution per-face for the cubemap.
 	glm::ivec2 _shadowResolution;
 	Shader _shader;
+	// Descriptor set per-light for the cubemap rendering.
 	vi::ArrayPtr<VkDescriptorSet> _descriptorSets;
 	VkDescriptorPool _descriptorPool;
 
+	// External descriptor set that can be used to attach the rendered cubemaps to another renderer.
 	vi::ArrayPtr<VkDescriptorSet> _extDescriptorSets;
 	VkDescriptorPool _extDescriptorPool;
+	// External samplers for the cubemaps.
 	vi::ArrayPtr<VkSampler> _extSamplers;
 
 	UboAllocator<GeometryUbo> _geometryUboPool;
-	UboAllocator<GeometryUbo> _fragmentUboPool;
+	UboAllocator<FragmentUbo> _fragmentUboPool;
 	vi::ArrayPtr<GeometryUbo> _geometryUbos;
 	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
-	vi::ArrayPtr<Frame> _frames;
-	vi::ArrayPtr<DepthBuffer> _cubeMaps;
 
+	// Per-frame syncronization objects.
+	vi::ArrayPtr<Frame> _frames;
+	// Depth-only cubemaps that can be used for shadow mapping.
+	vi::ArrayPtr<CubeMapDepthBuffer> _cubeMaps;
+
+	// Internal layout.
 	VkDescriptorSetLayout _layout;
+	// External layout.
 	VkDescriptorSetLayout _extLayout;
+
 	VkRenderPass _renderPass;
 	VkPipeline _pipeline = VK_NULL_HANDLE;
 	VkPipelineLayout _pipelineLayout;
 
-	VkBuffer _currentFragBuffer;
-
 	void CreateCubeMaps(vi::VkCoreSwapchain& swapChain, glm::ivec2 resolution);
 	void DestroyCubeMaps();
 
+	// Sets up the buffers to make sure the cubemaps can be used externally.
 	void CreateExtDescriptorDependencies();
 	void DestroyExtDescriptorDependencies() const;
 
