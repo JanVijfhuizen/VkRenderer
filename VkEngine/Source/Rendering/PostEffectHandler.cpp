@@ -51,9 +51,9 @@ void BasicPostEffect::Render(Frame& frame)
 	VkImageLayout layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	vi::VkShaderHandler::SamplerBindInfo colorBindInfo{};
 	colorBindInfo.set = frame.descriptorSet;
-	colorBindInfo.imageView = &frame.imageView;
-	colorBindInfo.layout = &layout;
-	colorBindInfo.sampler = &sampler;
+	colorBindInfo.imageViews = &frame.imageView;
+	colorBindInfo.layouts = &layout;
+	colorBindInfo.samplers = &sampler;
 	colorBindInfo.bindingIndex = 0;
 	shaderHandler.BindSampler(colorBindInfo);
 
@@ -64,9 +64,9 @@ void BasicPostEffect::Render(Frame& frame)
 	auto depthSampler = shaderHandler.CreateSampler(depthSamplerCreateInfo);
 	vi::VkShaderHandler::SamplerBindInfo depthBindInfo{};
 	depthBindInfo.set = frame.descriptorSet;
-	depthBindInfo.imageView = &frame.depthImageView;
-	depthBindInfo.layout = &layout;
-	depthBindInfo.sampler = &depthSampler;
+	depthBindInfo.imageViews = &frame.depthImageView;
+	depthBindInfo.layouts = &layout;
+	depthBindInfo.samplers = &depthSampler;
 	depthBindInfo.bindingIndex = 1;
 	shaderHandler.BindSampler(depthBindInfo);
 

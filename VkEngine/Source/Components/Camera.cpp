@@ -73,11 +73,11 @@ void CameraSystem::Update()
 	const float aspectRatio = static_cast<float>(extent.x) / extent.y;
 
 	// Create a buffer per frame and batch all the cameras in one go.
-	const auto buffer = _uboAllocator.CreateBuffer();
+	auto buffer = _uboAllocator.CreateBuffer();
 	memoryHandler.Bind(buffer, memory, memOffset);
 
 	vi::VkShaderHandler::BufferBindInfo bindInfo{};
-	bindInfo.buffer = buffer;
+	bindInfo.buffer = &buffer;
 	bindInfo.range = sizeof(Camera::Ubo);
 	bindInfo.bindingIndex = 0;
 

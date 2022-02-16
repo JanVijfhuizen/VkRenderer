@@ -20,7 +20,7 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 	_materials(materials), _shadowCasters(shadowCasters), _transforms(transforms),
 	_shadowResolution(info.shadowResolution),
 	_geometryUboAllocator(renderer, info.size, renderer.GetSwapChain().GetLength()),
-	_fragmentUboAllocator(renderer, info.size + 1, renderer.GetSwapChain().GetLength()),
+	_fragmentUboAllocator(renderer, 1, renderer.GetSwapChain().GetLength() * (info.size + 1)),
 	_geometryUbos(info.size, GMEM),
 	_fragmentUbos(info.size + 1, GMEM),
 	_frames(renderer.GetSwapChain().GetLength(), GMEM)
@@ -65,7 +65,7 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 	_descriptorSets = vi::ArrayPtr<VkDescriptorSet>(swapChain.GetLength() * GetLength(), GMEM);
 
 	VkDescriptorType types = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uint32_t size = GetLength() * swapChainLength * 2;
+	uint32_t size = GetLength() * swapChainLength * (info.size + 1);
 
 	vi::VkDescriptorPoolHandler::PoolCreateInfo descriptorPoolCreateInfo{};
 	descriptorPoolCreateInfo.types = &types;
@@ -144,10 +144,15 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	const auto fragMemory = _fragmentUboAllocator.GetMemory();
 
 	// Create frame bound buffers.
-	const auto geomBuffer = _geometryUboAllocator.CreateBuffer();
+	auto geomBuffer = _geometryUboAllocator.CreateBuffer();
 	memoryHandler.Bind(geomBuffer, geomMemory, geometryUboOffset);
-	const auto fragBuffer = _fragmentUboAllocator.CreateBuffer();
-	memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset);
+
+	vi::ArrayPtr<VkBuffer> fragBuffers{GetLength(), GMEM_TEMP};
+	for (uint32_t i = 0; i < GetLength(); ++i)
+	{
+		auto& fragBuffer = fragBuffers[i] = _fragmentUboAllocator.CreateBuffer();
+		memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset + sizeof(FragmentUbo) * i);
+	}
 
 	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
 	const float near = 0.1f;
@@ -196,15 +201,15 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
 	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * (GetLength() + 1));
 	swapChainExt.Collect(geomBuffer);
-	swapChainExt.Collect(fragBuffer);
+	for (auto& fragBuffer : fragBuffers)
+		swapChainExt.Collect(fragBuffer);
 
 	vi::VkShaderHandler::BufferBindInfo geomBindInfo{};
-	geomBindInfo.buffer = geomBuffer;
+	geomBindInfo.buffer = &geomBuffer;
 	geomBindInfo.range = sizeof(GeometryUbo);
 	geomBindInfo.bindingIndex = 0;
 
 	vi::VkShaderHandler::BufferBindInfo fragBindInfo{};
-	fragBindInfo.buffer = fragBuffer;
 	fragBindInfo.range = sizeof(FragmentUbo);
 	fragBindInfo.bindingIndex = 1;
 
@@ -223,7 +228,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 		shaderHandler.BindBuffer(geomBindInfo);
 
 		fragBindInfo.set = descriptorSet;
-		fragBindInfo.offset = sizeof(FragmentUbo) * i;
+		fragBindInfo.buffer = &fragBuffers[i];
 		shaderHandler.BindBuffer(fragBindInfo);
 		descriptorPoolHandler.BindSets(&descriptorSet, 1);
 
@@ -247,12 +252,15 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	const auto extDescriptorSet = GetDescriptorSet(imageIndex);
 
 	fragBindInfo.set = extDescriptorSet;
+	fragBindInfo.buffer = fragBuffers.GetData();
 	fragBindInfo.offset = 0;
 	fragBindInfo.count = GetLength();
 	shaderHandler.BindBuffer(fragBindInfo);
 
 	fragBindInfo.set = extDescriptorSet;
+	fragBindInfo.buffer = &fragBuffers[GetLength()];
 	fragBindInfo.offset = sizeof(FragmentUbo) * GetLength();
+	fragBindInfo.bindingIndex = 1;
 	fragBindInfo.count = 1;
 	shaderHandler.BindBuffer(fragBindInfo);
 
@@ -384,15 +392,17 @@ void LightSystem::CreateExtDescriptorDependencies()
 	extFragBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	extFragBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	extFragBinding.size = sizeof(FragmentUbo);
-	extFragBinding.count = 6;
+	extFragBinding.count = GetLength();
 	auto& extFragAddInfoBinding = extLayoutInfo.bindings.Add();
 	extFragAddInfoBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	extFragAddInfoBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	extFragAddInfoBinding.size = sizeof(FragmentUbo);
+	extFragAddInfoBinding.binding = 1;
 	auto& cubeMapsBinding = extLayoutInfo.bindings.Add();
 	cubeMapsBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	cubeMapsBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
-	cubeMapsBinding.count = 6;
+	cubeMapsBinding.count = GetLength();
+	cubeMapsBinding.binding = 2;
 	_extLayout = layoutHandler.CreateLayout(extLayoutInfo);
 
 	// Create descriptor sets.
@@ -436,9 +446,9 @@ void LightSystem::CreateExtDescriptorDependencies()
 
 		vi::VkShaderHandler::SamplerBindInfo bindInfo{};
 		bindInfo.set = descriptorSet;
-		bindInfo.imageView = imageViews.GetData();
-		bindInfo.layout = layouts.GetData();
-		bindInfo.sampler = &_extSamplers[index];
+		bindInfo.imageViews = imageViews.GetData();
+		bindInfo.layouts = layouts.GetData();
+		bindInfo.samplers = &_extSamplers[index];
 		bindInfo.bindingIndex = 2;
 		bindInfo.arrayIndex = 0;
 		shaderHandler.BindSampler(bindInfo);

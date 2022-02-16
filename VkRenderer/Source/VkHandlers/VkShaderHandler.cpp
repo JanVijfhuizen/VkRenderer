@@ -74,9 +74,9 @@ namespace vi
 		if (bindInfo.count == 1)
 		{
 			VkDescriptorImageInfo info{};
-			info.imageLayout = bindInfo.layout[0];
-			info.imageView = bindInfo.imageView[0];
-			info.sampler = bindInfo.sampler[0];
+			info.imageLayout = bindInfo.layouts[0];
+			info.imageView = bindInfo.imageViews[0];
+			info.sampler = bindInfo.samplers[0];
 			descriptorWrite.pImageInfo = &info;
 			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
 		}
@@ -86,9 +86,9 @@ namespace vi
 			for (uint32_t i = 0; i < bindInfo.count; ++i)
 			{
 				auto& info = infos[i];
-				info.imageLayout = bindInfo.layout[i];
-				info.imageView = bindInfo.imageView[i];
-				info.sampler = bindInfo.sampler[i];
+				info.imageLayout = bindInfo.layouts[i];
+				info.imageView = bindInfo.imageViews[i];
+				info.sampler = bindInfo.samplers[i];
 			}
 
 			descriptorWrite.pImageInfo = infos.GetData();
@@ -143,7 +143,7 @@ namespace vi
 		if(bindInfo.count == 1)
 		{
 			VkDescriptorBufferInfo info{};
-			info.buffer = bindInfo.buffer;
+			info.buffer = bindInfo.buffer[0];
 			info.offset = bindInfo.offset;
 			info.range = bindInfo.range;
 			descriptorWrite.pBufferInfo = &info;
@@ -155,7 +155,7 @@ namespace vi
 			for (uint32_t i = 0; i < bindInfo.count; ++i)
 			{
 				auto& info = infos[i];
-				info.buffer = bindInfo.buffer;
+				info.buffer = bindInfo.buffer[i];
 				info.offset = bindInfo.offset + bindInfo.range * i;
 				info.range = bindInfo.range;
 			}

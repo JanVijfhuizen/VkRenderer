@@ -119,9 +119,9 @@ void RenderSystem::Draw()
 			auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
 
 			bindInfo.set = sets.material;
-			bindInfo.imageView = &texture->imageView;
-			bindInfo.layout = &texture->layout;
-			bindInfo.sampler = &sampler;		
+			bindInfo.imageViews = &texture->imageView;
+			bindInfo.layouts = &texture->layout;
+			bindInfo.samplers = &sampler;		
 			shaderHandler.BindSampler(bindInfo);
 
 			// Bind descriptor sets.
