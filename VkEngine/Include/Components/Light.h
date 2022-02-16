@@ -86,16 +86,22 @@ private:
 	};
 
 	// UBO that contains data for a single light.
-	struct alignas(256) FragmentLightUbo final
+	struct FragmentLightUbo final
 	{
 		glm::vec3 position;
 		float range;
 	};
 
 	// UBO that contains data for lighting purposes.
-	struct alignas(256) FragmentLightingUbo final
+	struct FragmentLightingUbo final
 	{
 		uint32_t count;
+	};
+
+	struct PushConstant final
+	{
+		glm::mat4 modelMatrix;
+		uint32_t index;
 	};
 
 	MaterialSystem& _materials;

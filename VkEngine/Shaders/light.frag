@@ -1,17 +1,18 @@
 #version 450
 #extension GL_KHR_vulkan_glsl : enable
+#include "shader.glsl"
 
-layout(set = 0, binding = 1) uniform Light
+layout (set = 0, binding = 1) uniform Lights
 {
-	vec3 pos;
-    float range;
-} light;
+    Light values[LIGHT_COUNT];
+} lights;
 
-layout (location = 0) in vec4 inFragPos;
+layout(location = 0) in flat int inIndex;
+layout (location = 1) in vec4 inFragPos;
 
 void main() 
 {
-    float lightDistance = length(inFragPos.xyz - light.pos);
-    lightDistance = lightDistance / light.range;
+    float lightDistance = length(inFragPos.xyz - lights.values[inIndex].pos);
+    lightDistance = lightDistance / lights.values[inIndex].range;
     gl_FragDepth = lightDistance;
 }

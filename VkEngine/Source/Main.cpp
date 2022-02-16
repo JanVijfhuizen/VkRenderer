@@ -65,7 +65,6 @@ int main()
 		light2Transform.position.x -= 10;
 		light2Transform.position.y -= 1;
 		auto& l2 = lights.Insert(light2);
-		l2.range = 75;
 		cameraTransform.position.y += 15;
 	};
 

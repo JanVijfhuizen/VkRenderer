@@ -19,9 +19,9 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 	SmallSystem<Light>(cecsar, info.size), Dependency(renderer),
 	_materials(materials), _shadowCasters(shadowCasters), _transforms(transforms),
 	_shadowResolution(info.shadowResolution),
-	_geometryUboAllocator(renderer, info.size, renderer.GetSwapChain().GetLength()),
-	_fragmentLightUboAllocator(renderer, info.size, renderer.GetSwapChain().GetLength()),
-	_fragmentLightingUboAllocator(renderer, 1, renderer.GetSwapChain().GetLength()),
+	_geometryUboAllocator(renderer, info.size),
+	_fragmentLightUboAllocator(renderer, info.size),
+	_fragmentLightingUboAllocator(renderer, 1),
 	_geometryUbos(info.size, GMEM),
 	_fragmentUbos(info.size, GMEM),
 	_frames(renderer.GetSwapChain().GetLength(), GMEM)
@@ -49,7 +49,7 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 	auto& fragBinding = layoutInfo.bindings.Add();
 	fragBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	fragBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragBinding.size = sizeof(FragmentLightUbo);
+	fragBinding.size = sizeof(FragmentLightUbo) * GetLength();
 	_layout = layoutHandler.CreateLayout(layoutInfo);
 
 	vi::VkRenderPassHandler::CreateInfo renderPassCreateInfo{};
@@ -138,9 +138,9 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	// Begin render pass.
 	VkClearValue depthStencil  = { 1.f, 0 };
 
-	const size_t geometryUboOffset = sizeof(GeometryUbo) * offsetMultiplier;
-	const size_t fragmentLightUboOffset = sizeof(FragmentLightUbo) * offsetMultiplier;
-	const size_t fragmentLightingOffset = sizeof(FragmentLightingUbo) * imageIndex;
+	const size_t geometryUboOffset = _geometryUboAllocator.GetOffset(imageIndex);
+	const size_t fragmentLightUboOffset = _fragmentLightUboAllocator.GetOffset(imageIndex);
+	const size_t fragmentLightingOffset = _fragmentLightingUboAllocator.GetOffset(imageIndex);
 
 	const auto geomMemory = _geometryUboAllocator.GetMemory();
 	const auto fragLightMemory = _fragmentLightUboAllocator.GetMemory();
@@ -148,7 +148,8 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
 	const float near = 0.1f;
-	glm::mat4 modelMatrix;
+
+	PushConstant pushConstant{};
 
 	auto& mesh = _materials.GetFallbackMesh();
 	meshHandler.Bind(mesh);
@@ -199,7 +200,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	geomBindInfo.bindingIndex = 0;
 
 	vi::VkShaderHandler::BufferBindInfo fragBindInfo{};
-	fragBindInfo.range = sizeof(FragmentLightUbo);
+	fragBindInfo.range = sizeof(FragmentLightUbo) * GetLength();
 	fragBindInfo.bindingIndex = 1;
 
 	// Actually start drawing the models based on the earlier calculated cubemap shadows.
@@ -225,7 +226,6 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 		fragBindInfo.set = descriptorSet;
 		fragBindInfo.buffer = &fragBuffer;
-		fragBindInfo.offset = sizeof(FragmentLightUbo) * i;
 		shaderHandler.BindBuffer(fragBindInfo);
 
 		descriptorPoolHandler.BindSets(&descriptorSet, 1);
@@ -235,8 +235,9 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 		{
 			const auto& transform = _transforms[matIndex];
 
-			transform.CreateModelMatrix(modelMatrix);
-			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, modelMatrix);
+			transform.CreateModelMatrix(pushConstant.modelMatrix);
+			pushConstant.index = i;
+			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, pushConstant);
 
 			meshHandler.Draw();
 		}
@@ -399,20 +400,18 @@ void LightSystem::CreateExtDescriptorDependencies()
 	auto& swapChain = renderer.GetSwapChain();
 
 	vi::VkLayoutHandler::CreateInfo extLayoutInfo{};
-	auto& extFragBinding = extLayoutInfo.bindings.Add();
-	extFragBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	extFragBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
-	extFragBinding.size = sizeof(FragmentLightUbo) * GetLength();
-	auto& extFragAddInfoBinding = extLayoutInfo.bindings.Add();
-	extFragAddInfoBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	extFragAddInfoBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
-	extFragAddInfoBinding.size = sizeof(FragmentLightUbo);
-	extFragAddInfoBinding.binding = 1;
+	auto& extFragLightBinding = extLayoutInfo.bindings.Add();
+	extFragLightBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	extFragLightBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	extFragLightBinding.size = sizeof(FragmentLightUbo) * GetLength();
+	auto& extFragLightingInfoBinding = extLayoutInfo.bindings.Add();
+	extFragLightingInfoBinding.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	extFragLightingInfoBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
+	extFragLightingInfoBinding.size = sizeof(FragmentLightingUbo);
 	auto& cubeMapsBinding = extLayoutInfo.bindings.Add();
 	cubeMapsBinding.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	cubeMapsBinding.flag = VK_SHADER_STAGE_FRAGMENT_BIT;
 	cubeMapsBinding.count = GetLength();
-	cubeMapsBinding.binding = 2;
 	_extLayout = layoutHandler.CreateLayout(extLayoutInfo);
 
 	// Create descriptor sets.
@@ -489,7 +488,7 @@ void LightSystem::OnRecreateSwapChainAssets()
 	vi::VkPipelineHandler::CreateInfo pipelineInfo{};
 	pipelineInfo.attributeDescriptions = Vertex::GetAttributeDescriptions();
 	pipelineInfo.bindingDescription = Vertex::GetBindingDescription();
-	pipelineInfo.pushConstants.Add({ sizeof(glm::mat4), VK_SHADER_STAGE_VERTEX_BIT });
+	pipelineInfo.pushConstants.Add({ sizeof(PushConstant), VK_SHADER_STAGE_VERTEX_BIT });
 	for (auto& module : _shader.modules)
 		pipelineInfo.modules.Add(module);
 	pipelineInfo.setLayouts.Add(_layout);

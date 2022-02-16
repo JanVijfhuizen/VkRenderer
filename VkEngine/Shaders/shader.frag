@@ -2,14 +2,6 @@
 #extension GL_KHR_vulkan_glsl : enable
 #include "shader.glsl"
 
-#define LIGHT_COUNT 6
-
-struct Light
-{
-    vec3 pos;
-    float range;
-};
-
 // Light mapping.
 layout (set = 0, binding = 0) uniform Lights
 {

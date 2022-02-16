@@ -9,9 +9,13 @@ layout(location = 2) in vec2 inTexCoords;
 layout (push_constant) uniform PushConstants
 {
     mat4 model;
+    int index;
 } pushConstants;
+
+layout(location = 0) out int outIndex;
 
 void main() 
 {
     gl_Position = pushConstants.model * vec4(inPosition, 1);
+    outIndex = pushConstants.index;
 }
