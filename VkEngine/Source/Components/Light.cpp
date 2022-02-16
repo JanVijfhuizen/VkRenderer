@@ -151,9 +151,6 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 
 	PushConstant pushConstant{};
 
-	auto& mesh = _materials.GetFallbackMesh();
-	meshHandler.Bind(mesh);
-
 	// Forward all the lighting information to the UBO buffer arrays.
 	uint32_t i = 0;
 	for (const auto& [lightIndex, light] : *this)
@@ -203,6 +200,9 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	fragBindInfo.range = sizeof(FragmentLightUbo) * GetLength();
 	fragBindInfo.bindingIndex = 1;
 
+	Mesh* mesh = nullptr;
+	meshHandler.Bind(_materials.GetFallbackMesh());
+
 	// Actually start drawing the models based on the earlier calculated cubemap shadows.
 	i = 0;
 	for (const auto& [lightIndex, light] : *this)
@@ -239,6 +239,12 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 			pushConstant.index = i;
 			shaderHandler.UpdatePushConstant(_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, pushConstant);
 
+			// Bind and draw mesh.
+			if (mesh != material.mesh)
+			{
+				mesh = material.mesh;
+				meshHandler.Bind(mesh ? *mesh : _materials.GetFallbackMesh());
+			}
 			meshHandler.Draw();
 		}
 
