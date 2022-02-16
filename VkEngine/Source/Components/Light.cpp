@@ -20,7 +20,7 @@ LightSystem::LightSystem(ce::Cecsar& cecsar, VulkanRenderer& renderer, MaterialS
 	_materials(materials), _shadowCasters(shadowCasters), _transforms(transforms),
 	_shadowResolution(info.shadowResolution),
 	_geometryUboAllocator(renderer, info.size, renderer.GetSwapChain().GetLength()),
-	_fragmentUboAllocator(renderer, 1, renderer.GetSwapChain().GetLength() * (info.size + 1)),
+	_fragmentUboAllocator(renderer, info.size + 1, renderer.GetSwapChain().GetLength()),
 	_geometryUbos(info.size, GMEM),
 	_fragmentUbos(info.size + 1, GMEM),
 	_frames(renderer.GetSwapChain().GetLength(), GMEM)
@@ -147,12 +147,8 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	auto geomBuffer = _geometryUboAllocator.CreateBuffer();
 	memoryHandler.Bind(geomBuffer, geomMemory, geometryUboOffset);
 
-	vi::ArrayPtr<VkBuffer> fragBuffers{GetLength(), GMEM_TEMP};
-	for (uint32_t i = 0; i < GetLength(); ++i)
-	{
-		auto& fragBuffer = fragBuffers[i] = _fragmentUboAllocator.CreateBuffer();
-		memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset + sizeof(FragmentUbo) * i);
-	}
+	auto fragBuffer = _geometryUboAllocator.CreateBuffer();
+	memoryHandler.Bind(fragBuffer, fragMemory, fragmentUboOffset);
 
 	const float aspect = static_cast<float>(_shadowResolution.x) / _shadowResolution.y;
 	const float near = 0.1f;
@@ -201,8 +197,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	memoryHandler.Map(geomMemory, _geometryUbos.GetData(), geometryUboOffset, sizeof(GeometryUbo) * GetLength());
 	memoryHandler.Map(fragMemory, _fragmentUbos.GetData(), fragmentUboOffset, sizeof(FragmentUbo) * (GetLength() + 1));
 	swapChainExt.Collect(geomBuffer);
-	for (auto& fragBuffer : fragBuffers)
-		swapChainExt.Collect(fragBuffer);
+	swapChainExt.Collect(fragBuffer);
 
 	vi::VkShaderHandler::BufferBindInfo geomBindInfo{};
 	geomBindInfo.buffer = &geomBuffer;
@@ -210,6 +205,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	geomBindInfo.bindingIndex = 0;
 
 	vi::VkShaderHandler::BufferBindInfo fragBindInfo{};
+	fragBindInfo.buffer = &fragBuffer;
 	fragBindInfo.range = sizeof(FragmentUbo);
 	fragBindInfo.bindingIndex = 1;
 
@@ -228,7 +224,7 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 		shaderHandler.BindBuffer(geomBindInfo);
 
 		fragBindInfo.set = descriptorSet;
-		fragBindInfo.buffer = &fragBuffers[i];
+		fragBindInfo.offset = sizeof(FragmentUbo) * i;
 		shaderHandler.BindBuffer(fragBindInfo);
 		descriptorPoolHandler.BindSets(&descriptorSet, 1);
 
@@ -252,16 +248,15 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	const auto extDescriptorSet = GetDescriptorSet(imageIndex);
 
 	fragBindInfo.set = extDescriptorSet;
-	fragBindInfo.buffer = fragBuffers.GetData();
 	fragBindInfo.offset = 0;
-	fragBindInfo.count = GetLength();
+	fragBindInfo.range = sizeof(FragmentUbo) * GetLength();
+	fragBindInfo.bindingIndex = 0;
 	shaderHandler.BindBuffer(fragBindInfo);
 
 	fragBindInfo.set = extDescriptorSet;
-	fragBindInfo.buffer = &fragBuffers[GetLength()];
 	fragBindInfo.offset = sizeof(FragmentUbo) * GetLength();
+	fragBindInfo.range = sizeof(FragmentUbo);
 	fragBindInfo.bindingIndex = 1;
-	fragBindInfo.count = 1;
 	shaderHandler.BindBuffer(fragBindInfo);
 
 	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};

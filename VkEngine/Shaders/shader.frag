@@ -4,12 +4,17 @@
 
 #define LIGHT_COUNT 6
 
-// Light mapping.
-layout (set = 0, binding = 0) uniform Light
+struct Light
 {
     vec3 pos;
     float range;
-} lights[LIGHT_COUNT];
+};
+
+// Light mapping.
+layout (set = 0, binding = 0) uniform Lights
+{
+    Light values[LIGHT_COUNT];
+} lights;
 
 layout (set = 0, binding = 1) uniform LightInfo
 {
@@ -36,10 +41,10 @@ float ShadowCalculation()
 
     for(int i = 0; i < lightInfo.count; ++i)
     {
-        vec3 fragToLight = inData.fragPos - lights[i].pos;
+        vec3 fragToLight = inData.fragPos - lights.values[i].pos;
         fragToLight.z *= -1;
         float closestDepth = texture(lightMaps[i], fragToLight).r;
-        closestDepth *= lights[i].range;
+        closestDepth *= lights.values[i].range;
 
         float currentDepth = length(fragToLight);  
         float bias = 0.05; 
