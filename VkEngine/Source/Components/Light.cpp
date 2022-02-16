@@ -246,13 +246,14 @@ void LightSystem::Render(const VkSemaphore waitSemaphore)
 	// Handle external descriptor set.
 	const auto extDescriptorSet = GetDescriptorSet(imageIndex);
 
-	geomBindInfo.set = extDescriptorSet;
-	geomBindInfo.offset = 0;
-	geomBindInfo.count = GetLength();
-	shaderHandler.BindBuffer(geomBindInfo);
+	fragBindInfo.set = extDescriptorSet;
+	fragBindInfo.offset = 0;
+	fragBindInfo.count = GetLength();
+	shaderHandler.BindBuffer(fragBindInfo);
 
 	fragBindInfo.set = extDescriptorSet;
 	fragBindInfo.offset = sizeof(FragmentUbo) * GetLength();
+	fragBindInfo.count = 1;
 	shaderHandler.BindBuffer(fragBindInfo);
 
 	vi::VkCommandBufferHandler::SubmitInfo submitInfo{};
@@ -435,7 +436,7 @@ void LightSystem::CreateExtDescriptorDependencies()
 			bindInfo.imageView = _cubeMaps[index].view;
 			bindInfo.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			bindInfo.sampler = _extSamplers[index];
-			bindInfo.bindingIndex = 2;
+			bindInfo.bindingIndex = 1;
 			bindInfo.arrayIndex = j;
 			shaderHandler.BindSampler(bindInfo);
 		}

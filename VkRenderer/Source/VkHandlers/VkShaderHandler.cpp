@@ -108,10 +108,7 @@ namespace vi
 
 	void VkShaderHandler::BindBuffer(const BufferBindInfo& bindInfo) const
 	{
-		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = bindInfo.buffer;
-		bufferInfo.offset = bindInfo.offset;
-		bufferInfo.range = bindInfo.range;
+		assert(bindInfo.count > 0);
 
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -120,9 +117,32 @@ namespace vi
 		descriptorWrite.dstArrayElement = bindInfo.arrayIndex;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWrite.descriptorCount = bindInfo.count;
-		descriptorWrite.pBufferInfo = &bufferInfo;
 
-		vkUpdateDescriptorSets(core.GetLogicalDevice(), 1, &descriptorWrite, 0, nullptr);
+		const auto logicalDevice = core.GetLogicalDevice();
+
+		if(bindInfo.count == 1)
+		{
+			VkDescriptorBufferInfo info{};
+			info.buffer = bindInfo.buffer;
+			info.offset = bindInfo.offset;
+			info.range = bindInfo.range;
+			descriptorWrite.pBufferInfo = &info;
+			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		}
+		else
+		{
+			const ArrayPtr<VkDescriptorBufferInfo> infos{ bindInfo.count, GMEM_TEMP };
+			for (uint32_t i = 0; i < bindInfo.count; ++i)
+			{
+				auto& info = infos[i];
+				info.buffer = bindInfo.buffer;
+				info.offset = bindInfo.offset + bindInfo.range * i;
+				info.range = bindInfo.range;
+			}
+
+			descriptorWrite.pBufferInfo = infos.GetData();
+			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		}
 	}
 
 	void VkShaderHandler::CopyBuffer(
