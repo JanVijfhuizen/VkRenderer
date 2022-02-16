@@ -14,7 +14,7 @@ namespace vi
 			const auto& binding = info.bindings[i];
 			auto& uboLayoutBinding = layoutBindings[i];
 
-			uboLayoutBinding.binding = i;
+			uboLayoutBinding.binding = binding.binding == -1 ? i : binding.binding;
 			uboLayoutBinding.descriptorType = binding.type;
 			uboLayoutBinding.descriptorCount = binding.count;
 			uboLayoutBinding.stageFlags = binding.flag;

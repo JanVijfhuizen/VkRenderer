@@ -25,6 +25,8 @@ namespace vi
 				uint32_t count = 1;
 				// Where the binding is used during rendering (vertex, fragment etc).
 				VkShaderStageFlagBits flag;
+				// Binding index for the shader binding. If not set, will default to this struct's index. 
+				int32_t binding = -1;
 			};
 
 			Vector<Binding> bindings{4, GMEM_TEMP};

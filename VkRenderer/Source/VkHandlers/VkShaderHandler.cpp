@@ -57,29 +57,43 @@ namespace vi
 		return sampler;
 	}
 
-	void VkShaderHandler::BindSampler(
-		const VkDescriptorSet set, 
-		const VkImageView imageView, 
-		const VkImageLayout layout,
-		const VkSampler sampler, 
-		const uint32_t bindingIndex, 
-		const uint32_t arrayIndex) const
+	void VkShaderHandler::BindSampler(const SamplerBindInfo& bindInfo) const
 	{
-		VkDescriptorImageInfo imageInfo{};
-		imageInfo.imageLayout = layout;
-		imageInfo.imageView = imageView;
-		imageInfo.sampler = sampler;
+		assert(bindInfo.count > 0);
 
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = set;
-		descriptorWrite.dstBinding = bindingIndex;
-		descriptorWrite.dstArrayElement = arrayIndex;
+		descriptorWrite.dstSet = bindInfo.set;
+		descriptorWrite.dstBinding = bindInfo.bindingIndex;
+		descriptorWrite.dstArrayElement = bindInfo.arrayIndex;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = &imageInfo;
+		descriptorWrite.descriptorCount = bindInfo.count;
+		
+		const auto logicalDevice = core.GetLogicalDevice();
 
-		vkUpdateDescriptorSets(core.GetLogicalDevice(), 1, &descriptorWrite, 0, nullptr);
+		if (bindInfo.count == 1)
+		{
+			VkDescriptorImageInfo info{};
+			info.imageLayout = bindInfo.layouts[0];
+			info.imageView = bindInfo.imageViews[0];
+			info.sampler = bindInfo.samplers[0];
+			descriptorWrite.pImageInfo = &info;
+			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		}
+		else
+		{
+			const ArrayPtr<VkDescriptorImageInfo> infos{ bindInfo.count, GMEM_TEMP };
+			for (uint32_t i = 0; i < bindInfo.count; ++i)
+			{
+				auto& info = infos[i];
+				info.imageLayout = bindInfo.layouts[i];
+				info.imageView = bindInfo.imageViews[i];
+				info.sampler = bindInfo.samplers[i];
+			}
+
+			descriptorWrite.pImageInfo = infos.GetData();
+			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		}
 	}
 
 	void VkShaderHandler::DestroySampler(const VkSampler sampler) const
@@ -112,29 +126,43 @@ namespace vi
 		vkCmdBindIndexBuffer(core.GetCommandBufferHandler().GetCurrent(), buffer, 0, VK_INDEX_TYPE_UINT16);
 	}
 
-	void VkShaderHandler::BindBuffer(
-		const VkDescriptorSet set, 
-		const VkBuffer buffer, 
-		const VkDeviceSize offset, 
-		const VkDeviceSize range,
-		const uint32_t bindingIndex, 
-		const uint32_t arrayIndex) const
+	void VkShaderHandler::BindBuffer(const BufferBindInfo& bindInfo) const
 	{
-		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = buffer;
-		bufferInfo.offset = offset;
-		bufferInfo.range = range;
+		assert(bindInfo.count > 0);
 
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = set;
-		descriptorWrite.dstBinding = bindingIndex;
-		descriptorWrite.dstArrayElement = arrayIndex;
+		descriptorWrite.dstSet = bindInfo.set;
+		descriptorWrite.dstBinding = bindInfo.bindingIndex;
+		descriptorWrite.dstArrayElement = bindInfo.arrayIndex;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo = &bufferInfo;
+		descriptorWrite.descriptorCount = bindInfo.count;
 
-		vkUpdateDescriptorSets(core.GetLogicalDevice(), 1, &descriptorWrite, 0, nullptr);
+		const auto logicalDevice = core.GetLogicalDevice();
+
+		if(bindInfo.count == 1)
+		{
+			VkDescriptorBufferInfo info{};
+			info.buffer = bindInfo.buffer[0];
+			info.offset = bindInfo.offset;
+			info.range = bindInfo.range;
+			descriptorWrite.pBufferInfo = &info;
+			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		}
+		else
+		{
+			const ArrayPtr<VkDescriptorBufferInfo> infos{ bindInfo.count, GMEM_TEMP };
+			for (uint32_t i = 0; i < bindInfo.count; ++i)
+			{
+				auto& info = infos[i];
+				info.buffer = bindInfo.buffer[i];
+				info.offset = bindInfo.offset + bindInfo.range * i;
+				info.range = bindInfo.range;
+			}
+
+			descriptorWrite.pBufferInfo = infos.GetData();
+			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		}
 	}
 
 	void VkShaderHandler::CopyBuffer(

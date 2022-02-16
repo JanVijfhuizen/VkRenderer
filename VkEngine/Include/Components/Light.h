@@ -85,21 +85,23 @@ private:
 		glm::mat4 matrices[6]{};
 	};
 
-	// UBO that contains data for a single light, but can also be used as a general light info struct.
-	// I have chosen to use a union and to put it into the same struct for the simple reason of having it be aligned in memory.
-	struct alignas(256) FragmentUbo final
+	// UBO that contains data for a single light.
+	struct FragmentLightUbo final
 	{
-		union
-		{
-			// Light data.
-			struct
-			{
-				glm::vec3 position;
-				float range;
-			};
-			// Additional info.
-			uint32_t count;
-		};
+		glm::vec3 position;
+		float range;
+	};
+
+	// UBO that contains data for lighting purposes.
+	struct FragmentLightingUbo final
+	{
+		uint32_t count;
+	};
+
+	struct PushConstant final
+	{
+		glm::mat4 modelMatrix;
+		uint32_t index;
 	};
 
 	MaterialSystem& _materials;
@@ -119,10 +121,11 @@ private:
 	// External samplers for the cubemaps.
 	vi::ArrayPtr<VkSampler> _extSamplers;
 
-	UboAllocator<GeometryUbo> _geometryUboPool;
-	UboAllocator<FragmentUbo> _fragmentUboPool;
+	UboAllocator<GeometryUbo> _geometryUboAllocator;
+	UboAllocator<FragmentLightUbo> _fragmentLightUboAllocator;
+	UboAllocator<FragmentLightingUbo> _fragmentLightingUboAllocator;
 	vi::ArrayPtr<GeometryUbo> _geometryUbos;
-	vi::ArrayPtr<FragmentUbo> _fragmentUbos;
+	vi::ArrayPtr<FragmentLightUbo> _fragmentUbos;
 
 	// Per-frame syncronization objects.
 	vi::ArrayPtr<Frame> _frames;

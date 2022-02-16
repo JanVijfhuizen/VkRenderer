@@ -60,6 +60,11 @@ int main()
 		lightTransform.position.y -= 1;
 		lights.Insert(light);
 
+		const auto light2 = cecsar.Add();
+		auto& light2Transform = transforms.Insert(light2);
+		light2Transform.position.x -= 10;
+		light2Transform.position.y -= 1;
+		auto& l2 = lights.Insert(light2);
 		cameraTransform.position.y += 15;
 	};
 
@@ -73,8 +78,8 @@ int main()
 		engine.GetTransforms()[2].position.x = sin(-f * 2) * 12;
 		engine.GetTransforms()[2].position.y = cos(-f * 2) * 12;
 		engine.GetTransforms()[3].rotation.z = f * 36;
-		engine.GetTransforms()[3].position.x = sin(f) * 3;
-		engine.GetTransforms()[3].position.y = cos(f) * 3;
+		engine.GetTransforms()[3].position.x = sin(f) * 7;
+		engine.GetTransforms()[3].position.y = cos(f) * 7;
 
 		engine.GetTransforms()[4].position.z = (-1.f - sin(-f * 2)) * 2;
 		//engine.GetTransforms()[4].position.z = 4;

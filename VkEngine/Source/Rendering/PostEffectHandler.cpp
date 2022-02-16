@@ -47,17 +47,28 @@ void BasicPostEffect::Render(Frame& frame)
 	meshHandler.Bind(postEffectHandler.GetMesh());
 
 	// Create a color sampler.
-	const auto sampler = shaderHandler.CreateSampler();
-	shaderHandler.BindSampler(frame.descriptorSet, frame.imageView, 
-		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, sampler, 0, 0);
+	auto sampler = shaderHandler.CreateSampler();
+	VkImageLayout layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	vi::VkShaderHandler::SamplerBindInfo colorBindInfo{};
+	colorBindInfo.set = frame.descriptorSet;
+	colorBindInfo.imageViews = &frame.imageView;
+	colorBindInfo.layouts = &layout;
+	colorBindInfo.samplers = &sampler;
+	colorBindInfo.bindingIndex = 0;
+	shaderHandler.BindSampler(colorBindInfo);
 
 	// Create a depth sampler.
 	vi::VkShaderHandler::SamplerCreateInfo depthSamplerCreateInfo{};
 	depthSamplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 	depthSamplerCreateInfo.adressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-	const auto depthSampler = shaderHandler.CreateSampler(depthSamplerCreateInfo);
-	shaderHandler.BindSampler(frame.descriptorSet, frame.depthImageView, 
-		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, depthSampler, 1, 0);
+	auto depthSampler = shaderHandler.CreateSampler(depthSamplerCreateInfo);
+	vi::VkShaderHandler::SamplerBindInfo depthBindInfo{};
+	depthBindInfo.set = frame.descriptorSet;
+	depthBindInfo.imageViews = &frame.depthImageView;
+	depthBindInfo.layouts = &layout;
+	depthBindInfo.samplers = &depthSampler;
+	depthBindInfo.bindingIndex = 1;
+	shaderHandler.BindSampler(depthBindInfo);
 
 	// Bind descriptor sets and draw post effect quad.
 	// Inputs are the color and depth images of the previous pass.

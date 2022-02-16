@@ -2,14 +2,11 @@
 #extension GL_KHR_vulkan_glsl : enable
 #include "shader.glsl"
 
-#define LIGHT_COUNT 6
-
 // Light mapping.
-layout (set = 0, binding = 0) uniform Light
+layout (set = 0, binding = 0) uniform Lights
 {
-    vec3 pos;
-    float range;
-} lights[LIGHT_COUNT];
+    Light values[LIGHT_COUNT];
+} lights;
 
 layout (set = 0, binding = 1) uniform LightInfo
 {
@@ -36,10 +33,10 @@ float ShadowCalculation()
 
     for(int i = 0; i < lightInfo.count; ++i)
     {
-        vec3 fragToLight = inData.fragPos - lights[i].pos;
+        vec3 fragToLight = inData.fragPos - lights.values[i].pos;
         fragToLight.z *= -1;
         float closestDepth = texture(lightMaps[i], fragToLight).r;
-        closestDepth *= lights[i].range;
+        closestDepth *= lights.values[i].range;
 
         float currentDepth = length(fragToLight);  
         float bias = 0.05; 

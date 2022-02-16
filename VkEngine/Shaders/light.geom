@@ -9,7 +9,10 @@ layout(set = 0, binding = 0) uniform Matrices
 	mat4 values[6];
 } matrices;
 
-layout (location = 0) out vec4 outFragPos;
+layout (location = 0) in flat int[] inIndex;
+
+layout (location = 0) out int outIndex;
+layout (location = 1) out vec4 outFragPos;
 
 void main(void)
 {
@@ -20,6 +23,7 @@ void main(void)
         {
             outFragPos = gl_in[i].gl_Position;
             gl_Position = matrices.values[face] * outFragPos;
+            outIndex = inIndex[i];
             EmitVertex();
         }    
         EndPrimitive();

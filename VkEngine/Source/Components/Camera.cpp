@@ -10,7 +10,7 @@ CameraSystem::CameraSystem(ce::Cecsar& cecsar,
 	VulkanRenderer& renderer, TransformSystem& transforms, const uint32_t capacity) :
 	SmallSystem<Camera>(cecsar, capacity),
 	_renderer(renderer), _transforms(transforms),
-	_uboAllocator(renderer, capacity, renderer.GetSwapChain().GetLength())
+	_uboAllocator(renderer, capacity)
 {
 	auto& descriptorPoolHandler = renderer.GetDescriptorPoolHandler();
 	auto& layoutHandler = renderer.GetLayoutHandler();
@@ -46,8 +46,11 @@ CameraSystem::CameraSystem(ce::Cecsar& cecsar,
 
 CameraSystem::~CameraSystem()
 {
-	_renderer.GetLayoutHandler().DestroyLayout(_layout);
-	_renderer.GetDescriptorPoolHandler().Destroy(_descriptorPool);
+	auto& layoutHandler = _renderer.GetLayoutHandler();
+	auto& descriptorPoolhandler = _renderer.GetDescriptorPoolHandler();
+
+	layoutHandler.DestroyLayout(_layout);
+	descriptorPoolhandler.Destroy(_descriptorPool);
 }
 
 void CameraSystem::Update()
@@ -68,13 +71,18 @@ void CameraSystem::Update()
 	// Size of the frame memory block.
 	const size_t memSize = sizeof(Camera::Ubo) * GetLength();
 	// Offset from the start of the memory adress based on swap chain image index.
-	const size_t memOffset = memSize * imageIndex;
+	const size_t memOffset = _uboAllocator.GetOffset(imageIndex);
 	const auto extent = swapChain.GetExtent();
 	const float aspectRatio = static_cast<float>(extent.x) / extent.y;
 
 	// Create a buffer per frame and batch all the cameras in one go.
-	const auto buffer = _uboAllocator.CreateBuffer();
+	auto buffer = _uboAllocator.CreateBuffer();
 	memoryHandler.Bind(buffer, memory, memOffset);
+
+	vi::VkShaderHandler::BufferBindInfo bindInfo{};
+	bindInfo.buffer = &buffer;
+	bindInfo.range = sizeof(Camera::Ubo);
+	bindInfo.bindingIndex = 0;
 
 	uint32_t i = 0;
 	for (auto& [index, camera] : *this)
@@ -88,8 +96,11 @@ void CameraSystem::Update()
 			aspectRatio, camera.clipNear, camera.clipFar);
 
 		auto& descriptor = _descriptorSets[descriptorSetStartIndex + i];
-		
-		shaderHandler.BindBuffer(descriptor, buffer, sizeof(Camera::Ubo) * i, sizeof(Camera::Ubo), 0, 0);
+
+		bindInfo.set = descriptor;
+		bindInfo.offset = sizeof(Camera::Ubo) * i;
+		shaderHandler.BindBuffer(bindInfo);
+
 		i++;
 	}
 
