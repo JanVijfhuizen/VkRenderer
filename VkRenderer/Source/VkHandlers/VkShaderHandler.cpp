@@ -59,10 +59,7 @@ namespace vi
 
 	void VkShaderHandler::BindSampler(const SamplerBindInfo& bindInfo) const
 	{
-		VkDescriptorImageInfo imageInfo{};
-		imageInfo.imageLayout = bindInfo.layout;
-		imageInfo.imageView = bindInfo.imageView;
-		imageInfo.sampler = bindInfo.sampler;
+		assert(bindInfo.count > 0);
 
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -71,9 +68,32 @@ namespace vi
 		descriptorWrite.dstArrayElement = bindInfo.arrayIndex;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		descriptorWrite.descriptorCount = bindInfo.count;
-		descriptorWrite.pImageInfo = &imageInfo;
+		
+		const auto logicalDevice = core.GetLogicalDevice();
 
-		vkUpdateDescriptorSets(core.GetLogicalDevice(), 1, &descriptorWrite, 0, nullptr);
+		if (bindInfo.count == 1)
+		{
+			VkDescriptorImageInfo info{};
+			info.imageLayout = bindInfo.layout[0];
+			info.imageView = bindInfo.imageView[0];
+			info.sampler = bindInfo.sampler[0];
+			descriptorWrite.pImageInfo = &info;
+			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		}
+		else
+		{
+			const ArrayPtr<VkDescriptorImageInfo> infos{ bindInfo.count, GMEM_TEMP };
+			for (uint32_t i = 0; i < bindInfo.count; ++i)
+			{
+				auto& info = infos[i];
+				info.imageLayout = bindInfo.layout[i];
+				info.imageView = bindInfo.imageView[i];
+				info.sampler = bindInfo.sampler[i];
+			}
+
+			descriptorWrite.pImageInfo = infos.GetData();
+			vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		}
 	}
 
 	void VkShaderHandler::DestroySampler(const VkSampler sampler) const

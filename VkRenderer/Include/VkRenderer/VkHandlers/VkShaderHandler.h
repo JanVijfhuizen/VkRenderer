@@ -28,9 +28,9 @@ namespace vi
 		struct SamplerBindInfo final
 		{
 			VkDescriptorSet set;
-			VkImageView imageView;
-			VkImageLayout layout;
-			VkSampler sampler;
+			VkImageView* imageView;
+			VkImageLayout* layout;
+			VkSampler* sampler;
 			uint32_t bindingIndex;
 			uint32_t arrayIndex = 0;
 			uint32_t count = 1;

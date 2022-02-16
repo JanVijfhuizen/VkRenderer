@@ -423,23 +423,25 @@ void LightSystem::CreateExtDescriptorDependencies()
 
 	// Already bind all the cubemap samplers to the descriptors, because it won't change.
 	const uint32_t lightCount = GetLength();
+	const vi::ArrayPtr<VkImageLayout> layouts{GetLength(), GMEM_TEMP, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+	const vi::ArrayPtr<VkImageView> imageViews{GetLength(), GMEM_TEMP};
+
 	for (uint32_t i = 0; i < length; ++i)
 	{
 		auto& descriptorSet = _extDescriptorSets[i];
+		const uint32_t index = i * lightCount;
 
-		for (uint32_t j = 0; j < lightCount; ++j)
-		{
-			const uint32_t index = j + i * lightCount;
+		for (uint32_t j = 0; j < GetLength(); ++j)
+			imageViews[j] = _cubeMaps[index + j].view;
 
-			vi::VkShaderHandler::SamplerBindInfo bindInfo{};
-			bindInfo.set = descriptorSet;
-			bindInfo.imageView = _cubeMaps[index].view;
-			bindInfo.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			bindInfo.sampler = _extSamplers[index];
-			bindInfo.bindingIndex = 1;
-			bindInfo.arrayIndex = j;
-			shaderHandler.BindSampler(bindInfo);
-		}
+		vi::VkShaderHandler::SamplerBindInfo bindInfo{};
+		bindInfo.set = descriptorSet;
+		bindInfo.imageView = imageViews.GetData();
+		bindInfo.layout = layouts.GetData();
+		bindInfo.sampler = &_extSamplers[index];
+		bindInfo.bindingIndex = 2;
+		bindInfo.arrayIndex = 0;
+		shaderHandler.BindSampler(bindInfo);
 	}
 }
 

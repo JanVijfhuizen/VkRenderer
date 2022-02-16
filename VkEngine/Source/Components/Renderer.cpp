@@ -116,12 +116,12 @@ void RenderSystem::Draw()
 			samplerCreateInfo.maxLod = texture->mipLevels;
 			samplerCreateInfo.minFilter = VK_FILTER_NEAREST;
 			samplerCreateInfo.maxFilter = VK_FILTER_NEAREST;
-			const auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
+			auto sampler = shaderHandler.CreateSampler(samplerCreateInfo);
 
 			bindInfo.set = sets.material;
-			bindInfo.imageView = texture->imageView;
-			bindInfo.layout = texture->layout;
-			bindInfo.sampler = sampler;		
+			bindInfo.imageView = &texture->imageView;
+			bindInfo.layout = &texture->layout;
+			bindInfo.sampler = &sampler;		
 			shaderHandler.BindSampler(bindInfo);
 
 			// Bind descriptor sets.
